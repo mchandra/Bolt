@@ -1,5 +1,114 @@
 import numpy as np
 
+def RTA_defect_scattering(config, delta_f_hat):
+  
+  E    = config.band_energies
+  mu_0 = config.chemical_potential_background
+  k    = config.boltzmann_constant
+  T_0  = config.temperature_background
+
+  tmp = (E - mu_0)/(k*T_0)
+
+  denominator =  (k*T_0**2.) \
+               * (np.exp(tmp) + 2. + np.exp(-tmp) )
+
+  a_00_integrand =     T_0        / denominator
+  a_01_integrand =     (E - mu_0) / denominator
+  a_10_integrand = E * T_0        / denominator
+  a_11_integrand = E * (E - mu_0) / denominator
+
+  b_0_integrand  =     delta_f_hat
+  b_1_integrand  = E * delta_f_hat
+
+  a_00 = np.sum(a_00_integrand) * config.dp_x * config.dp_y
+  a_01 = np.sum(a_01_integrand) * config.dp_x * config.dp_y
+  a_10 = np.sum(a_10_integrand) * config.dp_x * config.dp_y
+  a_11 = np.sum(a_11_integrand) * config.dp_x * config.dp_y
+
+  b_0  = np.sum(b_0_integrand)  * config.dp_x * config.dp_y
+  b_1  = np.sum(b_1_integrand)  * config.dp_x * config.dp_y
+
+  determinant       = (a_01*a_10 - a_00*a_11)
+  delta_mu_hat_eqbm = -(a_11*b_0 - a_01*b_1) / determinant
+  delta_T_hat_eqbm  = -(a_10*b_0 - a_00*b_1) / determinant
+
+  numerator   = (E - mu_0)*delta_T_hat_eqbm + T_0*delta_mu_hat_eqbm
+
+  delta_f_hat_local_eqbm_linearized = numerator/denominator
+
+  C_f = -(delta_f_hat - delta_f_hat_local_eqbm_linearized)/config.tau_defect
+
+  return C_f
+
+def RTA_ee_scattering(config, delta_f_hat):
+
+  E    = config.band_energies
+  mu_0 = config.chemical_potential_background
+  k    = config.boltzmann_constant
+  T_0  = config.temperature_background
+
+  tmp = (E - mu_0)/(k*T_0)
+
+  denominator =  (k*T_0**2.) \
+               * (np.exp(tmp) + 2. + np.exp(-tmp) )
+
+  a = 1./denominator
+  
+  a_0 = T_0              * a
+  a_1 = (E - mu_0)       * a
+  a_2 = T_0 * config.p_x * a  
+  a_3 = T_0 * config.p_y * a
+
+  a_00 = np.sum(a_0) * config.dp_x * config.dp_y
+  a_01 = np.sum(a_1) * config.dp_x * config.dp_y
+  a_02 = np.sum(a_2) * config.dp_x * config.dp_y
+  a_03 = np.sum(a_3) * config.dp_x * config.dp_y
+
+  a_10 = np.sum(E * a_0) * config.dp_x * config.dp_y
+  a_11 = np.sum(E * a_1) * config.dp_x * config.dp_y
+  a_12 = np.sum(E * a_2) * config.dp_x * config.dp_y
+  a_13 = np.sum(E * a_3) * config.dp_x * config.dp_y
+
+  a_20 = np.sum(config.p_x * a_0) * config.dp_x * config.dp_y
+  a_21 = np.sum(config.p_x * a_1) * config.dp_x * config.dp_y
+  a_22 = np.sum(config.p_x * a_2) * config.dp_x * config.dp_y
+  a_23 = np.sum(config.p_x * a_3) * config.dp_x * config.dp_y
+
+  a_30 = np.sum(config.p_y * a_0) * config.dp_x * config.dp_y
+  a_31 = np.sum(config.p_y * a_1) * config.dp_x * config.dp_y
+  a_32 = np.sum(config.p_y * a_2) * config.dp_x * config.dp_y
+  a_33 = np.sum(config.p_y * a_3) * config.dp_x * config.dp_y
+
+  b_0  = np.sum(             delta_f_hat) * config.dp_x * config.dp_y
+  b_1  = np.sum(E          * delta_f_hat) * config.dp_x * config.dp_y
+  b_2  = np.sum(config.p_x * delta_f_hat) * config.dp_x * config.dp_y
+  b_3  = np.sum(config.p_y * delta_f_hat) * config.dp_x * config.dp_y
+
+  A = np.array([ [a_00, a_01, a_02, a_03], \
+                 [a_10, a_11, a_12, a_13], \
+                 [a_20, a_21, a_22, a_23], \
+                 [a_30, a_31, a_32, a_33]  \
+               ] \
+              )
+  b = np.array([b_0, b_1, b_2, b_3])
+
+  delta_mu_hat, delta_T_hat, delta_vx_hat, delta_vy_hat = np.linalg.solve(A, b)
+
+#  print "delta_mu_hat = ", delta_mu_hat, " delta_T_hat = ", delta_T_hat, \
+#    "delta_vx_hat = ", delta_vx_hat, " delta_vy_hat = ", delta_vy_hat
+  delta_f_hat_local_eqbm_linearized = \
+                              (  T_0 * delta_vx_hat * config.p_x \
+                               + T_0 * delta_vy_hat * config.p_y \
+                               + (E - mu_0) * delta_T_hat \
+                               + T_0 * delta_mu_hat \
+                              ) / denominator
+
+  C_f = -(delta_f_hat - delta_f_hat_local_eqbm_linearized
+         ) / config.tau_ee
+
+  return C_f 
+
+
 def BGK_collision_operator(config, delta_f_hat):
   """
   Returns the array that contains the values of the linearized BGK collision operator.

@@ -80,8 +80,71 @@ def set(params):
   config.collision_operator = params.collisions['collision_operator']
   config.tau                = params.collisions['tau']
 
-  return config
+  config.h_cross                       = 1
+  config.number_of_bands               = 2
+  config.chemical_potential_background = 0.005
+  #config.chemical_potential_background = 0.00005
+  config.fermi_velocity                = 137./300.
+  config.tau_defect                    = 0.05
+  config.tau_ee                        = np.inf
+  config.delta_E_x_hat_ext             = 1e-5   + 0.*1j
+  config.delta_E_y_hat_ext             = 0e-5 + 0*1j
 
+  # Initialize the grids
+  vel_x_max = config.vel_x_max
+  vel_y_max = config.vel_y_max
+
+  N_vel_x   = config.N_vel_x
+  N_vel_y   = config.N_vel_y
+
+  vel_x        = np.linspace(-vel_x_max, vel_x_max, N_vel_x)
+  vel_y        = np.linspace(-vel_y_max, vel_y_max, N_vel_y)
+
+  config.dv_x  = vel_x[1] - vel_x[0]
+  config.dv_y  = vel_y[1] - vel_y[0]
+
+  vel_x, vel_y = np.meshgrid(vel_x, vel_y)
+  
+  config.vel_x = vel_x
+  config.vel_y = vel_y
+
+  x        = np.linspace(0, 1, config.N_x)
+  y        = np.linspace(0, 1, config.N_y)
+  x, y     = np.meshgrid(x, y)
+
+  config.x = x
+  config.y = y
+
+  def band_energy(p_x, p_y):
+    
+    p = np.sqrt(p_x**2. + p_y**2.)
+
+    return np.array([ p*config.fermi_velocity, 
+                     -p*config.fermi_velocity
+                    ]
+                   )
+
+  def band_velocity(p_x, p_y):
+
+    p     = np.sqrt(p_x**2. + p_y**2.)
+    p_hat = np.array([p_x, p_y]) / (p + 1e-20)
+
+    upper_band_velocity =  config.fermi_velocity * p_hat
+    lower_band_velocity = -config.fermi_velocity * p_hat
+
+    return np.array([upper_band_velocity, lower_band_velocity])
+
+  p_x        = config.h_cross * vel_x
+  p_y        = config.h_cross * vel_y
+  config.p_x = p_x
+  config.p_y = p_y
+  config.dp_x = config.h_cross * config.dv_x
+  config.dp_y = config.h_cross * config.dv_y
+
+  config.band_energies   = band_energy(p_x, p_y)
+  config.band_velocities = band_velocity(p_x, p_y)
+
+  return config
 
 def f_background(config):
   """
@@ -98,104 +161,52 @@ def f_background(config):
                    of vel_x.
   """
   
-  mass_particle      = config.mass_particle
-  boltzmann_constant = config.boltzmann_constant
+  rho     = config.rho_background
+  m       = config.mass_particle
+  k       = config.boltzmann_constant
+  T       = config.temperature_background
+  vx_bulk = config.vel_bulk_x_background
+  vy_bulk = config.vel_bulk_y_background
+  vx      = config.vel_x
+  vy      = config.vel_y
 
-  rho_background         = config.rho_background
-  temperature_background = config.temperature_background
-  vel_bulk_x_background  = config.vel_bulk_x_background
+#  # CAUTION: The normalization prefactor depends on the velocity space dimension
+#
+#  f_background =   rho * (m/(2*np.pi*k*T)) \
+#                 * np.exp(-m*( (vx - vx_bulk)**2 + (vy - vy_bulk)**2 ) / (2*k*T) )
 
-  vel_x_max = config.vel_x_max
-  N_vel_x   = config.N_vel_x
-  vel_x     = np.linspace(-vel_x_max, vel_x_max, N_vel_x)
+  energy = config.band_energies
+  mu     = config.chemical_potential_background
 
-  if(config.mode == '2D2V'):
-    vel_bulk_y_background  = config.vel_bulk_y_background
-    
-    vel_y_max    = config.vel_y_max
-    N_vel_y      = config.N_vel_y
-    vel_y        = np.linspace(-vel_y_max, vel_y_max, N_vel_y)
-    vel_x, vel_y = np.meshgrid(vel_x, vel_y)
 
-    f_background = rho_background * (mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
-                   np.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/(2*boltzmann_constant*temperature_background)) * \
-                   np.exp(-mass_particle*(vel_y - vel_bulk_x_background)**2/(2*boltzmann_constant*temperature_background))
-
-  elif(config.mode == '1D1V'):
-    f_background = rho_background * np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
-                   np.exp(-mass_particle*vel_x**2/(2*boltzmann_constant*temperature_background))
+  def heaviside_theta(x):
+    if (x<=0):
+        return 0.
+    else:
+        return 1. 
   
-  else:
-    raise Exception('The mode mentioned in the config file is not supported')
+  heaviside_theta = np.vectorize(heaviside_theta)
 
-  return f_background
+  f_fermi_dirac  =  1/(np.exp((energy - mu)/(k*T)) + 1)
 
-def dfdv_x_background(config):
-  """
-  Returns the value of the derivative of f_background w.r.t to vel_x, depending 
-  on the parameters set in the config object.
+  return f_fermi_dirac
 
-  Parameters:
-  -----------
-    config : Object config which is obtained by set() is passed to this file
-
-  Output:
-  -------
-    dfdv_x_background : Array which contains the values of dfdv_x_background at different values
-                        of vel_x.
-  """
-  vel_x_max = config.vel_x_max
-  N_vel_x   = config.N_vel_x
-
-  vel_x = np.linspace(-vel_x_max, vel_x_max, N_vel_x)
-  dv_x  = vel_x[1] - vel_x[0]
-
+def dfdp_background(config):
   f_background_local = f_background(config)
 
-  if(config.mode == '2D2V'):
-    dfdv_x_background  = np.zeros([f_background_local.shape[0], f_background_local.shape[1]])
+  df_dpy = np.zeros(f_background_local.shape)
+  df_dpx = np.zeros(f_background_local.shape)
 
-    for i in range(f_background_local.shape[0]):
-      dfdv_x_background[i] = np.convolve(f_background_local[i], [1, -1], 'same') * (1/dv_x)
+  for band in range(config.number_of_bands):
+    df_dpy_band, df_dpx_band = np.gradient(f_background_local[band], 
+					   config.dp_y, config.dp_x
+					  )
 
-  elif(config.mode == '1D1V'):
-    dfdv_x_background = np.convolve(f_background_local, [1, -1], 'same') * (1/dv_x)
+    df_dpy[band] = df_dpy_band
+    df_dpx[band] = df_dpx_band
 
-  else:
-    raise Exception('The mode mentioned in the config file is not supported')
+  return(np.array([df_dpy, df_dpx]) )
 
-  return dfdv_x_background
-
-def dfdv_y_background(config):
-  """
-  Returns the value of the derivative of f_background w.r.t to vel_y, depending 
-  on the parameters set in the config object.
-
-  Parameters:
-  -----------
-    config : Object config which is obtained by set() is passed to this file
-
-  Output:
-  -------
-    dfdv_y_background : Array which contains the values of dfdv_y_background at different values
-                        of vel_y.
-  """
-  if(config.mode != '2D2V'):
-    raise Exception('Not in 2D mode!')
-
-  vel_y_max = config.vel_y_max
-  N_vel_y   = config.N_vel_y
-
-  vel_y = np.linspace(-vel_y_max, vel_y_max, N_vel_y)
-  dv_y  = vel_y[1] - vel_y[0]
-
-  f_background_local = f_background(config)
-  dfdv_y_background  = np.zeros([f_background_local.shape[0], f_background_local.shape[1]])
-
-  for i in range(f_background_local.shape[1]):
-    dfdv_y_background[:, i] = np.convolve(f_background_local[:, i], [1, -1], 'same') * (1/dv_y)
-
-  return dfdv_y_background
 
 def time_array(config):
   """
@@ -238,7 +249,24 @@ def init_delta_f_hat(config):
   pert_real = config.pert_real 
   pert_imag = config.pert_imag 
 
-  delta_f_hat_initial = pert_real*f_background(config) +\
-                        pert_imag*f_background(config)*1j 
+#  delta_f_hat_initial = pert_real*f_background(config) +\
+#                        pert_imag*f_background(config)*1j 
+
+  E    = config.band_energies
+  mu_0 = config.chemical_potential_background
+  k    = config.boltzmann_constant
+  T_0  = config.temperature_background
+
+  tmp = (E - mu_0)/(k*T_0)
+
+  delta_mu_hat = config.pert_real + 1j*config.pert_imag
+
+#  delta_f_hat_initial = \
+#    delta_mu_hat * np.exp(tmp) \
+#  / (k*T * (np.exp(2.*tmp) + 2.*np.exp(tmp) + 1) )
+
+  delta_f_hat_initial = \
+    delta_mu_hat \
+  / (k*T_0 * (np.exp(tmp) + 2. + np.exp(-tmp)) )
 
   return delta_f_hat_initial

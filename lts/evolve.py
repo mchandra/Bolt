@@ -1,7 +1,104 @@
 import numpy as np
 from scipy.integrate import odeint
+import params
 import lts.initialize as initialize
 from lts.collision_operators import BGK_collision_operator
+from lts.collision_operators import RTA_defect_scattering
+from lts.collision_operators import RTA_ee_scattering
+
+config = initialize.set(params)
+
+mass_particle      = config.mass_particle
+boltzmann_constant = config.boltzmann_constant
+
+rho_background         = config.rho_background
+temperature_background = config.temperature_background
+
+k_x = config.k_x   
+k_y = config.k_y   
+
+x     = config.x
+y     = config.y
+
+vel_x = config.vel_x
+vel_y = config.vel_y
+
+dv_x  = config.dv_x
+dv_y  = config.dv_y
+
+dp_x  = config.dp_x
+dp_y  = config.dp_y
+
+fields_enabled  = config.fields_enabled
+charge_particle = config.charge_particle
+
+collisions_enabled = config.collisions_enabled 
+
+def compute_delta_rho_hat(delta_f_hat, config):
+
+  delta_rho_hat = 4./(2.*np.pi)**2.*np.sum(delta_f_hat)*dv_x*dv_y
+
+  return(delta_rho_hat)
+
+def compute_delta_E_hat(delta_f_hat, config):
+
+  delta_rho_hat = compute_delta_rho_hat(delta_f_hat, config)
+
+  delta_phi_hat = - charge_particle * delta_rho_hat \
+                  / (k_x**2 + k_y**2)
+   
+  delta_E_x_hat = - delta_phi_hat * (1j * k_x)
+  delta_E_y_hat = - delta_phi_hat * (1j * k_y)
+
+  return(np.array([delta_E_x_hat, delta_E_y_hat]) )
+
+def compute_delta_J_hat(delta_f_hat, config):
+  
+  delta_J_x_hat = 0.; delta_J_y_hat = 0
+  for band in range(config.number_of_bands):
+    band_vel_x, band_vel_y = config.band_velocities[band]
+
+    delta_J_x_hat +=  4./(2.*np.pi)**2. \
+    		    * np.sum(band_vel_x*delta_f_hat[band, :, :]) * dp_x * dp_y
+    delta_J_y_hat +=  4./(2.*np.pi)**2. \
+    	 	    * np.sum(band_vel_y*delta_f_hat[band, :, :]) * dp_x * dp_y
+
+  return(np.array([delta_J_x_hat, delta_J_y_hat]) )
+
+def compute_delta_J(delta_f_hat, config):
+ 
+  delta_J_x_hat, delta_J_y_hat = \
+    compute_delta_J_hat(delta_f_hat, config)
+
+  delta_J_x = delta_J_x_hat.real * np.cos(k_x*x + k_y*y) - \
+              delta_J_x_hat.imag * np.sin(k_x*x + k_y*y)
+
+  delta_J_y = delta_J_y_hat.real * np.cos(k_x*x + k_y*y) - \
+              delta_J_y_hat.imag * np.sin(k_x*x + k_y*y)
+
+  return(np.array([delta_J_x, delta_J_y]))
+
+def compute_delta_rho(delta_f_hat, config):
+  
+  delta_rho_hat = compute_delta_rho_hat(delta_f_hat, config)
+  
+  delta_rho = delta_rho_hat.real * np.cos(k_x*x + k_y*y) - \
+              delta_rho_hat.imag * np.sin(k_x*x + k_y*y)
+ 
+  return(delta_rho)
+
+def compute_delta_E(delta_f_hat, config):
+  
+  delta_E_x_hat, delta_E_y_hat = \
+    compute_delta_E_hat(delta_f_hat, config)
+
+  delta_E_x = delta_E_x_hat.real * np.cos(k_x*x + k_y*y) - \
+              delta_E_x_hat.imag * np.sin(k_x*x + k_y*y)
+
+  delta_E_y = delta_E_y_hat.real * np.cos(k_x*x + k_y*y) - \
+              delta_E_y_hat.imag * np.sin(k_x*x + k_y*y)
+
+  return(np.array([delta_E_x, delta_E_y]))
 
 def ddelta_f_hat_dt(delta_f_hat, config):
   """
@@ -22,69 +119,49 @@ def ddelta_f_hat_dt(delta_f_hat, config):
     ddelta_f_hat_dt : Array which contains the values of the derivative of the Fourier mode 
                       perturbation of the distribution function with respect to time.
   """
-  mass_particle      = config.mass_particle
-  boltzmann_constant = config.boltzmann_constant
 
-  rho_background         = config.rho_background
-  temperature_background = config.temperature_background
-  
-  vel_x_max = config.vel_x_max
-  N_vel_x   = config.N_vel_x
-  vel_x     = np.linspace(-vel_x_max, vel_x_max, N_vel_x)
-  dv_x      = vel_x[1] - vel_x[0]
-  
-  k_x = config.k_x   
-  
-  if(config.mode == '2D2V'):
-    vel_y_max    = config.vel_y_max
-    N_vel_y      = config.N_vel_y
-    vel_y        = np.linspace(-vel_y_max, vel_y_max, N_vel_y) 
-    dv_y         = vel_y[1] - vel_y[0]
-    vel_x, vel_y = np.meshgrid(vel_x, vel_y)
-    k_y          = config.k_y   
+  delta_E_x_hat, delta_E_y_hat = compute_delta_E_hat(delta_f_hat, config)
+
+  dfdv_y_background, dfdv_x_background = initialize.dfdp_background(config)
+
+  fields_term = np.zeros([config.number_of_bands,
+                          config.N_vel_y, config.N_vel_x
+                         ], dtype=np.complex128
+                        )
+
+  q_by_m = charge_particle / mass_particle
+  for band in range(config.number_of_bands):
+
+    delta_E_x_hat_ext = config.delta_E_x_hat_ext
+    delta_E_y_hat_ext = config.delta_E_y_hat_ext
+
+    fields_term[band, :, :] = \
+        q_by_m \
+      * ((delta_E_x_hat + delta_E_x_hat_ext)* dfdv_x_background[band, :, :] + \
+         (delta_E_y_hat + delta_E_y_hat_ext)* dfdv_y_background[band, :, :] \
+        )
+
+  #C_f   = int(collisions_enabled)*BGK_collision_operator(config, delta_f_hat)
+  C_f   = RTA_defect_scattering(config, delta_f_hat) + \
+          RTA_ee_scattering(config, delta_f_hat)
+
+  #ddelta_f_hat_dt = -1j * (k_x * vel_x + k_y * vel_y) * delta_f_hat + fields_term + C_f
+
+  d_dx            = 1j*np.array([k_x, k_y])
+
+  v_dot_d_dx = np.zeros([config.number_of_bands,
+                         config.N_vel_y, config.N_vel_x
+                        ], dtype=np.complex128
+                       )
+
+  for band in range(config.number_of_bands):
+    band_vel_x, band_vel_y = config.band_velocities[band]
     
-  fields_enabled  = config.fields_enabled
-  charge_particle = config.charge_particle
+    v_dot_d_dx[band, :, :] = band_vel_x*d_dx[0] + \
+			     band_vel_y*d_dx[1]
 
-  collisions_enabled = config.collisions_enabled 
-  tau                = config.tau
-
-  if(config.mode == '2D2V'):
-    delta_rho_hat = np.sum(delta_f_hat) * dv_x *dv_y
-
-  elif(config.mode == '1D1V'):
-    delta_rho_hat = np.sum(delta_f_hat) * dv_x
-
-  if(fields_enabled!="True"):
-    fields_term = 0
-
-  else:
-    dfdv_x_background = initialize.dfdv_x_background(config)
-
-    if(config.mode == '2D2V'):
-      dfdv_y_background = initialize.dfdv_y_background(config)
-      delta_phi_hat = charge_particle * delta_rho_hat/(k_x**2 + k_y**2)
-      delta_E_x_hat = delta_phi_hat * (1j * k_x)
-      delta_E_y_hat = delta_phi_hat * (1j * k_y)
-
-      fields_term = (charge_particle / mass_particle) * delta_E_x_hat * dfdv_x_background + \
-                    (charge_particle / mass_particle) * delta_E_y_hat * dfdv_y_background
-    
-    elif(config.mode == '1D1V'):
-      delta_E_x_hat     = -charge_particle * (delta_rho_hat)/(1j * k_x)
-      fields_term       = (charge_particle / mass_particle) * delta_E_x_hat * dfdv_x_background
-      
-  if(collisions_enabled!="True"):
-    C_f = 0
-
-  else:
-    C_f   = BGK_collision_operator(config, delta_f_hat)
-
-  if(config.mode == '2D2V'):
-    ddelta_f_hat_dt = -1j * (k_x * vel_x + k_y * vel_y) * delta_f_hat + fields_term + C_f
-  
-  elif(config.mode == '1D1V'):
-    ddelta_f_hat_dt = -1j * (k_x * vel_x) * delta_f_hat + fields_term + C_f
+  ddelta_f_hat_dt = - v_dot_d_dx * delta_f_hat \
+                    - fields_term + C_f
 
   return ddelta_f_hat_dt
 
@@ -126,27 +203,12 @@ def time_integration(config, delta_f_hat_initial, time_array):
                       between results of the Cheng-Knorr and the linear theory codes.
   
   """
-  vel_x_max = config.vel_x_max
-  N_vel_x   = config.N_vel_x
-  N_x       = config.N_x
-  x         = np.linspace(0, 1, N_x)
-  k_x       = config.k_x 
-  vel_x     = np.linspace(-vel_x_max, vel_x_max, N_vel_x)
-  dv_x      = vel_x[1] - vel_x[0]
 
-  if(config.mode == '2D2V'):
-    vel_y_max = config.vel_y_max
-    N_vel_y   = config.N_vel_y
-    N_y       = config.N_y
-    y         = np.linspace(0, 1, N_y)
-    k_y       = config.k_y 
-    vel_y     = np.linspace(-vel_y_max, vel_y_max, N_vel_y)
-    dv_y      = vel_y[1] - vel_y[0]  
-    
-    vel_x, vel_y = np.meshgrid(vel_x, vel_y)
-    x, y         = np.meshgrid(x, y)
-
-  density_data = np.zeros(time_array.size)
+  delta_f_hat = np.zeros([time_array.size, 
+                          config.number_of_bands,
+                          config.N_vel_y, config.N_vel_x
+                         ], dtype=np.complex128
+                        )
 
   for time_index, t0 in enumerate(time_array):
     t0 = time_array[time_index]
@@ -158,20 +220,40 @@ def time_integration(config, delta_f_hat_initial, time_array):
     if(time_index != 0):
       delta_f_hat_initial = old_delta_f_hat.copy()
 
+    delta_f_hat[time_index, :, :, :] = delta_f_hat_initial
+
     new_delta_f_hat = RK4_step(config, delta_f_hat_initial, dt)
     
-    if(config.mode == '2D2V'):
-      delta_rho_hat            = np.sum(new_delta_f_hat)*dv_x*dv_y
-      density_data[time_index] = np.max(delta_rho_hat.real * np.cos(k_x*x + k_y*y) - \
-                                        delta_rho_hat.imag * np.sin(k_x*x + k_y*y)
-                                       )
-
-    elif(config.mode == '1D1V'):
-      delta_rho_hat            = np.sum(new_delta_f_hat)*dv_x
-      density_data[time_index] = np.max(delta_rho_hat.real * np.cos(k_x*x) -\
-                                        delta_rho_hat.imag * np.sin(k_x*x)
-                                       )
+#    delta_rho_hat            = np.sum(new_delta_f_hat)*dv_x*dv_y
+#    density_data[time_index] = np.max(delta_rho_hat.real * np.cos(k_x*x + k_y*y) - \
+#                                      delta_rho_hat.imag * np.sin(k_x*x + k_y*y)
+#                                     )
 
     old_delta_f_hat          = new_delta_f_hat.copy()
 
-  return(density_data, new_delta_f_hat)
+
+  return(delta_f_hat)
+
+#def thermodynamic_quantities(config, delta_f_hat):
+#
+#  density     = np.zeros([time_array.size])
+#  vel_bulk    = np.zeros([time_array.size])
+#  temperature = np.zeros([time_array.size])
+#  pressure    = np.zeros([time_array.size])
+#
+#  delta_rho_hat = np.sum(delta_f_hat, axis=[1, 2, 3])*dv_x*dv_y
+#
+#
+#  f       = f_background(config) +
+#            (delta_f_hat.real * np.cos(k_x*x + k_y*y) - \
+#             delta_f_hat.imag * np.sin(k_x*x + k_y*y)
+#            )
+#
+# dp_x = dv_x
+# dp_y = dv_y
+# E    = band_energy(p_x, p_y)
+# density = 0
+# for band in range(f.shape[0]):
+#   density +=   4./(4.*np.pi)**2. 
+#              * np.sum(f[band, :, :] - heaviside_theta(-E[band])) * dp_x * dp_y
+
