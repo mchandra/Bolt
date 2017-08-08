@@ -244,282 +244,375 @@ def f_initial(da, args):
 
   vel_x, vel_y, vel_z = args.vel_x, args.vel_y, args.vel_z #velocitiesExpanded form
 
-  # Calculating the perturbed density:
-  rho = rho_background + (pert_real * af.cos(k_x*x_center + k_y*y_center) -\
-                          pert_imag * af.sin(k_x*x_center + k_y*y_center)
-                         )
+  p_x = config.h_cross * args.vel_x # (Nx*Ny, Nvy, Nvx, Nvz)
+  p_y = config.h_cross * args.vel_y # (Nx*Ny, Nvy, Nvx, Nvz)
 
-  # Modifying the dimensions of rho:
-  # Converting from positionsExpanded form to velocitiesExpanded form:
-  rho = non_linear_solver.convert.to_velocitiesExpanded(da, config, rho)
+  E_upper, E_lower = config.band_energy(p_x, p_y)
+  k                = config.boltzmann_constant
+  mu_0             = config.chemical_potential_background
+  T_0              = config.temperature_background
 
-  # Depending on the dimensionality in velocity space, the 
-  # distribution function is assigned accordingly:
-  if(config.mode == '3V'):
-    
-    args.f = rho * (mass_particle/(2*np.pi*boltzmann_constant*temperature_background))**(3/2) * \
-             af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
-                   (2*boltzmann_constant*temperature_background)) * \
-             af.exp(-mass_particle*(vel_y - vel_bulk_y_background)**2/\
-                   (2*boltzmann_constant*temperature_background)) * \
-             af.exp(-mass_particle*(vel_z - vel_bulk_z_background)**2/\
-                   (2*boltzmann_constant*temperature_background))
+  # BUG: mean(mu) != mu_0
+#  mu = mu_0 + (pert_real * af.cos(k_x*x_center + k_y*y_center) -\
+#               pert_imag * af.sin(k_x*x_center + k_y*y_center)
+#              )
+  
+  mu = mu_0 + \
+  	0.*pert_real*af.exp(-((x_center - 0.5)**2. + (y_center - 0.5)**2.)/0.01)
 
-    f_background = rho_background * \
-                   (mass_particle/(2*np.pi*boltzmann_constant*temperature_background))**(3/2) * \
-                    af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
-                          (2*boltzmann_constant*temperature_background)) * \
-                    af.exp(-mass_particle*(vel_y - vel_bulk_x_background)**2/\
-                          (2*boltzmann_constant*temperature_background)) * \
-                    af.exp(-mass_particle*(vel_z - vel_bulk_z_background)**2/\
-                          (2*boltzmann_constant*temperature_background))
+  T  = T_0 +  (0.*pert_real * af.cos(k_x*x_center + k_y*y_center) -\
+               0.*pert_imag * af.sin(k_x*x_center + k_y*y_center)
+              )
 
-  elif(config.mode == '2V'):
+  vel_drift_x = 1e-2*(  af.tanh((y_center - 0.25)*50) \
+                      - af.tanh((y_center - 0.75)*50) - 1.
+                     ) \
+                + 1e-3*af.randu(y_center.shape[0], 
+                                y_center.shape[1], 
+                                y_center.shape[2], dtype=af.Dtype.f64
+                               )
 
-    args.f = rho * (mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
-             af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
-                   (2*boltzmann_constant*temperature_background)) * \
-             af.exp(-mass_particle*(vel_y - vel_bulk_y_background)**2/\
-                   (2*boltzmann_constant*temperature_background))
+  vel_drift_y = 1e-3*af.randu(y_center.shape[0], 
+                              y_center.shape[1], 
+                              y_center.shape[2], dtype=af.Dtype.f64
+                             )
 
-    f_background = rho_background * \
-                   (mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
-                    af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
-                          (2*boltzmann_constant*temperature_background)) * \
-                    af.exp(-mass_particle*(vel_y - vel_bulk_x_background)**2/\
-                          (2*boltzmann_constant*temperature_background))
+  mu = non_linear_solver.convert.to_velocitiesExpanded(da, config, mu)
+  T  = non_linear_solver.convert.to_velocitiesExpanded(da, config, T)
+
+  vel_drift_x = non_linear_solver.convert.to_velocitiesExpanded(da, config, vel_drift_x)
+  vel_drift_y = non_linear_solver.convert.to_velocitiesExpanded(da, config, vel_drift_y)
+
+  args.f  = 1./(af.exp( (E_upper - vel_drift_x*p_x - vel_drift_y*p_y - mu)/(k*T) ) + 1.)
+
+  mu = non_linear_solver.convert.to_positionsExpanded(da, config, mu)
+  T  = non_linear_solver.convert.to_positionsExpanded(da, config, T)
+
+  vel_drift_x = non_linear_solver.convert.to_positionsExpanded(da, config, vel_drift_x)
+  vel_drift_y = non_linear_solver.convert.to_positionsExpanded(da, config, vel_drift_y)
+
+#  args.f[:] = 0.
+#  density_profile = \
+#          pert_real*af.exp(-((x_center - 0.5)**2. + (y_center - 0.5)**2.)/0.01)
+#
+#  density_profile = \
+#          non_linear_solver.convert.to_velocitiesExpanded(da, config,
+#                  density_profile)
+#
+#  #px_index = config.N_vel_x-1
+#  #py_index = 3*config.N_vel_y/4
+#
+#  px_index = 3*config.N_vel_x/4
+#  py_index = config.N_vel_y-1
+#
+#  args.f[:, py_index, px_index] = \
+#          density_profile[:, py_index, px_index]
+#
+#  print("px = ", np.array(vel_x[0, py_index, px_index]), "py = ", \
+#                 np.array(vel_y[0, py_index, px_index])
+#       )
 
 
-  else:
+  args.mu = mu[:, :, 0].copy()
+  args.T  = T[:, :, 0].copy()
 
-    # args.f = rho *\
-    #          np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
-    #          af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
-    #                (2*boltzmann_constant*temperature_background))
-    
-    n_p = 0.9/np.sqrt(2*np.pi)
-    n_b = 0.2/np.sqrt(2*np.pi)
+  args.mu_ee = mu[:, :, 0].copy()
+  args.T_ee  = T[:, :, 0].copy()
 
-    args.f = rho *\
-             (n_p * af.exp(-0.5*vel_x**2) + n_b * af.exp(-0.5*((vel_x - 4.5)/0.5)**2))
-    
-    f_background = rho_background * \
-                   np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
-                   af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
-                         (2*boltzmann_constant*temperature_background))
+  tmp1 = x_center[:, :, 0].copy()
+  tmp2 = x_center[:, :, 0].copy()
+  args.guess_plus_eps = [tmp1, tmp2]
 
-    
-  args.config.normalization = af.sum(f_background) * config.dv_x * config.dv_y * config.dv_z/\
-                              (f_background.shape[0])
-  args.f                    = args.f/args.config.normalization
+  tmp11 = x_center[:, :, 0].copy()
+  tmp12 = x_center[:, :, 0].copy()
+  tmp21 = x_center[:, :, 0].copy()
+  tmp22 = x_center[:, :, 0].copy()
+  args.jacobian  = [[tmp11, tmp12], \
+                    [tmp21, tmp22]
+		   ]
+  			 
+  args.vel_drift_x = vel_drift_x[:, :, 0].copy()
+  args.vel_drift_y = vel_drift_y[:, :, 0].copy()
+
+  args.step_length = 0.*x_center[:, :, 0].copy()
+
+#  # Calculating the perturbed density:
+#  rho = rho_background + (pert_real * af.cos(k_x*x_center + k_y*y_center) -\
+#                          pert_imag * af.sin(k_x*x_center + k_y*y_center)
+#                         )
+#
+#  # Modifying the dimensions of rho:
+#  # Converting from positionsExpanded form to velocitiesExpanded form:
+#  rho = non_linear_solver.convert.to_velocitiesExpanded(da, config, rho)
+#
+#  # Depending on the dimensionality in velocity space, the 
+#  # distribution function is assigned accordingly:
+#  if(config.mode == '3V'):
+#    
+#    args.f = rho * (mass_particle/(2*np.pi*boltzmann_constant*temperature_background))**(3/2) * \
+#             af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
+#                   (2*boltzmann_constant*temperature_background)) * \
+#             af.exp(-mass_particle*(vel_y - vel_bulk_y_background)**2/\
+#                   (2*boltzmann_constant*temperature_background)) * \
+#             af.exp(-mass_particle*(vel_z - vel_bulk_z_background)**2/\
+#                   (2*boltzmann_constant*temperature_background))
+#
+#    f_background = rho_background * \
+#                   (mass_particle/(2*np.pi*boltzmann_constant*temperature_background))**(3/2) * \
+#                    af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
+#                          (2*boltzmann_constant*temperature_background)) * \
+#                    af.exp(-mass_particle*(vel_y - vel_bulk_x_background)**2/\
+#                          (2*boltzmann_constant*temperature_background)) * \
+#                    af.exp(-mass_particle*(vel_z - vel_bulk_z_background)**2/\
+#                          (2*boltzmann_constant*temperature_background))
+#
+#  elif(config.mode == '2V'):
+#
+#    args.f = rho * (mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
+#             af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
+#                   (2*boltzmann_constant*temperature_background)) * \
+#             af.exp(-mass_particle*(vel_y - vel_bulk_y_background)**2/\
+#                   (2*boltzmann_constant*temperature_background))
+#
+#    f_background = rho_background * \
+#                   (mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
+#                    af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
+#                          (2*boltzmann_constant*temperature_background)) * \
+#                    af.exp(-mass_particle*(vel_y - vel_bulk_x_background)**2/\
+#                          (2*boltzmann_constant*temperature_background))
+#
+#
+#  else:
+#
+#    # args.f = rho *\
+#    #          np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
+#    #          af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
+#    #                (2*boltzmann_constant*temperature_background))
+#    
+#    n_p = 0.9/np.sqrt(2*np.pi)
+#    n_b = 0.2/np.sqrt(2*np.pi)
+#
+#    args.f = rho *\
+#             (n_p * af.exp(-0.5*vel_x**2) + n_b * af.exp(-0.5*((vel_x - 4.5)/0.5)**2))
+#    
+#    f_background = rho_background * \
+#                   np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*temperature_background)) * \
+#                   af.exp(-mass_particle*(vel_x - vel_bulk_x_background)**2/\
+#                         (2*boltzmann_constant*temperature_background))
+#
+#    
+#  args.config.normalization = af.sum(f_background) * config.dv_x * config.dv_y * config.dv_z/\
+#                              (f_background.shape[0])
+#  args.f                    = args.f/args.config.normalization
   
   # Modifying the dimensions again:
   # Converting from velocitiesExpanded form to positionsExpanded form:
   args.f = non_linear_solver.convert.to_positionsExpanded(da, config, args.f)
 
+
   af.eval(args.f)
   return(args)
   
-def f_left(da, args):
-
-  config             = args.config
-  mass_particle      = config.mass_particle
-  boltzmann_constant = config.boltzmann_constant
-
-  left_rho         = config.left_rho
-  left_temperature = config.left_temperature
-  
-  left_vel_bulk_x = config.left_vel_bulk_x
-  left_vel_bulk_y = config.left_vel_bulk_y
-  left_vel_bulk_z = config.left_vel_bulk_z
-
-  vel_x, vel_y, vel_z = args.vel_x, args.vel_y, args.vel_z #velocitiesExpanded form
-
-  # Depending on the dimensionality in velocity space, the 
-  # distribution function is assigned accordingly:
-  if(config.mode == '3V'):
-    
-    f_left = left_rho * (mass_particle/(2*np.pi*boltzmann_constant*left_temperature))**(3/2) * \
-             af.exp(-mass_particle*(vel_x - left_vel_bulk_x)**2/\
-                   (2*boltzmann_constant*left_temperature)) * \
-             af.exp(-mass_particle*(vel_y - left_vel_bulk_y)**2/\
-                   (2*boltzmann_constant*left_temperature)) * \
-             af.exp(-mass_particle*(vel_z - left_vel_bulk_z)**2/\
-                   (2*boltzmann_constant*left_temperature))
-
-  elif(config.mode == '2V'):
-
-    f_left = left_rho * (mass_particle/(2*np.pi*boltzmann_constant*left_temperature)) * \
-             af.exp(-mass_particle*(vel_x - left_vel_bulk_x)**2/\
-                   (2*boltzmann_constant*left_temperature)) * \
-             af.exp(-mass_particle*(vel_y - left_vel_bulk_y)**2/\
-                   (2*boltzmann_constant*left_temperature))
-
-  else:
-
-    f_left = left_rho *\
-             np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*left_temperature)) * \
-             af.exp(-mass_particle*(vel_x - left_vel_bulk_x)**2/\
-                   (2*boltzmann_constant*left_temperature))
-
-  f_left = f_left/config.normalization
-  
-  # Modifying the dimensions again:
-  # Converting from velocitiesExpanded form to positionsExpanded form:
-  f_left = non_linear_solver.convert.to_positionsExpanded(da, config, f_left)
-
-  af.eval(f_left)
-  return(f_left)
-
-def f_right(da, args):
-
-  config             = args.config
-  mass_particle      = config.mass_particle
-  boltzmann_constant = config.boltzmann_constant
-
-  right_rho         = config.right_rho
-  right_temperature = config.right_temperature
-  
-  right_vel_bulk_x = config.right_vel_bulk_x
-  right_vel_bulk_y = config.right_vel_bulk_y
-  right_vel_bulk_z = config.right_vel_bulk_z
-
-  vel_x, vel_y, vel_z = args.vel_x, args.vel_y, args.vel_z #velocitiesExpanded form
-
-  # Depending on the dimensionality in velocity space, the 
-  # distribution function is assigned accordingly:
-  if(config.mode == '3V'):
-    
-    f_right = right_rho * (mass_particle/(2*np.pi*boltzmann_constant*right_temperature))**(3/2) * \
-              af.exp(-mass_particle*(vel_x - right_vel_bulk_x)**2/\
-                    (2*boltzmann_constant*right_temperature)) * \
-              af.exp(-mass_particle*(vel_y - right_vel_bulk_y)**2/\
-                    (2*boltzmann_constant*right_temperature)) * \
-              af.exp(-mass_particle*(vel_z - right_vel_bulk_z)**2/\
-                    (2*boltzmann_constant*right_temperature))
-
-  elif(config.mode == '2V'):
-
-    f_right = right_rho * (mass_particle/(2*np.pi*boltzmann_constant*right_temperature)) * \
-              af.exp(-mass_particle*(vel_x - right_vel_bulk_x)**2/\
-                    (2*boltzmann_constant*right_temperature)) * \
-              af.exp(-mass_particle*(vel_y - right_vel_bulk_y)**2/\
-                    (2*boltzmann_constant*right_temperature))
-
-  else:
-
-    f_right = right_rho *\
-              np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*right_temperature)) * \
-              af.exp(-mass_particle*(vel_x - right_vel_bulk_x)**2/\
-                    (2*boltzmann_constant*right_temperature))
-
-  f_right = f_right/config.normalization
-  
-  # Modifying the dimensions again:
-  # Converting from velocitiesExpanded form to positionsExpanded form:
-  f_right = non_linear_solver.convert.to_positionsExpanded(da, config, f_right)
-
-  af.eval(f_right)
-  return(f_right)
-
-def f_bot(da, args):
-
-  config             = args.config
-  mass_particle      = config.mass_particle
-  boltzmann_constant = config.boltzmann_constant
-
-  bot_rho         = config.bot_rho
-  bot_temperature = config.bot_temperature
-  
-  bot_vel_bulk_x = config.bot_vel_bulk_x
-  bot_vel_bulk_y = config.bot_vel_bulk_y
-  bot_vel_bulk_z = config.bot_vel_bulk_z
-
-  vel_x, vel_y, vel_z = args.vel_x, args.vel_y, args.vel_z #velocitiesExpanded form
-
-  # Depending on the dimensionality in velocity space, the 
-  # distribution function is assigned accordingly:
-  if(config.mode == '3V'):
-    
-    f_bot = bot_rho * (mass_particle/(2*np.pi*boltzmann_constant*bot_temperature))**(3/2) * \
-            af.exp(-mass_particle*(vel_x - bot_vel_bulk_x)**2/\
-                  (2*boltzmann_constant*bot_temperature)) * \
-            af.exp(-mass_particle*(vel_y - bot_vel_bulk_y)**2/\
-                  (2*boltzmann_constant*bot_temperature)) * \
-            af.exp(-mass_particle*(vel_z - bot_vel_bulk_z)**2/\
-                  (2*boltzmann_constant*bot_temperature))
-
-  elif(config.mode == '2V'):
-
-    f_bot = bot_rho * (mass_particle/(2*np.pi*boltzmann_constant*bot_temperature)) * \
-            af.exp(-mass_particle*(vel_x - bot_vel_bulk_x)**2/\
-                  (2*boltzmann_constant*bot_temperature)) * \
-            af.exp(-mass_particle*(vel_y - bot_vel_bulk_y)**2/\
-                  (2*boltzmann_constant*bot_temperature))
-
-  else:
-
-    f_bot = bot_rho *\
-            np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*bot_temperature)) * \
-            af.exp(-mass_particle*(vel_x - bot_vel_bulk_x)**2/\
-                  (2*boltzmann_constant*bot_temperature))
-
-  f_bot = f_bot/config.normalization
-  
-  # Modifying the dimensions again:
-  # Converting from velocitiesExpanded form to positionsExpanded form:
-  f_bot = non_linear_solver.convert.to_positionsExpanded(da, config, f_bot)
-
-  af.eval(f_bot)
-  return(f_bot)
-
-def f_top(da, args):
-
-  config             = args.config
-  mass_particle      = config.mass_particle
-  boltzmann_constant = config.boltzmann_constant
-
-  top_rho         = config.top_rho
-  top_temperature = config.top_temperature
-  
-  top_vel_bulk_x = config.top_vel_bulk_x
-  top_vel_bulk_y = config.top_vel_bulk_y
-  top_vel_bulk_z = config.top_vel_bulk_z
-
-  vel_x, vel_y, vel_z = args.vel_x, args.vel_y, args.vel_z #velocitiesExpanded form
-
-  # Depending on the dimensionality in velocity space, the 
-  # distribution function is assigned accordingly:
-  if(config.mode == '3V'):
-    
-    f_top = top_rho * (mass_particle/(2*np.pi*boltzmann_constant*top_temperature))**(3/2) * \
-            af.exp(-mass_particle*(vel_x - top_vel_bulk_x)**2/\
-                  (2*boltzmann_constant*top_temperature)) * \
-            af.exp(-mass_particle*(vel_y - top_vel_bulk_y)**2/\
-                  (2*boltzmann_constant*top_temperature)) * \
-            af.exp(-mass_particle*(vel_z - top_vel_bulk_z)**2/\
-                  (2*boltzmann_constant*top_temperature))
-
-  elif(config.mode == '2V'):
-
-    f_top = top_rho * (mass_particle/(2*np.pi*boltzmann_constant*top_temperature)) * \
-            af.exp(-mass_particle*(vel_x - top_vel_bulk_x)**2/\
-                  (2*boltzmann_constant*top_temperature)) * \
-            af.exp(-mass_particle*(vel_y - top_vel_bulk_y)**2/\
-                  (2*boltzmann_constant*top_temperature))
-
-  else:
-
-    f_top = top_rho *\
-            np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*top_temperature)) * \
-            af.exp(-mass_particle*(vel_x - top_vel_bulk_x)**2/\
-                  (2*boltzmann_constant*top_temperature))
-
-  f_top = f_top/config.normalization
-  
-  # Modifying the dimensions again:
-  # Converting from velocitiesExpanded form to positionsExpanded form:
-  f_top = non_linear_solver.convert.to_positionsExpanded(da, config, f_top)
-
-  af.eval(f_top)
-  return(f_top)
+#def f_left(da, args):
+#
+#  config             = args.config
+#  mass_particle      = config.mass_particle
+#  boltzmann_constant = config.boltzmann_constant
+#
+#  left_rho         = config.left_rho
+#  left_temperature = config.left_temperature
+#  
+#  left_vel_bulk_x = config.left_vel_bulk_x
+#  left_vel_bulk_y = config.left_vel_bulk_y
+#  left_vel_bulk_z = config.left_vel_bulk_z
+#
+#  vel_x, vel_y, vel_z = args.vel_x, args.vel_y, args.vel_z #velocitiesExpanded form
+#
+#  # Depending on the dimensionality in velocity space, the 
+#  # distribution function is assigned accordingly:
+#  if(config.mode == '3V'):
+#    
+#    f_left = left_rho * (mass_particle/(2*np.pi*boltzmann_constant*left_temperature))**(3/2) * \
+#             af.exp(-mass_particle*(vel_x - left_vel_bulk_x)**2/\
+#                   (2*boltzmann_constant*left_temperature)) * \
+#             af.exp(-mass_particle*(vel_y - left_vel_bulk_y)**2/\
+#                   (2*boltzmann_constant*left_temperature)) * \
+#             af.exp(-mass_particle*(vel_z - left_vel_bulk_z)**2/\
+#                   (2*boltzmann_constant*left_temperature))
+#
+#  elif(config.mode == '2V'):
+#
+#    f_left = left_rho * (mass_particle/(2*np.pi*boltzmann_constant*left_temperature)) * \
+#             af.exp(-mass_particle*(vel_x - left_vel_bulk_x)**2/\
+#                   (2*boltzmann_constant*left_temperature)) * \
+#             af.exp(-mass_particle*(vel_y - left_vel_bulk_y)**2/\
+#                   (2*boltzmann_constant*left_temperature))
+#
+#  else:
+#
+#    f_left = left_rho *\
+#             np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*left_temperature)) * \
+#             af.exp(-mass_particle*(vel_x - left_vel_bulk_x)**2/\
+#                   (2*boltzmann_constant*left_temperature))
+#
+#  f_left = f_left/config.normalization
+#  
+#  # Modifying the dimensions again:
+#  # Converting from velocitiesExpanded form to positionsExpanded form:
+#  f_left = non_linear_solver.convert.to_positionsExpanded(da, config, f_left)
+#
+#  af.eval(f_left)
+#  return(f_left)
+#
+#def f_right(da, args):
+#
+#  config             = args.config
+#  mass_particle      = config.mass_particle
+#  boltzmann_constant = config.boltzmann_constant
+#
+#  right_rho         = config.right_rho
+#  right_temperature = config.right_temperature
+#  
+#  right_vel_bulk_x = config.right_vel_bulk_x
+#  right_vel_bulk_y = config.right_vel_bulk_y
+#  right_vel_bulk_z = config.right_vel_bulk_z
+#
+#  vel_x, vel_y, vel_z = args.vel_x, args.vel_y, args.vel_z #velocitiesExpanded form
+#
+#  # Depending on the dimensionality in velocity space, the 
+#  # distribution function is assigned accordingly:
+#  if(config.mode == '3V'):
+#    
+#    f_right = right_rho * (mass_particle/(2*np.pi*boltzmann_constant*right_temperature))**(3/2) * \
+#              af.exp(-mass_particle*(vel_x - right_vel_bulk_x)**2/\
+#                    (2*boltzmann_constant*right_temperature)) * \
+#              af.exp(-mass_particle*(vel_y - right_vel_bulk_y)**2/\
+#                    (2*boltzmann_constant*right_temperature)) * \
+#              af.exp(-mass_particle*(vel_z - right_vel_bulk_z)**2/\
+#                    (2*boltzmann_constant*right_temperature))
+#
+#  elif(config.mode == '2V'):
+#
+#    f_right = right_rho * (mass_particle/(2*np.pi*boltzmann_constant*right_temperature)) * \
+#              af.exp(-mass_particle*(vel_x - right_vel_bulk_x)**2/\
+#                    (2*boltzmann_constant*right_temperature)) * \
+#              af.exp(-mass_particle*(vel_y - right_vel_bulk_y)**2/\
+#                    (2*boltzmann_constant*right_temperature))
+#
+#  else:
+#
+#    f_right = right_rho *\
+#              np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*right_temperature)) * \
+#              af.exp(-mass_particle*(vel_x - right_vel_bulk_x)**2/\
+#                    (2*boltzmann_constant*right_temperature))
+#
+#  f_right = f_right/config.normalization
+#  
+#  # Modifying the dimensions again:
+#  # Converting from velocitiesExpanded form to positionsExpanded form:
+#  f_right = non_linear_solver.convert.to_positionsExpanded(da, config, f_right)
+#
+#  af.eval(f_right)
+#  return(f_right)
+#
+#def f_bot(da, args):
+#
+#  config             = args.config
+#  mass_particle      = config.mass_particle
+#  boltzmann_constant = config.boltzmann_constant
+#
+#  bot_rho         = config.bot_rho
+#  bot_temperature = config.bot_temperature
+#  
+#  bot_vel_bulk_x = config.bot_vel_bulk_x
+#  bot_vel_bulk_y = config.bot_vel_bulk_y
+#  bot_vel_bulk_z = config.bot_vel_bulk_z
+#
+#  vel_x, vel_y, vel_z = args.vel_x, args.vel_y, args.vel_z #velocitiesExpanded form
+#
+#  # Depending on the dimensionality in velocity space, the 
+#  # distribution function is assigned accordingly:
+#  if(config.mode == '3V'):
+#    
+#    f_bot = bot_rho * (mass_particle/(2*np.pi*boltzmann_constant*bot_temperature))**(3/2) * \
+#            af.exp(-mass_particle*(vel_x - bot_vel_bulk_x)**2/\
+#                  (2*boltzmann_constant*bot_temperature)) * \
+#            af.exp(-mass_particle*(vel_y - bot_vel_bulk_y)**2/\
+#                  (2*boltzmann_constant*bot_temperature)) * \
+#            af.exp(-mass_particle*(vel_z - bot_vel_bulk_z)**2/\
+#                  (2*boltzmann_constant*bot_temperature))
+#
+#  elif(config.mode == '2V'):
+#
+#    f_bot = bot_rho * (mass_particle/(2*np.pi*boltzmann_constant*bot_temperature)) * \
+#            af.exp(-mass_particle*(vel_x - bot_vel_bulk_x)**2/\
+#                  (2*boltzmann_constant*bot_temperature)) * \
+#            af.exp(-mass_particle*(vel_y - bot_vel_bulk_y)**2/\
+#                  (2*boltzmann_constant*bot_temperature))
+#
+#  else:
+#
+#    f_bot = bot_rho *\
+#            np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*bot_temperature)) * \
+#            af.exp(-mass_particle*(vel_x - bot_vel_bulk_x)**2/\
+#                  (2*boltzmann_constant*bot_temperature))
+#
+#  f_bot = f_bot/config.normalization
+#  
+#  # Modifying the dimensions again:
+#  # Converting from velocitiesExpanded form to positionsExpanded form:
+#  f_bot = non_linear_solver.convert.to_positionsExpanded(da, config, f_bot)
+#
+#  af.eval(f_bot)
+#  return(f_bot)
+#
+#def f_top(da, args):
+#
+#  config             = args.config
+#  mass_particle      = config.mass_particle
+#  boltzmann_constant = config.boltzmann_constant
+#
+#  top_rho         = config.top_rho
+#  top_temperature = config.top_temperature
+#  
+#  top_vel_bulk_x = config.top_vel_bulk_x
+#  top_vel_bulk_y = config.top_vel_bulk_y
+#  top_vel_bulk_z = config.top_vel_bulk_z
+#
+#  vel_x, vel_y, vel_z = args.vel_x, args.vel_y, args.vel_z #velocitiesExpanded form
+#
+#  # Depending on the dimensionality in velocity space, the 
+#  # distribution function is assigned accordingly:
+#  if(config.mode == '3V'):
+#    
+#    f_top = top_rho * (mass_particle/(2*np.pi*boltzmann_constant*top_temperature))**(3/2) * \
+#            af.exp(-mass_particle*(vel_x - top_vel_bulk_x)**2/\
+#                  (2*boltzmann_constant*top_temperature)) * \
+#            af.exp(-mass_particle*(vel_y - top_vel_bulk_y)**2/\
+#                  (2*boltzmann_constant*top_temperature)) * \
+#            af.exp(-mass_particle*(vel_z - top_vel_bulk_z)**2/\
+#                  (2*boltzmann_constant*top_temperature))
+#
+#  elif(config.mode == '2V'):
+#
+#    f_top = top_rho * (mass_particle/(2*np.pi*boltzmann_constant*top_temperature)) * \
+#            af.exp(-mass_particle*(vel_x - top_vel_bulk_x)**2/\
+#                  (2*boltzmann_constant*top_temperature)) * \
+#            af.exp(-mass_particle*(vel_y - top_vel_bulk_y)**2/\
+#                  (2*boltzmann_constant*top_temperature))
+#
+#  else:
+#
+#    f_top = top_rho *\
+#            np.sqrt(mass_particle/(2*np.pi*boltzmann_constant*top_temperature)) * \
+#            af.exp(-mass_particle*(vel_x - top_vel_bulk_x)**2/\
+#                  (2*boltzmann_constant*top_temperature))
+#
+#  f_top = f_top/config.normalization
+#  
+#  # Modifying the dimensions again:
+#  # Converting from velocitiesExpanded form to positionsExpanded form:
+#  f_top = non_linear_solver.convert.to_positionsExpanded(da, config, f_top)
+#
+#  af.eval(f_top)
+#  return(f_top)

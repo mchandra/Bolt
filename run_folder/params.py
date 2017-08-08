@@ -1,12 +1,7 @@
 import numpy as np
 
-# Change num_device if the node you are running on contains more than one device
-# For instance, when running on a node which contains more than one GPU/Xeon-Phi
-
 num_devices = 1
-
-# Mode is used to indicate the dimensionality which has been considered in velocity space.
-mode = '1V'
+mode        = '2V'
 
 constants = dict(
                   mass_particle      = 1.0,
@@ -14,14 +9,14 @@ constants = dict(
                 )
 
 background_electrons = dict(
-                            rho         = 1.0, 
-                            temperature = 1.0, 
+                            rho         = 1.00038106985120916196,
+                            temperature = 3e-4, 
+                            #temperature = 1., 
                             vel_bulk_x  = 0,
                             vel_bulk_y  = 0,
                             vel_bulk_z  = 0,
                            )
 
-# NOT-IMPLEMENTED(In Development)
 background_ions = dict(
                        rho         = 1.0, 
                        temperature = 1.0, 
@@ -30,30 +25,24 @@ background_ions = dict(
                        vel_bulk_z  = 0,
                       )
 
-# These are perturbations created in density
-# k_x and k_y are the wave numbers of the sinusoidal perturbations
-# in the x and y directions respectively.
 perturbation = dict(
-                    pert_real = 0.04, 
-                    pert_imag = 0,
-                    k_x       = 0.5,
-                    k_y       = 0*np.pi,\
+                    pert_real = 1e-4, 
+                    pert_imag = 2e-4,
+                    k_x       = 2*np.pi,
+                    k_y       = 2*np.pi 
                    ) 
 
-# Resolution in position space:
 position_space = dict(N_x     = 128,
                       x_start = 0,
-                      x_end   = 20*np.pi,
+                      x_end   = 2.,
 
-                      N_y     = 3,
+                      N_y     = 64,
                       y_start = 0,
                       y_end   = 1.0,
-
+ 
                       N_ghost = 3
                      )
 
-# Boundary conditions can be changed to 'dirichlet' as well
-# However fields haven't been implemented with Dirichlet B.C's
 boundary_conditions = dict(in_x = 'periodic',
                            in_y = 'periodic',
 
@@ -79,30 +68,30 @@ boundary_conditions = dict(in_x = 'periodic',
                            top_vel_bulk_y  = 0
                           )
 
-# Resolution in velocity space:
-velocity_space = dict(N_vel_x   = 128,
-                      vel_x_max = 9.0, 
+velocity_space = dict(N_vel_x   = 32,
+                      vel_x_max = 0.02, 
+                      #vel_x_max = 10., 
 
-                      N_vel_y   = 1, 
-                      vel_y_max = 9.0,
+                      N_vel_y   = 32,
+                      vel_y_max = 0.02,
+                      #vel_y_max = 10.,
 
                       N_vel_z   = 1, 
-                      vel_z_max = 9.0
+                      vel_z_max = 10.0
                      )
 
 time = dict(
-            final_time   = 100.0,
-            dt           = 0.1
+            final_time   = 1.,
+            dt           = 0.01
+            #dt           = 0.01*(32/position_space['N_x'])
            )
 
-# charge_ion makes no difference currently(In development)
 EM_fields = dict(
-                 charge_electron = -10,
-                 charge_ion      = 10, 
+                 charge_electron = 0,
+                 charge_ion      = 0,
                  solver          = 'electrostatic'
                 )
 
-# Only BGK collision operator has been implemented so far.
 collisions = dict(
                   collision_operator = 'BGK',
                   tau                = np.inf

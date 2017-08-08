@@ -1,4 +1,5 @@
 import numpy as np
+import arrayfire as af
 
 class options:
   def __init__(self):
@@ -73,32 +74,32 @@ def configuration_object(params):
   config.bc_in_x = params.boundary_conditions['in_x']
   config.bc_in_y = params.boundary_conditions['in_y']
 
-  # Defining the quantities at the boundaries for Dirichlet boundary conditions:
-  if(config.bc_in_x == 'dirichlet'):
-    config.left_rho         = params.boundary_conditions['left_rho']  
-    config.left_temperature = params.boundary_conditions['left_temperature']
-    config.left_vel_bulk_x  = params.boundary_conditions['left_vel_bulk_x']
-    config.left_vel_bulk_y  = params.boundary_conditions['left_vel_bulk_y']
-    config.left_vel_bulk_z  = params.boundary_conditions['left_vel_bulk_z']
-    
-    config.right_rho         = params.boundary_conditions['right_rho']  
-    config.right_temperature = params.boundary_conditions['right_temperature']
-    config.right_vel_bulk_x  = params.boundary_conditions['right_vel_bulk_x']
-    config.right_vel_bulk_y  = params.boundary_conditions['right_vel_bulk_y']
-    config.right_vel_bulk_z  = params.boundary_conditions['right_vel_bulk_z']
-
-  if(config.bc_in_y == 'dirichlet'):
-    config.bot_rho         = params.boundary_conditions['bot_rho']  
-    config.bot_temperature = params.boundary_conditions['bot_temperature']
-    config.bot_vel_bulk_x  = params.boundary_conditions['bot_vel_bulk_x']
-    config.bot_vel_bulk_y  = params.boundary_conditions['bot_vel_bulk_y']
-    config.bot_vel_bulk_z  = params.boundary_conditions['bot_vel_bulk_z']
-    
-    config.top_rho         = params.boundary_conditions['top_rho']  
-    config.top_temperature = params.boundary_conditions['top_temperature']
-    config.top_vel_bulk_x  = params.boundary_conditions['top_vel_bulk_x']
-    config.top_vel_bulk_y  = params.boundary_conditions['top_vel_bulk_y']
-    config.top_vel_bulk_z  = params.boundary_conditions['top_vel_bulk_z']
+#  # Defining the quantities at the boundaries for Dirichlet boundary conditions:
+#  if(config.bc_in_x == 'dirichlet'):
+#    config.left_rho         = params.boundary_conditions['left_rho']  
+#    config.left_temperature = params.boundary_conditions['left_temperature']
+#    config.left_vel_bulk_x  = params.boundary_conditions['left_vel_bulk_x']
+#    config.left_vel_bulk_y  = params.boundary_conditions['left_vel_bulk_y']
+#    config.left_vel_bulk_z  = params.boundary_conditions['left_vel_bulk_z']
+#    
+#    config.right_rho         = params.boundary_conditions['right_rho']  
+#    config.right_temperature = params.boundary_conditions['right_temperature']
+#    config.right_vel_bulk_x  = params.boundary_conditions['right_vel_bulk_x']
+#    config.right_vel_bulk_y  = params.boundary_conditions['right_vel_bulk_y']
+#    config.right_vel_bulk_z  = params.boundary_conditions['right_vel_bulk_z']
+#
+#  if(config.bc_in_y == 'dirichlet'):
+#    config.bot_rho         = params.boundary_conditions['bot_rho']  
+#    config.bot_temperature = params.boundary_conditions['bot_temperature']
+#    config.bot_vel_bulk_x  = params.boundary_conditions['bot_vel_bulk_x']
+#    config.bot_vel_bulk_y  = params.boundary_conditions['bot_vel_bulk_y']
+#    config.bot_vel_bulk_z  = params.boundary_conditions['bot_vel_bulk_z']
+#    
+#    config.top_rho         = params.boundary_conditions['top_rho']  
+#    config.top_temperature = params.boundary_conditions['top_temperature']
+#    config.top_vel_bulk_x  = params.boundary_conditions['top_vel_bulk_x']
+#    config.top_vel_bulk_y  = params.boundary_conditions['top_vel_bulk_y']
+#    config.top_vel_bulk_z  = params.boundary_conditions['top_vel_bulk_z']
 
   # Defining the resolution parameters for time:
   config.final_time = params.time['final_time']
@@ -112,6 +113,40 @@ def configuration_object(params):
   # Defining the collisional time-scale utilized:
   config.collision_operator = params.collisions['collision_operator']
   config.tau                = params.collisions['tau']
+
+  config.h_cross                       = 1
+  config.number_of_bands               = 2
+  config.chemical_potential_background = 0.005
+  config.fermi_velocity                = 137./300.
+  config.tau_defect                    = np.inf
+  config.tau_ee                        = 0.001
+  config.delta_E_x_hat_ext             = 1e-5   + 0.*1j
+  config.delta_E_y_hat_ext             = 0e-5 + 0*1j
+
+  # Initialize the grids
+
+  def band_energy(p_x, p_y):
+    
+    p = af.sqrt(p_x**2. + p_y**2.)
+
+    return([ p*config.fermi_velocity, 
+            -p*config.fermi_velocity
+           ])
+
+  def band_velocity(p_x, p_y):
+
+    p     = af.sqrt(p_x**2. + p_y**2.)
+    p_hat = [p_x / (p + 1e-20), p_y / (p + 1e-20)]
+
+    v_f   = config.fermi_velocity
+
+    upper_band_velocity =  [ v_f * p_hat[0],  v_f * p_hat[1]]
+    lower_band_velocity =  [-v_f * p_hat[0], -v_f * p_hat[1]]
+
+    return([upper_band_velocity, lower_band_velocity])
+
+  config.band_energy   = band_energy
+  config.band_velocity = band_velocity
 
   return config
 

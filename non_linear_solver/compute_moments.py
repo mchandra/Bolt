@@ -8,13 +8,16 @@
 # space, all functions need to have the arrays used specified in velocitiesExpanded form 
 
 import arrayfire as af
+import numpy as np
+import non_linear_solver.convert
 
 def calculate_density(args):
   config = args.config
   f      = args.f
 
   # n = \int f dv^3
-  density = af.sum(af.sum(af.sum(f, 3)*config.dv_z, 2)*config.dv_x, 1)*config.dv_y
+  #density = af.sum(af.sum(af.sum(f, 3)*config.dv_z, 2)*config.dv_x, 1)*config.dv_y
+  density = af.sum(af.sum(af.sum(f, 3), 2)*config.dv_x, 1)*config.dv_y #* 4./(2.*np.pi)**2.
   
   af.eval(density)
   return(density)
@@ -25,7 +28,14 @@ def calculate_mom_bulk_x(args):
   vel_x  = args.vel_x
 
   # p_x = n v_bulk_x = \int f v_x dv^3
-  momentum_x = af.sum(af.sum(af.sum(f*vel_x, 3)*config.dv_z, 2)*config.dv_x, 1)*config.dv_y
+  #momentum_x = af.sum(af.sum(af.sum(f*vel_x, 3)*config.dv_z, 2)*config.dv_x, 1)*config.dv_y
+  momentum_x = af.sum(af.sum(af.sum(f*vel_x, 3), 2)*config.dv_x, 1)*config.dv_y * 4./(2.*np.pi)**2.
+
+#  p_x = config.h_cross * args.vel_x # (Nx*Ny, Nvy, Nvx, Nvz)
+#  p_y = config.h_cross * args.vel_y # (Nx*Ny, Nvy, Nvx, Nvz)
+#
+#  vel_upper, vel_lower = config.band_velocity(p_x, p_y)
+#  momentum_x = af.sum(af.sum(af.sum(f*vel_upper[0], 3), 2)*config.dv_x, 1)*config.dv_y
   
   af.eval(momentum_x)
   return(momentum_x)

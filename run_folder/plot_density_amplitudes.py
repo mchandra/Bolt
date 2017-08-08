@@ -1,5 +1,6 @@
 import h5py
 import pylab as pl 
+import numpy as np
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -38,15 +39,20 @@ time_ck      = h5f['time'][:]
 h5f.close()
 
 # Importing density evolutions as given by the LT code:
-h5f = h5py.File('lt_density_data.h5', 'r')
-amplitude_lt = h5f['density_amplitude'][:]
-time_lt      = h5f['time'][:]
-h5f.close()
+#h5f = h5py.File('lt_density_data.h5', 'r')
+#h5f = h5py.File('ck_density_data_custom_solver.h5', 'r')
+#amplitude_lt = h5f['density_amplitude'][:]
+#time_lt      = h5f['time'][:]
+#h5f.close()
 
 # Plotting:
-pl.plot(time_ck, amplitude_ck, label = 'CK')
-# pl.semilogy(time_lt, amplitude_lt, '--', color = 'black', label = 'LT')
+print(amplitude_ck - 0.00038106985120916196)
+pl.semilogy(time_ck, (amplitude_ck - 0.00038106985120916196), \
+        label=r'$\tau_{ee}=\infty$')
+#pl.plot(time_ck, amplitude_lt, label = r'LT')
+#pl.semilogy(time_lt, amplitude_lt- 0.00038106985120916196, '--', color ='red', \
+#        label =r'$\tau_{ee}=0.01$')
 pl.xlabel('Time')
 pl.ylabel(r'$MAX(\delta \rho(x))$')
-pl.legend()
+#pl.legend()
 pl.savefig('plot.png')

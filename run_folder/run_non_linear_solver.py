@@ -33,7 +33,9 @@ petsc4py.init(sys.argv)
 
 # Declaring the communicator:
 comm = PETSc.COMM_WORLD.tompi4py()
-af.set_device(comm.rank%num_devices)
+af.set_backend('opencl')
+af.set_device(1)
+#af.set_device(comm.rank%num_devices)
 
 if(config.bc_in_x == 'dirichlet'):
   bc_in_x = 'ghosted'
@@ -169,24 +171,31 @@ args.B_y = af.constant(0, x_center.shape[0], y_bottom.shape[1], dtype=af.Dtype.f
 args.B_z = af.constant(0, x_center.shape[0], x_center.shape[1], dtype=af.Dtype.f64)
 
 # Global data holds the information of the density amplitude for the entire physical domain:
-global_data   = np.zeros(time_array.size) 
-data, f_final = evolve.time_integration(da, da_fields, args, time_array)
+#global_data   = np.zeros(time_array.size) 
+density, vel_drift_x, vel_drift_y, T_ee, f_final = \
+    evolve.time_integration(da, da_fields, args, time_array)
 
 # Passing the values non-inclusive of ghost cells:
 global_vec_value[:] = np.array(f_final[N_ghost:-N_ghost, N_ghost:-N_ghost, :])
 viewer(global_vector)
 
 # Performing a reduce operation to obtain the global data:
-comm.Reduce(data,\
-            global_data,\
-            op = MPI.MAX,\
-            root = 0
-           )
+#comm.Reduce(data,\
+#            global_data,\
+#            op = MPI.MAX,\
+#            root = 0
+#           )
 
 # Export of the global-data:
 if(comm.rank == 0):
   import h5py
-  h5f = h5py.File('ck_density_data.h5', 'w')
-  h5f.create_dataset('density_amplitude', data = global_data - config.rho_background)
-  h5f.create_dataset('time', data = time_array)
+  h5f = h5py.File('dump.h5', 'w')
+  #h5f.create_dataset('density_amplitude', data = global_data - 0.*config.rho_background)
+  h5f.create_dataset('density'    , data = density)
+  h5f.create_dataset('vel_drift_x', data = vel_drift_x)
+  h5f.create_dataset('vel_drift_y', data = vel_drift_y)
+  h5f.create_dataset('T_ee'       , data = T_ee)
+  h5f.create_dataset('x_center'   , data = x_center)
+  h5f.create_dataset('y_center'   , data = y_center)
+  h5f.create_dataset('time'       , data = time_array)
   h5f.close()
