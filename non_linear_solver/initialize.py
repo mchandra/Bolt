@@ -264,15 +264,15 @@ def f_initial(da, args):
                0.*pert_imag * af.sin(k_x*x_center + k_y*y_center)
               )
 
-  vel_drift_x = 1e-2*(  af.tanh((y_center - 0.25)*50) \
+  vel_drift_x = 0e-2*(  af.tanh((y_center - 0.25)*50) \
                       - af.tanh((y_center - 0.75)*50) - 1.
                      ) \
-                + 1e-3*af.randu(y_center.shape[0], 
+                + 0e-3*af.randu(y_center.shape[0], 
                                 y_center.shape[1], 
                                 y_center.shape[2], dtype=af.Dtype.f64
                                )
 
-  vel_drift_y = 1e-3*af.randu(y_center.shape[0], 
+  vel_drift_y = 0e-3*af.randu(y_center.shape[0], 
                               y_center.shape[1], 
                               y_center.shape[2], dtype=af.Dtype.f64
                              )
@@ -333,6 +333,9 @@ def f_initial(da, args):
   			 
   args.vel_drift_x = vel_drift_x[:, :, 0].copy()
   args.vel_drift_y = vel_drift_y[:, :, 0].copy()
+
+#  args.vel_drift_x = 0.*x_center[:, :, 0].copy()
+#  args.vel_drift_y = 0.*x_center[:, :, 0].copy()
 
   args.step_length = 0.*x_center[:, :, 0].copy()
 

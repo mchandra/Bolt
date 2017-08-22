@@ -32,9 +32,9 @@ perturbation = dict(
                     k_y       = 2*np.pi 
                    ) 
 
-position_space = dict(N_x     = 128,
+position_space = dict(N_x     = 32,
                       x_start = 0,
-                      x_end   = 2.,
+                      x_end   = 0.5,
 
                       N_y     = 64,
                       y_start = 0,
@@ -81,7 +81,7 @@ velocity_space = dict(N_vel_x   = 32,
                      )
 
 time = dict(
-            final_time   = 1.,
+            final_time   = 1000.,
             dt           = 0.01
             #dt           = 0.01*(32/position_space['N_x'])
            )
