@@ -6,6 +6,7 @@ import arrayfire as af
 import petsc4py, sys
 petsc4py.init(sys.argv)
 from petsc4py import PETSc
+af.info()
 
 N_q1    = 64
 N_q2    = 128
@@ -60,6 +61,8 @@ af.sync()
 print("af_array_old.shape = ", af_array_old.shape)
 print("af_array_new.shape = ", af_array_new.shape)
 
+af.print_mem_info()
+
 def communicate_old(af_array, da, glob_vec, local_vec):
     # af_array is (N_q2+2*N_ghost, N_q1+2*N_ghost, dof)
 
@@ -82,6 +85,13 @@ def communicate_old(af_array, da, glob_vec, local_vec):
 
 def communicate_new(af_array, da, glob_vec, local_vec):
     # af_array is (dof, N_q1, N_q2)
+#    af_array_1d = af.moddims(af_array,
+#                               (N_q1_local + 2*N_ghost)
+#			     * (N_q2_local + 2*N_ghost)
+#			     * dof
+#                            )
+#
+#    local_vec_array[:] = af_array_1d.to_ndarray()
     
     # First flatten af_array
     af_array_1d = af.moddims(af_array[:, 
@@ -94,26 +104,29 @@ def communicate_new(af_array, da, glob_vec, local_vec):
                             )
     
     # Convert to a np array and copy to petsc
-    global_vec_array[:] = af_array_1d.to_ndarray()
+    #global_vec_array[:] = af_array_1d.to_ndarray()
+    af_array_1d.to_ndarray(global_vec_array)
 
     # Communication: Global -> Local
     da.globalToLocal(glob_vec, local_vec)
 
-    # loval_vec_array_new now has the data. Need to convert to af
-    af_array_after_comm_1d = af.to_array(local_vec_array)
-    af_array_after_comm    = af.moddims(af_array_after_comm_1d,
-                                        dof,
-                                        N_q1_local + 2*N_ghost,
-                                        N_q2_local + 2*N_ghost
-                                       )
+    # local_vec_array_new now has the data. Need to convert to af
+    af_array_after_comm_1d = af.interop.np_to_af_array(local_vec_array)
+#    af_array_after_comm    = af.moddims(af_array_after_comm_1d,
+#                                        dof,
+#                                        N_q1_local + 2*N_ghost,
+#                                        N_q2_local + 2*N_ghost
+#                                       )
+#
+#    af.eval(af_array_after_comm)
 
-    af.eval(af_array_after_comm)
+#    return(af_array_after_comm)
 
-    return(af_array_after_comm)
-
-communicate_old(af_array_old, da, glob_vec, local_vec)
+#communicate_old(af_array_old, da, glob_vec, local_vec)
 communicate_new(af_array_new, da, glob_vec, local_vec)
 af.sync()
+
+af.print_mem_info()
 
 iters = 1
 
