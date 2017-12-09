@@ -103,9 +103,10 @@ def communicate_distribution_function(da, args, local, glob):
          # N_ghost = 3
          # | o | o | o || o | o | o |...
          #   0   1   2    3   4   5
-
+         
+         vel_drift_x = 0e-5#*np.sin(args.current_time/10)
          f_inflow = \
-            1./(af.exp( (E_upper - 1e-5*p_x - 0e-1*p_y - mu_0)/(k*T_0) ) + 1.)
+            1./(af.exp( (E_upper - vel_drift_x*p_x - 0e-1*p_y - mu_0)/(k*T_0) ) + 1.)
 
          f_updated[j_inflow_start:j_inflow_end, i] = \
             f_inflow[j_inflow_start:j_inflow_end, i]
@@ -154,8 +155,10 @@ def communicate_distribution_function(da, args, local, glob):
 #         f_updated[j_outflow_start:j_outflow_end, i + N_ghost + N_x_local] = \
 #            f_updated[j_outflow_start:j_outflow_end, N_ghost + N_x_local - 1]
 
+         vel_drift_x = 0e-5#*np.sin(args.current_time/10)
+
          f_right = \
-            1./(af.exp( (E_upper - 1e-5*p_x - 0e-1*p_y - mu_0)/(k*T_0) ) + 1.)
+            1./(af.exp( (E_upper - vel_drift_x*p_x - 0e-1*p_y - mu_0)/(k*T_0) ) + 1.)
 
          f_updated[j_outflow_start:j_outflow_end, i+N_ghost+N_x_local] = \
                  f_right[j_outflow_start:j_outflow_end, i+N_ghost+N_x_local]

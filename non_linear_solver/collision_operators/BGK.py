@@ -88,14 +88,14 @@ def collision_step_BGK(da, args, dt):
 #
 #  # Performing the step of df/dt = C[f] = -(f - f_MB)/tau:
 #  #f0             = f_MB(da, args)
-#  #f0_defect      = f_defect_scattering(da, args)
+  f0_defect      = f_defect_scattering(da, args)
   f0_ee          = f_ee_scattering(da, args)
 
-  args.f = args.f \
+  #args.f = args.f \
+  #                - (dt)*(args.f - f0_ee    )/tau_ee
+
+  args.f = args.f - (dt)*(args.f - f0_defect)/tau_defect \
                   - (dt)*(args.f - f0_ee    )/tau_ee
-#
-##  args.f = args.f - (dt)*(args.f - f0_defect)/tau_defect \
-##                  - (dt)*(args.f - f0_ee    )/tau_ee
 #
 #  # Converting from velocitiesExpanded form to positionsExpanded form:
 #  #args.f = non_linear_solver.convert.to_positionsExpanded(da, args.config, args.f)
@@ -361,8 +361,8 @@ def f_ee_scattering(da, args):
                            )
         print("    ||residual_ee|| = ", error_norm)
 
-        if (error_norm < 1e-13):
-            return(fermi_dirac)
+#        if (error_norm < 1e-20):
+#            return(fermi_dirac)
 
         b_0 = eqn_mass_conservation  
         b_1 = eqn_energy_conservation
@@ -568,8 +568,8 @@ def f_defect_scattering(da, args):
                            )
         print("    ||residual_defect|| = ", error_norm)
 
-        if (error_norm < 1e-9):
-            return(fermi_dirac)
+#        if (error_norm < 1e-20):
+#            return(fermi_dirac)
 
         b0  = eqn_mass_conservation
         b1  = eqn_energy_conservation
@@ -601,6 +601,10 @@ def f_defect_scattering(da, args):
                          af.max(af.abs(residual[1]))]
                        )
     print("    ||residual_defect|| = ", error_norm)
+    N_g = config.N_ghost
+    print("    mu = ", af.mean(args.mu[N_g:-N_g, N_g:-N_g]),
+          " T = ", af.mean(args.T[N_g:-N_g, N_g:-N_g])
+         )
     print("    ------------------")
 
     return(fermi_dirac)

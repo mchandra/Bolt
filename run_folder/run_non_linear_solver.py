@@ -110,6 +110,8 @@ args.vel_z = vel_z
 args.x_center = x_center
 args.y_center = y_center
 
+args.current_time = 0
+
 pert_real = config.pert_real
 pert_imag = config.pert_imag
 

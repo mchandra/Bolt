@@ -69,9 +69,13 @@ def f_interp_vel_3d(args, F_x, F_y, F_z, dt):
   vel_y = args.vel_y
   vel_z = args.vel_z
   
+  x_center = non_linear_solver.convert.to_velocitiesExpanded(args.da, config, args.x_center)
+  amplitude = 0.1
+  F_x = amplitude * -(x_center - 0.25)
+
   # F_x,y,z need to be passed in velocitiesExpanded form
   vel_x_new = vel_x - dt * F_x
-  vel_y_new = vel_y - dt * F_y
+  vel_y_new = vel_y #- dt * F_y
   vel_z_new = vel_z #- dt * F_z
 
   # Transforming vel_interpolant to go from [0, N_vel - 1]:
