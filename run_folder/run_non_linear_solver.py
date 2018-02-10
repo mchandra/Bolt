@@ -34,8 +34,7 @@ petsc4py.init(sys.argv)
 # Declaring the communicator:
 comm = PETSc.COMM_WORLD.tompi4py()
 af.set_backend('opencl')
-af.set_device(1)
-#af.set_device(comm.rank%num_devices)
+af.set_device(comm.rank%num_devices)
 
 if(config.bc_in_x == 'dirichlet'):
   bc_in_x = 'ghosted'

@@ -7,7 +7,7 @@ import pylab as pl
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
-pl.rcParams['figure.dpi']      = 300
+pl.rcParams['figure.dpi']      = 100
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
@@ -45,6 +45,8 @@ y_center = h5f['y_center'][:]
 time     = h5f['time'][:]
 h5f.close()
 
+print("End time = ", time[-1])
+
 #h5f         = h5py.File('/home/mchandra/bolt/run_folder/dump_defect_AC.h5', 'r')
 #density_defect     = h5f['density'][:]
 #vel_drift_x_defect = h5f['vel_drift_x'][:]
@@ -77,8 +79,8 @@ print("Mean density = ", mean_density)
 #pl.xlabel('Time')
 #pl.savefig('density_vs_time.png')
 
-for time_step in range((int)(time.size)-1, (int)(time.size)):
-#for time_step in range(0, (int)(time.size), 10):
+#for time_step in range((int)(time.size)-1, (int)(time.size)):
+for time_step in range(0, (int)(time.size), 10):
     print("time_step = ", time_step)
 
     pl.contourf(x_center[3:-3, 3:-3, 0], y_center[3:-3, 3:-3, 0], density_pert[time_step], colorlevels, cmap='bwr')

@@ -116,10 +116,10 @@ def configuration_object(params):
 
   config.h_cross                       = 1
   config.number_of_bands               = 2
-  config.chemical_potential_background = 0.005*0.
+  config.chemical_potential_background = 0.005
   config.fermi_velocity                = 137./300.
-  config.tau_defect                    = 0.01
-  config.tau_ee                        = np.inf
+  config.tau_defect                    = np.inf
+  config.tau_ee                        = 0.01
   config.delta_E_x_hat_ext             = 1e-5   + 0.*1j
   config.delta_E_y_hat_ext             = 0e-5 + 0*1j
 
