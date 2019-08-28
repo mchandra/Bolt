@@ -645,13 +645,13 @@ def RTA(f, t, q1, q2, p1, p2, p3, moments, params, flag = False):
     else:
         # Activate the following lines to enable normal operation of collision
         # operator
-        if (params.p_dim==1)
+        if (params.p_dim==1):
             C_f = -(  f - f0_defect_constant_T(f, p_x, p_y, p_z, params) \
                    ) / params.tau_defect(q1, q2, p_x, p_y, p_z) \
                   -(  f - f0_ee_constant_T(f, p_x, p_y, p_z, params)
                   ) / params.tau_ee(q1, q2, p_x, p_y, p_z)
 
-        elif (params.p_dim==2)
+        elif (params.p_dim==2):
             C_f = -(  f - f0_defect(f, p_x, p_y, p_z, params) \
                    ) / params.tau_defect(q1, q2, p_x, p_y, p_z) \
                   -(  f - f0_ee_constant_T(f, p_x, p_y, p_z, params)
