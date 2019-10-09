@@ -103,7 +103,7 @@ sensor_2_right_indices = (q2 > sensor_2_right_start) & (q2 < sensor_2_right_end)
 filepath = os.getcwd() + "/dumps"
 moment_files 		  = np.sort(glob.glob(filepath+'/moment*.bin'))
 lagrange_multiplier_files = \
-        np.sort(glob.glob(filepath+'/lagrange_multipliers*.h5'))
+        np.sort(glob.glob(filepath+'/lagrange_multipliers*.bin'))
 
 print ("moment files : ", moment_files.size)
 print ("lagrange multiplier files : ", lagrange_multiplier_files.size)
@@ -126,12 +126,12 @@ for file_number, dump_file in yt.parallel_objects(enumerate(moment_files)):
     j_x     = moments[:, :, 1]
     j_y     = moments[:, :, 2]
 
-    #lagrange_multipliers = \
-    #    io.readBinaryFile(lagrange_multiplier_files[file_number])
-    #lagrange_multipliers = lagrange_multipliers[0].reshape(N_q2, N_q1, 5)
-    h5f  = h5py.File(lagrange_multiplier_files[file_number], 'r')
-    lagrange_multipliers = h5f['lagrange_multipliers'][:]
-    h5f.close()
+    lagrange_multipliers = \
+        io.readBinaryFile(lagrange_multiplier_files[file_number])
+    lagrange_multipliers = lagrange_multipliers[0].reshape(N_q2, N_q1, 7)
+    #h5f  = h5py.File(lagrange_multiplier_files[file_number], 'r')
+    #lagrange_multipliers = h5f['lagrange_multipliers'][:]
+    #h5f.close()
     
     mu           = lagrange_multipliers[:, :, 0]
     mu_ee        = lagrange_multipliers[:, :, 1]

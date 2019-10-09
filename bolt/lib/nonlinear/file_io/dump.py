@@ -35,7 +35,7 @@ def dump_aux_arrays(self, arrays, name, file_name):
 
     af.flat(array_to_dump).to_ndarray(self._glob_aux_array)
     PETSc.Object.setName(self._glob_aux, name)
-    viewer = PETSc.Viewer().createHDF5(file_name + '.h5', 'w', comm=self._comm)
+    viewer = PETSc.Viewer().createBinary(file_name + '.bin', 'w', comm=self._comm)
     viewer(self._glob_aux)
 
 def dump_moments(self, file_name):
