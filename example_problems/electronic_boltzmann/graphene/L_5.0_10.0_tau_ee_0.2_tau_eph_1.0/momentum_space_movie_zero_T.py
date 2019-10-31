@@ -96,12 +96,12 @@ dist_func_file = dist_func_files[-1]
 
 dist_func_background = io.readBinaryFile(dist_func_bg_file)
 #dist_func_background = dist_func_background[0].reshape(N_q2, N_q1, N_p2, N_p1)
-dist_func_background = dist_func_background[0].reshape(N_q1, N_q2, N_s, N_p3, N_p2, N_p1)
+dist_func_background = dist_func_background[0].reshape(N_q2, N_q1, N_s, N_p3, N_p2, N_p1)
 dist_func = io.readBinaryFile(dist_func_file)
 
 print (dist_func[0].shape)
 
-dist_func = dist_func[0].reshape(N_q1, N_q2, N_s, N_p3, N_p2, N_p1)
+dist_func = dist_func[0].reshape(N_q2, N_q1, N_s, N_p3, N_p2, N_p1)
 
 
 N = 7
@@ -111,12 +111,12 @@ for index_1 in range(N):
         q1_position = int(N_q1*((index_1/N)+(1/(2*N))))
         q2_position = int(N_q2*((index_2/N)+(1/(2*N))))
         
-        a = np.max((dist_func - dist_func_background)[q1_position, q2_position, :, :])
-        b = np.abs(np.min((dist_func - dist_func_background)[q1_position, q2_position, :, :]))
+        a = np.max((dist_func - dist_func_background)[q2_position, q1_position, :, :])
+        b = np.abs(np.min((dist_func - dist_func_background)[q2_position, q1_position, :, :]))
         norm_factor = np.maximum(a, b)
         f_at_desired_q = \
                 np.reshape((dist_func-\
-                dist_func_background)[q1_position, q2_position, :, :],\
+                dist_func_background)[q2_position, q1_position, :, :],\
                 [N_p2, N_p1])/norm_factor
     
         np.savetxt('data/f_vs_theta_%d_%d.txt'%(index_1, index_2), f_at_desired_q)
@@ -127,7 +127,7 @@ for index_1 in range(N):
         #                        [N_p2, N_p1]
         #                       )
 
-        print ("f at desired q : ", dist_func[q1_position, q2_position, :].shape)
+        #print ("f at desired q : ", dist_func[q1_position, q2_position, :].shape)
         print ("norm : ", norm_factor)
 
         
@@ -142,8 +142,8 @@ for index_1 in range(N):
 
         print ('p2 : ', p2.shape)
         #pl.plot(p2, f_at_desired_q)
-        pl.plot(x, y, color='r', linestyle = '-', lw=2)
-        pl.plot(x_bg, y_bg, color='k', alpha=0.4, lw=2)
+        pl.plot(x, y, color='r', linestyle = '-', lw=3)
+        pl.plot(x_bg, y_bg, color='k', alpha=0.5, lw=3)
         #pl.contourf(p1_meshgrid, p2_meshgrid, f_at_desired_q, 100, cmap='bwr')
 
         #np.savetxt('data/f_vs_theta_%d_%d.txt'%(index_1, index_2), f_at_desired_q)
@@ -154,7 +154,11 @@ for index_1 in range(N):
         #pl.title(r'Time = ' + "%.2f"%(time_array[file_number]) + " ps")
         pl.xlabel('$p_x$')
         pl.ylabel('$p_y$')
-        #pl.gca().set_aspect('equal')
+
+        pl.xlim([-6.5, 6.5])
+        pl.ylim([-6.5, 6.5])
+
+        pl.gca().set_aspect('equal')
         pl.savefig('images/dist_func_at_a_point_%d_%d.png'%(index_1, index_2))       
         pl.clf()
 
