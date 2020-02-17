@@ -6,8 +6,8 @@ q1_end   = 1.0
 N_q1     = 72
 
 q2_start = 0.
-q2_end   = 5.0
-N_q2     = 360
+q2_end   = 5.25
+N_q2     = 378
 
 # If N_p1 > 1, mirror boundary conditions require p1 to be
 # symmetric about zero
@@ -41,7 +41,7 @@ p1_end   = [1.5*params.initial_mu]
 
 # If N_p2 > 1, mirror boundary conditions require p2 to be
 # symmetric about zero
-N_p2     =  8192
+N_p2     =  4096
 
 # In the cartesian representation of momentum space,
 # p2 = p_y (magnitude of momentum)

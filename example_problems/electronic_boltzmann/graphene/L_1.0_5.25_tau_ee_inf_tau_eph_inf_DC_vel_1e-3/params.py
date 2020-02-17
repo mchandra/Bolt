@@ -42,14 +42,14 @@ solve_for_equilibrium = 0
 
 # Time parameters:
 dt      = 0.025/4 # ps
-t_final = 40.     # ps
+t_final = 5000.     # ps
 
 # File-writing Parameters:
 dump_steps = 1
 # Set to zero for no file-writing
-dt_dump_f       = 10*dt #ps
+dt_dump_f       = 100*dt #ps
 # ALWAYS set dump moments and dump fields at same frequency:
-dt_dump_moments = dt_dump_fields = 2*dt #ps
+dt_dump_moments = dt_dump_fields = 5*dt #ps
 
 # Dimensionality considered in velocity space:
 p_dim = 1
@@ -79,10 +79,10 @@ contact_geometry      = "straight" # Contacts on either side of the device
                                    # For contacts on the same side, use 
                                    # contact_geometry = "turn_around"
 
-initial_temperature = 12e-4
+initial_temperature = 12e-5
 initial_mu          = 0.015
-vel_drift_x_in      = 1e-4*fermi_velocity
-vel_drift_x_out     = 1e-4*fermi_velocity
+vel_drift_x_in      = 1e-3*fermi_velocity
+vel_drift_x_out     = 1e-3*fermi_velocity
 AC_freq             = 1./100 # ps^-1
 
 B3_mean = 1. # T

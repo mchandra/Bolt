@@ -7,10 +7,11 @@ import h5py
 import matplotlib
 import matplotlib.gridspec as gridspec
 import matplotlib.patches as patches
+from matplotlib import transforms, colors
 matplotlib.use('agg')
 import pylab as pl
-import yt
-yt.enable_parallelism()
+#import yt
+#yt.enable_parallelism()
 
 import petsc4py, sys; petsc4py.init(sys.argv)
 from petsc4py import PETSc
@@ -100,10 +101,10 @@ sensor_2_right_indices = (q2 > sensor_2_right_start) & (q2 < sensor_2_right_end)
 
 #filepath = \
 #'/home/mchandra/gitansh/bolt_master/example_problems/electronic_boltzmann/graphene/L_5.0_10.0_tau_ee_0.2_tau_eph_1.0/dumps'
-filepath = os.getcwd() + "/dumps"
-moment_files 		  = np.sort(glob.glob(filepath+'/moment*.bin'))
+filepath = "."
+moment_files 		  = np.sort(glob.glob(filepath+'/dump_moments/*.bin'))
 lagrange_multiplier_files = \
-        np.sort(glob.glob(filepath+'/lagrange_multipliers*.bin'))
+        np.sort(glob.glob(filepath+'/dump_lagrange_multipliers/*.bin'))
 
 print ("moment files : ", moment_files.size)
 print ("lagrange multiplier files : ", lagrange_multiplier_files.size)
@@ -115,11 +116,12 @@ time_array = np.loadtxt("dump_time_array.txt")
 
 io = PetscBinaryIO.PetscBinaryIO()
 
-for file_number, dump_file in yt.parallel_objects(enumerate(moment_files)):
+for file_number, dump_file in enumerate(moment_files):
 
+    file_number = -1
     print("file number = ", file_number, "of ", moment_files.size)
 
-    moments = io.readBinaryFile(dump_file)
+    moments = io.readBinaryFile(moment_files[file_number])
     moments = moments[0].reshape(N_q2, N_q1, 3)
     
     density = moments[:, :, 0]
@@ -136,27 +138,51 @@ for file_number, dump_file in yt.parallel_objects(enumerate(moment_files)):
     mu           = lagrange_multipliers[:, :, 0]
     mu_ee        = lagrange_multipliers[:, :, 1]
     T_ee         = lagrange_multipliers[:, :, 2]
-    vel_drift_x  = lagrange_multipliers[:, :, 3]
-    vel_drift_y  = lagrange_multipliers[:, :, 4]
+    vel_drift_x  = lagrange_multipliers[:, :, 5]
+    vel_drift_y  = lagrange_multipliers[:, :, 6]
 
     print (vel_drift_x.shape)
     print (density.shape)
-    
-    pl.contourf(q1_meshgrid, q2_meshgrid, density.T, 100, cmap='bwr')
-    pl.title(r'Time = ' + "%.2f"%(time_array[file_number]) + " ps")
-    pl.streamplot(q1, q2, 
-                  vel_drift_x, vel_drift_y,
-                  density=2, color='k',
-                  linewidth=0.7, arrowsize=1
-                 )
-    
+
+    l = 5.25
+    pl.figure(figsize=(7.5*1.5, 1.5*25.0*l/6.5))
+    base = pl.gca().transData
+    rot = transforms.Affine2D().rotate_deg(0)
+
+    delta_n = density - np.mean(density)
+
+    pl.contourf(q1, q2, delta_n, 200,
+        norm=colors.SymLogNorm(linthresh=delta_n.max()/20), cmap='bwr',
+        transform = rot + base)
+
+    pl.streamplot(q1, q2, vel_drift_x, vel_drift_y,
+          density=1.4*l, color='black',
+          linewidth=1, arrowsize=1.5, transform = rot + base
+         )
+
+    pl.yticks([0, 5.])
+    pl.xticks([])
+
     pl.xlim([q1[0], q1[-1]])
     pl.ylim([q2[0], q2[-1]])
-    
+
     pl.gca().set_aspect('equal')
-    pl.xlabel(r'$x\;(\mu \mathrm{m})$')
-    pl.ylabel(r'$y\;(\mu \mathrm{m})$')
-    pl.suptitle('$\\tau_\mathrm{mc} = 0.2$ ps, $\\tau_\mathrm{mr} = 1.0$ ps')
+
+    #pl.contourf(q1_meshgrid, q2_meshgrid, density.T, 100, cmap='bwr')
+    #pl.title(r'Time = ' + "%.2f"%(time_array[file_number]) + " ps")
+    #pl.streamplot(q1, q2, 
+    #              vel_drift_x, vel_drift_y,
+    #              density=2, color='k',
+    #              linewidth=0.7, arrowsize=1
+    #             )
+    
+    #pl.xlim([q1[0], q1[-1]])
+    #pl.ylim([q2[0], q2[-1]])
+    
+    #pl.gca().set_aspect('equal')
+    #pl.xlabel(r'$x\;(\mu \mathrm{m})$')
+    #pl.ylabel(r'$y\;(\mu \mathrm{m})$')
+    #pl.suptitle('$\\tau_\mathrm{mc} = \infty$, $\\tau_\mathrm{mr} = \infty$')
     pl.savefig('images/dump_' + '%06d'%file_number + '.png')
     pl.clf()
 
