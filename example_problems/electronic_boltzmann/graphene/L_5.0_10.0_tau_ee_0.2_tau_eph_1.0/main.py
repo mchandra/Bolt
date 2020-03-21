@@ -29,14 +29,14 @@ import bolt.src.electronic_boltzmann.moment_defs \
 
 
 # Create required folders if they do not exist already
-if not os.path.isdir("dump_f"):
-    os.system("mkdir dump_f")
-if not os.path.isdir("dump_moments"):
-    os.system("mkdir dump_moments")
-if not os.path.isdir("dump_lagrange_multipliers"):
-    os.system("mkdir dump_lagrange_multipliers")
-if not os.path.isdir("images"):
-    os.system("mkdir images")
+#if not os.path.isdir("dump_f"):
+#    os.system("mkdir dump_f")
+#if not os.path.isdir("dump_moments"):
+#    os.system("mkdir dump_moments")
+#if not os.path.isdir("dump_lagrange_multipliers"):
+#    os.system("mkdir dump_lagrange_multipliers")
+#if not os.path.isdir("images"):
+#    os.system("mkdir images")
 
 
 # Defining the physical system to be solved:
@@ -57,7 +57,7 @@ params.rank = nls._comm.rank
 # Time parameters:
 dt      = params.dt
 t_final = params.t_final
-params.current_time = t0        = 0.0
+params.current_time = time_elapsed   = 0.0
 params.time_step    = time_step = 0
 dump_counter = 0
 dump_time_array = []
@@ -86,6 +86,9 @@ if using_latest_restart == False:
                              'lagrange_multipliers',
                              'dump_lagrange_multipliers/t=' + formatted_time
                             )
+        dump_time_array.append(time_elapsed)
+        if (params.rank==0):
+            np.savetxt("dump_time_array.txt", dump_time_array)
     else:
         time_elapsed = params.t_restart
         formatted_time = format_time(time_elapsed)
@@ -104,12 +107,12 @@ density = nls.compute_moments('density')
 print("rank = ", params.rank, "\n",
       "     <mu>    = ", af.mean(params.mu[0, 0, N_g:-N_g, N_g:-N_g]), "\n",
       "     max(mu) = ", af.max(params.mu[0, 0, N_g:-N_g, N_g:-N_g]), "\n",
-      "     <n>     = ", af.mean(density[0, 0, N_g:-N_g, N_g:-N_g]), "\n",
+      "     <n>     = ", af.mean(density[0, 0, N_g:-N_g, N_g:-N_g]), "i\n",
       "     max(n)  = ", af.max(density[0, 0, N_g:-N_g, N_g:-N_g]), "\n"
      )
 
 nls.f = af.select(nls.f < 1e-20, 1e-20, nls.f)
-while(t0 < t_final):
+while(time_elapsed < t_final):
 
     # Refine to machine error
     if (time_step==0):
@@ -119,7 +122,7 @@ while(t0 < t_final):
 
     dump_steps = params.dump_steps
 
-   if(params.dt_dump_moments != 0):
+    if(params.dt_dump_moments != 0):
         # We step by delta_dt to get the values at dt_dump
         delta_dt =   (1 - math.modf(time_elapsed/params.dt_dump_moments)[0]) \
                    * params.dt_dump_moments
@@ -129,11 +132,7 @@ while(t0 < t_final):
             time_elapsed += delta_dt
             formatted_time = format_time(time_elapsed)            
             nls.dump_moments('dump_moments/t=' + formatted_time)
-
-    if(math.modf(time_elapsed/params.dt_dump_f)[0] < 1e-12):
-        formatted_time = format_time(time_elapsed)
-        nls.dump_distribution_function('dump_f/t=' + formatted_time)        
-        nls.dump_aux_arrays([params.mu,
+            nls.dump_aux_arrays([params.mu,
                              params.mu_ee,
                              params.T_ee,
                              params.vel_drift_x, params.vel_drift_y,
@@ -141,14 +140,21 @@ while(t0 < t_final):
                              'lagrange_multipliers',
                              'dump_lagrange_multipliers/t=' + formatted_time
                             )
+            dump_time_array.append(time_elapsed)
+            if (params.rank==0):
+                np.savetxt("dump_time_array.txt", dump_time_array)
 
-    PETSc.Sys.Print("Time step =", time_step, ", Time =", t0)
+    if(math.modf(time_elapsed/params.dt_dump_f)[0] < 1e-12):
+        formatted_time = format_time(time_elapsed)
+        nls.dump_distribution_function('dump_f/t=' + formatted_time)        
+
+    PETSc.Sys.Print("Time step =", time_step, ", Time =", time_elapsed)
 
     nls.strang_timestep(dt)
-    t0                  = t0 + dt
+    time_elapsed        = time_elapsed + dt
     time_step           = time_step + 1
     params.time_step    = time_step
-    params.current_time = t0
+    params.current_time = time_elapsed
 
     # Floors
     nls.f     = af.select(nls.f < 1e-20, 1e-20, nls.f)
