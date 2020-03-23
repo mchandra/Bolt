@@ -46,8 +46,5 @@ def compute_moments(self, moment_name, f=None):
                                  ), f, p1, p2, p3, measure
                          )
 
-    else:
-        raise NotImplementedError('Unsupported coordinate system in p_space')
-
     af.eval(moment)
     return (moment)
