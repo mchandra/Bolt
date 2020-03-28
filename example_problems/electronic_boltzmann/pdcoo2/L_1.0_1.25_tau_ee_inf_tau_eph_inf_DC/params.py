@@ -150,8 +150,10 @@ def band_velocity(p1, p2):
         raise NotImplementedError('Unsupported coordinate system in p_space') 
     
     p     = af.sqrt(p_x**2. + p_y**2.)
-    p_hat = hex_vel(p2)
-    #p_hat = [p_x / (p + 1e-20), p_y / (p + 1e-20)]
+    #TODO : Store the return value of hexagon_unit_vel in a variable
+    p_hat = hexagon_unit_vec(p2)
+    
+#p_hat = [p_x / (p + 1e-20), p_y / (p + 1e-20)]
 
     v_f   = fermi_velocity
 
@@ -160,39 +162,61 @@ def band_velocity(p1, p2):
     af.eval(upper_band_velocity[0], upper_band_velocity[1])
     return(upper_band_velocity)
 
-def hex_vel (theta):
+def hexagon_unit_vec (theta):
 
-    res_x = np.zeros(theta.shape)
-    res_y = np.zeros(theta.shape)
+    vel_x = np.zeros(theta.shape)
+    vel_y = np.zeros(theta.shape)
 
+#              #%%%%%%%%%%%%%%%%%%%*         
+#             .  .               ,  *        
+#           (     &     (2)     #     .      
+#          .       .          .        (     
+#        /           &       #               
+#       ,     (1)      ,    .    (3)      (  
+# -pi /                 & &                  
+#     /------------------/------------------(    0
+#  pi  .               #   #              .  
+#        /    (6)            /     (4)    #   
+#         *         %         #              
+#           *      ,           #      #      
+#            *   (      (5)      /           
+#              ,,                 %(         
+#              #####################
+
+    # (1)
     indices = ((theta >= -np.pi) & (theta < -2*np.pi/3))
-    res_x[indices] = 1./2.
-    res_y[indices] = -np.sqrt(3)/2.
+    vel_x[indices] = 1./2.
+    vel_y[indices] = -np.sqrt(3)/2.
     
+    # (2)
     indices = ((theta >= -2*np.pi/3) & (theta < -np.pi/3))
-    res_x[indices] = 0.
-    res_y[indices] = -1.
+    vel_x[indices] = 0.
+    vel_y[indices] = -1.
 
+    # (3)
     indices = ((theta >= -np.pi/3) & (theta < 0))
-    res_x[indices] = -1./2
-    res_y[indices] = np.sqrt(3)/2.
+    vel_x[indices] = -1./2
+    vel_y[indices] = np.sqrt(3)/2.
 
+    # (4)
     indices = ((theta >= 0) & (theta < np.pi/3))
-    res_x[indices] = -1./2.
-    res_y[indices] = np.sqrt(3)/2.
-    
+    vel_x[indices] = -1./2.
+    vel_y[indices] = np.sqrt(3)/2.
+
+    # (5)    
     indices = ((theta >= np.pi/3) & (theta < 2*np.pi/3))
-    res_x[indices] = 0.
-    res_y[indices] = 1.
-    
+    vel_x[indices] = 0.
+    vel_y[indices] = 1.
+
+    # (6)    
     indices = ((theta >= 2*np.pi/3) & (theta < np.pi))
-    res_x[indices] = 1./2.
-    res_y[indices] = np.sqrt(3)/2.
+    vel_x[indices] = 1./2.
+    vel_y[indices] = np.sqrt(3)/2.
 
-    res_x = af.from_ndarray(res_x)
-    res_y = af.from_ndarray(res_y)
+    vel_x = af.from_ndarray(vel_x)
+    vel_y = af.from_ndarray(vel_y)
 
-    return ([res_x, res_y]) 
+    return ([vel_x, vel_y]) 
 
 def polygon(n, theta, rotation = 0, shift = 0):
     '''
