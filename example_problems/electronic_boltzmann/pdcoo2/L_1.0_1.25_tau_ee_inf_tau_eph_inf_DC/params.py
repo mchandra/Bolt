@@ -132,7 +132,8 @@ def band_energy(p1, p2):
     
     p = af.sqrt(p_x**2. + p_y**2.)
     
-    E_upper = p*fermi_velocity
+    #E_upper = p*fermi_velocity
+    E_upper = initial_mu * polygon(6, p2, rotation = np.pi/6)
 
     af.eval(E_upper)
     return(E_upper)
@@ -190,35 +191,54 @@ def normal_to_hexagon_unit_vec(theta):
 #
 
     # (1)
-    indices = ((theta >= 0) & (theta < np.pi/3))
-    vel_x[indices] = np.cos(np.pi/6)
-    vel_y[indices] = np.sin(np.pi/6)
+    start_theta = 0.0
+    end_theta   = np.pi/3
+    mid_theta   = 0.5*(end_theta + start_theta)
+    indices = ((theta >= start_theta) & (theta < end_theta))
+    vel_x[indices] = np.cos(mid_theta)
+    vel_y[indices] = np.sin(mid_theta)
 
     # (2)    
-    indices = ((theta >= np.pi/3) & (theta < 2*np.pi/3))
-    vel_x[indices] = 0.
-    vel_y[indices] = 1.
+    start_theta = np.pi/3
+    end_theta   = 2*np.pi/3
+    mid_theta   = 0.5*(end_theta + start_theta)
+    indices = ((theta >= start_theta) & (theta < end_theta))
+    vel_x[indices] = np.cos(mid_theta)
+    vel_y[indices] = np.sin(mid_theta)
 
     # (3)    
-    indices = ((theta >= 2*np.pi/3) & (theta < np.pi))
-    vel_x[indices] = -np.cos(np.pi/6)
-    vel_y[indices] = np.sin(np.pi/6)
+    start_theta = 2*np.pi/3
+    end_theta   = np.pi
+    mid_theta   = 0.5*(end_theta + start_theta)
+    indices = ((theta >= start_theta) & (theta < end_theta))
+    vel_x[indices] = np.cos(mid_theta)
+    vel_y[indices] = np.sin(mid_theta)
     
     # (4)
-    indices = ((theta >= -np.pi) & (theta < -2*np.pi/3))
-    vel_x[indices] = -np.cos(np.pi/6)
-    vel_y[indices] = -np.sin(np.pi/6)
+    start_theta = -np.pi
+    end_theta   = -2*np.pi/3
+    mid_theta   = 0.5*(end_theta + start_theta)
+    indices = ((theta >= start_theta) & (theta < end_theta))
+    vel_x[indices] = np.cos(mid_theta)
+    vel_y[indices] = np.sin(mid_theta)
     
     # (5)
-    indices = ((theta >= -2*np.pi/3) & (theta < -np.pi/3))
-    vel_x[indices] = 0.
-    vel_y[indices] = -1.
+    start_theta = -2*np.pi/3
+    end_theta   = -np.pi/3
+    mid_theta   = 0.5*(end_theta + start_theta)
+    indices = ((theta >= start_theta) & (theta < end_theta))
+    vel_x[indices] = np.cos(mid_theta)
+    vel_y[indices] = np.sin(mid_theta)
 
     # (6)
-    indices = ((theta >= -np.pi/3) & (theta < 0))
-    vel_x[indices] = np.cos(np.pi/6)
-    vel_y[indices] = -np.sin(np.pi/6)
+    start_theta = -np.pi/3
+    end_theta   = 0
+    mid_theta   = 0.5*(end_theta + start_theta)
+    indices = ((theta >= start_theta) & (theta < end_theta))
+    vel_x[indices] = np.cos(mid_theta)
+    vel_y[indices] = np.sin(mid_theta)
 
+    # Convert to arrayfire arrays
     vel_x = af.from_ndarray(vel_x)
     vel_y = af.from_ndarray(vel_y)
 
@@ -226,7 +246,7 @@ def normal_to_hexagon_unit_vec(theta):
 
 def polygon(n, theta, rotation = 0, shift = 0):
     '''
-    Returns a polygon of unit side length on a polar coordinate system.
+    Returns a polygon of unit edge length on a polar coordinate system.
     Inputs : 
 
     n        : number of sides of the polygon
@@ -235,7 +255,7 @@ def polygon(n, theta, rotation = 0, shift = 0):
     shift    : initial shift in center ##TODO
     '''
 
-    numerator   = radius * np.cos(np.pi/n)
+    numerator   = np.cos(np.pi/n)
     denominator = af.cos((theta - rotation) - (2*np.pi/n)*af.floor((n*(theta - rotation) + np.pi)/(2*np.pi)))
 
     result = numerator/denominator
