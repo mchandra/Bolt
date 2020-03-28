@@ -191,8 +191,8 @@ def normal_to_hexagon_unit_vec(theta):
 
     # (1)
     indices = ((theta >= 0) & (theta < np.pi/3))
-    vel_x[indices] = -1./2.
-    vel_y[indices] = np.sqrt(3)/2.
+    vel_x[indices] = np.cos(np.pi/6)
+    vel_y[indices] = np.sin(np.pi/6)
 
     # (2)    
     indices = ((theta >= np.pi/3) & (theta < 2*np.pi/3))
@@ -201,13 +201,13 @@ def normal_to_hexagon_unit_vec(theta):
 
     # (3)    
     indices = ((theta >= 2*np.pi/3) & (theta < np.pi))
-    vel_x[indices] = 1./2.
-    vel_y[indices] = np.sqrt(3)/2.
+    vel_x[indices] = -np.cos(np.pi/6)
+    vel_y[indices] = np.sin(np.pi/6)
     
     # (4)
     indices = ((theta >= -np.pi) & (theta < -2*np.pi/3))
-    vel_x[indices] = 1./2.
-    vel_y[indices] = -np.sqrt(3)/2.
+    vel_x[indices] = -np.cos(np.pi/6)
+    vel_y[indices] = -np.sin(np.pi/6)
     
     # (5)
     indices = ((theta >= -2*np.pi/3) & (theta < -np.pi/3))
@@ -216,8 +216,8 @@ def normal_to_hexagon_unit_vec(theta):
 
     # (6)
     indices = ((theta >= -np.pi/3) & (theta < 0))
-    vel_x[indices] = -1./2
-    vel_y[indices] = np.sqrt(3)/2.
+    vel_x[indices] = np.cos(np.pi/6)
+    vel_y[indices] = -np.sin(np.pi/6)
 
     vel_x = af.from_ndarray(vel_x)
     vel_y = af.from_ndarray(vel_y)
