@@ -84,7 +84,8 @@ initial_temperature = 12e-4
 initial_mu          = 0.015
 vel_drift_x_in      = 1e-4*fermi_velocity
 vel_drift_x_out     = 1e-4*fermi_velocity
-AC_freq             = 1./100 # ps^-1
+source_type         = 'AC' # Select 'AC' or 'DC'
+AC_freq             = 1./100 # ps^-1 (only for AC)
 
 B3_mean = 1. # T
 
