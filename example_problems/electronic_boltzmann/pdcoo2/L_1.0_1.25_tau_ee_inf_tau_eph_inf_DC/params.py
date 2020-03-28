@@ -173,50 +173,50 @@ def normal_to_hexagon_unit_vec(theta):
 #           2*pi/3                 pi/3
 #              #%%%%%%%%%%%%%%%%%%%*         
 #             .  .               ,  *        
-#           (     &     (5)     #     .      
+#           (     &     (2)     #     .      
 #          .       .          .        (     
 #        /           &       #               
-#       ,     (6)      ,    .    (4)      (  
+#       ,     (3)      ,    .    (1)      (  
 #  pi /                 & &                  
 #     /------------------/------------------(    0
 # -pi  .               #   #              .  
-#        /    (1)            /     (3)    #   
+#        /    (4)            /     (6)    #   
 #         *         %         #              
 #           *      ,           #      #      
-#            *   (      (2)      /           
+#            *   (      (5)      /           
 #              ,,                 %(         
 #              #####################
 #         -2*pi/3                 -pi/3
 #
 
     # (1)
-    indices = ((theta >= -np.pi) & (theta < -2*np.pi/3))
-    vel_x[indices] = 1./2.
-    vel_y[indices] = -np.sqrt(3)/2.
-    
-    # (2)
-    indices = ((theta >= -2*np.pi/3) & (theta < -np.pi/3))
-    vel_x[indices] = 0.
-    vel_y[indices] = -1.
-
-    # (3)
-    indices = ((theta >= -np.pi/3) & (theta < 0))
-    vel_x[indices] = -1./2
-    vel_y[indices] = np.sqrt(3)/2.
-
-    # (4)
     indices = ((theta >= 0) & (theta < np.pi/3))
     vel_x[indices] = -1./2.
     vel_y[indices] = np.sqrt(3)/2.
 
-    # (5)    
+    # (2)    
     indices = ((theta >= np.pi/3) & (theta < 2*np.pi/3))
     vel_x[indices] = 0.
     vel_y[indices] = 1.
 
-    # (6)    
+    # (3)    
     indices = ((theta >= 2*np.pi/3) & (theta < np.pi))
     vel_x[indices] = 1./2.
+    vel_y[indices] = np.sqrt(3)/2.
+    
+    # (4)
+    indices = ((theta >= -np.pi) & (theta < -2*np.pi/3))
+    vel_x[indices] = 1./2.
+    vel_y[indices] = -np.sqrt(3)/2.
+    
+    # (5)
+    indices = ((theta >= -2*np.pi/3) & (theta < -np.pi/3))
+    vel_x[indices] = 0.
+    vel_y[indices] = -1.
+
+    # (6)
+    indices = ((theta >= -np.pi/3) & (theta < 0))
+    vel_x[indices] = -1./2
     vel_y[indices] = np.sqrt(3)/2.
 
     vel_x = af.from_ndarray(vel_x)
