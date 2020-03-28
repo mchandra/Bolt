@@ -1,6 +1,7 @@
 import numpy as np
 import params
 import arrayfire as af
+import pylab as pl
 
 
 p2_start = -np.pi
@@ -11,4 +12,8 @@ theta = \
 
 theta = af.from_ndarray(theta)
 
-print (params.polygon (6, theta))
+hexa = params.polygon(6, theta, rotation = np.pi/6)
+hexa = hexa.to_ndarray()
+
+pl.polar(theta, hexa)
+pl.savefig("images/test.png")
