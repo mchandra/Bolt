@@ -138,6 +138,7 @@ def band_energy(p1, p2):
     return(E_upper)
 
 def band_velocity(p1, p2):
+    # TODO :This function is only meant to be called once to initialize the vel vectors
 
     if (p_space_grid == 'cartesian'):
         p_x = p1
@@ -149,39 +150,44 @@ def band_velocity(p1, p2):
     else : 
         raise NotImplementedError('Unsupported coordinate system in p_space') 
     
-    p     = af.sqrt(p_x**2. + p_y**2.)
-    #TODO : Store the return value of hexagon_unit_vel in a variable
-    p_hat = hexagon_unit_vec(p2)
-    
-#p_hat = [p_x / (p + 1e-20), p_y / (p + 1e-20)]
-
+#    p     = af.sqrt(p_x**2. + p_y**2.)
+#    p_hat = [p_x / (p + 1e-20), p_y / (p + 1e-20)]
+#
     v_f   = fermi_velocity
+#
+#    upper_band_velocity =  [ v_f * p_hat[0],  v_f * p_hat[1]]
+#
+#    af.eval(upper_band_velocity[0], upper_band_velocity[1])
 
-    upper_band_velocity =  [ v_f * p_hat[0],  v_f * p_hat[1]]
+    v_f_hat = normal_to_hexagon_unit_vec(p2)
+    upper_band_velocity = [v_f * v_f_hat[0], v_f * v_f_hat[1]]
 
-    af.eval(upper_band_velocity[0], upper_band_velocity[1])
     return(upper_band_velocity)
 
-def hexagon_unit_vec (theta):
+def normal_to_hexagon_unit_vec(theta):
 
     vel_x = np.zeros(theta.shape)
     vel_y = np.zeros(theta.shape)
 
+#
+#           2*pi/3                 pi/3
 #              #%%%%%%%%%%%%%%%%%%%*         
 #             .  .               ,  *        
-#           (     &     (2)     #     .      
+#           (     &     (5)     #     .      
 #          .       .          .        (     
 #        /           &       #               
-#       ,     (1)      ,    .    (3)      (  
-# -pi /                 & &                  
+#       ,     (6)      ,    .    (4)      (  
+#  pi /                 & &                  
 #     /------------------/------------------(    0
-#  pi  .               #   #              .  
-#        /    (6)            /     (4)    #   
+# -pi  .               #   #              .  
+#        /    (1)            /     (3)    #   
 #         *         %         #              
 #           *      ,           #      #      
-#            *   (      (5)      /           
+#            *   (      (2)      /           
 #              ,,                 %(         
 #              #####################
+#         -2*pi/3                 -pi/3
+#
 
     # (1)
     indices = ((theta >= -np.pi) & (theta < -2*np.pi/3))
