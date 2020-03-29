@@ -1,6 +1,9 @@
 import numpy as np
 import arrayfire as af
 
+from bolt.lib.utils.polygon import polygon
+from bolt.lib.utils.unit_vectors import normal_to_hexagon_unit_vec
+
 instantaneous_collisions = False #TODO : Remove from lib
 hybrid_model_enabled     = False #TODO : Remove from lib
 source_enabled           = True
@@ -32,17 +35,12 @@ reconstruction_method_in_p = 'minmod'
 riemann_solver_in_q = 'upwind-flux'
 riemann_solver_in_p = 'upwind-flux'
 
-# Restart(Set to zero for no-restart):
-restart = 0
-restart_file = '/home/mani/work/quazar_research/bolt/example_problems/electronic_boltzmann/graphene/dumps/f_eqbm.h5'
-phi_restart_file = '/home/mani/work/quazar_research/bolt/example_problems/electronic_boltzmann/graphene/dumps/phi_eqbm.h5'
 electrostatic_solver_every_nth_step = 1000000
-solve_for_equilibrium = 0
 
 
 # Time parameters:
 dt      = 0.025/4 # ps
-t_final = 10.     # ps
+t_final = 100.     # ps
 
 
 # File-writing Parameters:
@@ -58,6 +56,7 @@ dt_dump_moments = dt_dump_fields = 5*dt #ps
 p_dim = 1
 p_space_grid = 'polar2D' # Supports 'cartesian' or 'polar2D' grids
 # Set p-space start and end points accordingly in domain.py
+#TODO : Use only polar2D for PdCoO2
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 6
@@ -130,10 +129,12 @@ def band_energy(p1, p2):
     else : 
         raise NotImplementedError('Unsupported coordinate system in p_space')
     
-    p = af.sqrt(p_x**2. + p_y**2.)
-    
+    # In polar2D coordinates, p1 = radius and p2 = theta
+
+    #p = af.sqrt(p_x**2. + p_y**2.)
     #E_upper = p*fermi_velocity
-    E_upper = initial_mu * polygon(6, p2, rotation = np.pi/6)
+    n = 6 #number of sides of the polygon
+    E_upper = initial_mu * polygon(n, p2, rotation = np.pi/6)
 
     af.eval(E_upper)
     return(E_upper)
@@ -164,156 +165,6 @@ def band_velocity(p1, p2):
     upper_band_velocity = [v_f * v_f_hat[0], v_f * v_f_hat[1]]
 
     return(upper_band_velocity)
-
-def normal_to_circle_unit_vec(theta):
-
-    vel_x = 0.*theta
-    vel_y = 0.*theta
-
-    # (1)
-    start_theta = 0.0
-    end_theta   = np.pi/3
-    mid_theta   = 0.5*(end_theta + start_theta)
-    indices = ((theta >= start_theta) & (theta < end_theta))
-    vel_x = (1-indices)*vel_x + indices*af.cos(theta)
-    vel_y = (1-indices)*vel_y + indices*af.sin(theta)
-
-    # (2)    
-    start_theta = np.pi/3
-    end_theta   = 2*np.pi/3
-    mid_theta   = 0.5*(end_theta + start_theta)
-    indices = ((theta >= start_theta) & (theta < end_theta))
-    vel_x = (1-indices)*vel_x + indices*af.cos(theta)
-    vel_y = (1-indices)*vel_y + indices*af.sin(theta)
-
-    # (3)    
-    start_theta = 2*np.pi/3
-    end_theta   = np.pi
-    mid_theta   = 0.5*(end_theta + start_theta)
-    indices = ((theta >= start_theta) & (theta < end_theta))
-    vel_x = (1-indices)*vel_x + indices*af.cos(theta)
-    vel_y = (1-indices)*vel_y + indices*af.sin(theta)
-    
-    # (4)
-    start_theta = -np.pi
-    end_theta   = -2*np.pi/3
-    mid_theta   = 0.5*(end_theta + start_theta)
-    indices = ((theta >= start_theta) & (theta < end_theta))
-    vel_x = (1-indices)*vel_x + indices*af.cos(theta)
-    vel_y = (1-indices)*vel_y + indices*af.sin(theta)
-    
-    # (5)
-    start_theta = -2*np.pi/3
-    end_theta   = -np.pi/3
-    mid_theta   = 0.5*(end_theta + start_theta)
-    indices = ((theta >= start_theta) & (theta < end_theta))
-    vel_x = (1-indices)*vel_x + indices*af.cos(theta)
-    vel_y = (1-indices)*vel_y + indices*af.sin(theta)
-
-    # (6)
-    start_theta = -np.pi/3
-    end_theta   = 0
-    mid_theta   = 0.5*(end_theta + start_theta)
-    indices = ((theta >= start_theta) & (theta < end_theta))
-    vel_x = (1-indices)*vel_x + indices*af.cos(theta)
-    vel_y = (1-indices)*vel_y + indices*af.sin(theta)
-
-    return ([vel_x, vel_y]) 
-
-def normal_to_hexagon_unit_vec(theta):
-
-    vel_x = 0.*theta
-    vel_y = 0.*theta
-
-#
-#           2*pi/3                 pi/3
-#              #%%%%%%%%%%%%%%%%%%%*         
-#             .  .               ,  *        
-#           (     &     (2)     #     .      
-#          .       .          .        (     
-#        /           &       #               
-#       ,     (3)      ,    .    (1)      (  
-#  pi /                 & &                  
-#     /------------------/------------------(    0
-# -pi  .               #   #              .  
-#        /    (4)            /     (6)    #   
-#         *         %         #              
-#           *      ,           #      #      
-#            *   (      (5)      /           
-#              ,,                 %(         
-#              #####################
-#         -2*pi/3                 -pi/3
-#
-
-    # (1)
-    start_theta = 0.0
-    end_theta   = np.pi/3
-    mid_theta   = 0.5*(end_theta + start_theta)
-    indices = ((theta >= start_theta) & (theta < end_theta))
-    vel_x = (1-indices)*vel_x + indices*np.cos(mid_theta)
-    vel_y = (1-indices)*vel_y + indices*np.sin(mid_theta)
-
-    # (2)    
-    start_theta = np.pi/3
-    end_theta   = 2*np.pi/3
-    mid_theta   = 0.5*(end_theta + start_theta)
-    indices = ((theta >= start_theta) & (theta < end_theta))
-    vel_x = (1-indices)*vel_x + indices*np.cos(mid_theta)
-    vel_y = (1-indices)*vel_y + indices*np.sin(mid_theta)
-
-    # (3)    
-    start_theta = 2*np.pi/3
-    end_theta   = np.pi
-    mid_theta   = 0.5*(end_theta + start_theta)
-    indices = ((theta >= start_theta) & (theta < end_theta))
-    vel_x = (1-indices)*vel_x + indices*np.cos(mid_theta)
-    vel_y = (1-indices)*vel_y + indices*np.sin(mid_theta)
-    
-    # (4)
-    start_theta = -np.pi
-    end_theta   = -2*np.pi/3
-    mid_theta   = 0.5*(end_theta + start_theta)
-    indices = ((theta >= start_theta) & (theta < end_theta))
-    vel_x = (1-indices)*vel_x + indices*np.cos(mid_theta)
-    vel_y = (1-indices)*vel_y + indices*np.sin(mid_theta)
-    
-    # (5)
-    start_theta = -2*np.pi/3
-    end_theta   = -np.pi/3
-    mid_theta   = 0.5*(end_theta + start_theta)
-    indices = ((theta >= start_theta) & (theta < end_theta))
-    vel_x = (1-indices)*vel_x + indices*np.cos(mid_theta)
-    vel_y = (1-indices)*vel_y + indices*np.sin(mid_theta)
-
-    # (6)
-    start_theta = -np.pi/3
-    end_theta   = 0
-    mid_theta   = 0.5*(end_theta + start_theta)
-    indices = ((theta >= start_theta) & (theta < end_theta))
-    vel_x = (1-indices)*vel_x + indices*np.cos(mid_theta)
-    vel_y = (1-indices)*vel_y + indices*np.sin(mid_theta)
-
-    return ([vel_x, vel_y]) 
-
-def polygon(n, theta, rotation = 0, shift = 0):
-    '''
-    Returns a polygon of unit edge length on a polar coordinate system.
-    Inputs : 
-
-    n        : number of sides of the polygon
-    thera    : the angle grid
-    rotation : initial rotation
-    shift    : initial shift in center ##TODO
-    '''
-
-    numerator   = np.cos(np.pi/n)
-    denominator = af.cos((theta - rotation) - (2*np.pi/n)*af.floor((n*(theta - rotation) + np.pi)/(2*np.pi)))
-
-    result = numerator/denominator
-
-    return (result)
-
-
 
 # Restart(Set to zero for no-restart):
 latest_restart = True

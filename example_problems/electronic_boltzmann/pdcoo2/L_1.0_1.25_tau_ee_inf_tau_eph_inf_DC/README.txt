@@ -9,4 +9,8 @@ to be made :
     - Change p_dim (if switching between 1D and 2D representation in p-space)
 3. initialize : No change
 4. main : No change
-5. boundary_conditions : No change
+i5. boundary_conditions : No change
+
+
+
+PdCoO2 works only with the polar2D grid in momentum space for the moment.
