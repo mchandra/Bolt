@@ -134,3 +134,87 @@ def normal_to_hexagon_unit_vec(theta):
     vel_y = (1-indices)*vel_y + indices*np.sin(mid_theta)
 
     return ([vel_x, vel_y]) 
+
+
+def normal_to_hexagon_unit_vec_rotated(theta):
+
+    vel_x = 0.*theta
+    vel_y = 0.*theta
+
+#                  pi/2
+#                   (@@                  
+#               &@   @    @(             
+#           @#       @        %@         
+# 5pi/6 .@,     (3)   @   (2)      .@.  pi/6
+#      @  *@         @         @/  ,*    
+#      @       @(    @    /@       ,*    
+#  pi  @  (4)      %@@@&     (1)   ,*    
+# -pi  @         .@, @ .@,         ,*    
+#      @     %@      @      @&     ,*    
+#      @ @(    (5)   @  (6)     /@ ,*    
+#       /@           @           %@   -pi/6   
+#-5pi/6      @/      @       @(          
+#                &@  @  *@               
+#                    .                  
+#                  -pi/2
+
+    # (1)
+    start_theta = -np.pi/6
+    end_theta   = np.pi/6
+    mid_theta   = 0.5*(end_theta + start_theta)
+    indices = ((theta >= start_theta) & (theta < end_theta))
+    vel_x = (1-indices)*vel_x + indices*np.cos(mid_theta)
+    vel_y = (1-indices)*vel_y + indices*np.sin(mid_theta)
+
+    # (2)    
+    start_theta = np.pi/6
+    end_theta   = np.pi/2
+    mid_theta   = 0.5*(end_theta + start_theta)
+    indices = ((theta >= start_theta) & (theta < end_theta))
+    vel_x = (1-indices)*vel_x + indices*np.cos(mid_theta)
+    vel_y = (1-indices)*vel_y + indices*np.sin(mid_theta)
+
+    # (3)    
+    start_theta = np.pi/2
+    end_theta   = 5*np.pi/6
+    mid_theta   = 0.5*(end_theta + start_theta)
+    indices = ((theta >= start_theta) & (theta < end_theta))
+    vel_x = (1-indices)*vel_x + indices*np.cos(mid_theta)
+    vel_y = (1-indices)*vel_y + indices*np.sin(mid_theta)
+
+
+    # Sector 4 needs to be handled as a special case, because the domain
+    # of theta ranges from -pi to pi. There is a break within sector 4.
+    # (4)a
+    start_theta = 5*np.pi/6
+    end_theta   = np.pi
+    mid_theta   = np.pi#0.5*(end_theta + start_theta)
+    indices = ((theta >= start_theta) & (theta < end_theta))
+    vel_x = (1-indices)*vel_x + indices*np.cos(mid_theta)
+    vel_y = (1-indices)*vel_y + indices*np.sin(mid_theta)
+    
+    # (4)b
+    start_theta = -np.pi
+    end_theta   = -5*np.pi/6
+    mid_theta   = -np.pi#0.5*(end_theta + start_theta)
+    indices = ((theta >= start_theta) & (theta < end_theta))
+    vel_x = (1-indices)*vel_x + indices*np.cos(mid_theta)
+    vel_y = (1-indices)*vel_y + indices*np.sin(mid_theta)
+    
+    # (5)
+    start_theta = -5*np.pi/6
+    end_theta   = -np.pi/2
+    mid_theta   = 0.5*(end_theta + start_theta)
+    indices = ((theta >= start_theta) & (theta < end_theta))
+    vel_x = (1-indices)*vel_x + indices*np.cos(mid_theta)
+    vel_y = (1-indices)*vel_y + indices*np.sin(mid_theta)
+
+    # (6)
+    start_theta = -np.pi/2
+    end_theta   = -np.pi/6
+    mid_theta   = 0.5*(end_theta + start_theta)
+    indices = ((theta >= start_theta) & (theta < end_theta))
+    vel_x = (1-indices)*vel_x + indices*np.cos(mid_theta)
+    vel_y = (1-indices)*vel_y + indices*np.sin(mid_theta)
+
+    return ([vel_x, vel_y]) 

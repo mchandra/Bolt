@@ -1,8 +1,8 @@
 import numpy as np
 import arrayfire as af
 
-from bolt.lib.utils.polygon import polygon
-from bolt.lib.utils.unit_vectors import normal_to_hexagon_unit_vec
+from bolt.src.electronic_boltzmann.utils.polygon import polygon
+from bolt.src.electronic_boltzmann.utils.unit_vectors import normal_to_hexagon_unit_vec
 
 instantaneous_collisions = False #TODO : Remove from lib
 hybrid_model_enabled     = False #TODO : Remove from lib
@@ -47,7 +47,7 @@ t_final = 100.     # ps
 dump_steps = 5
 dump_dist_after = 1600
 # Set to zero for no file-writing
-dt_dump_f       = dt #ps
+dt_dump_f       = 1000*dt #ps
 # ALWAYS set dump moments and dump fields at same frequency:
 dt_dump_moments = dt_dump_fields = 5*dt #ps
 
