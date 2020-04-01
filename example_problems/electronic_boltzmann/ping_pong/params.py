@@ -4,7 +4,7 @@ import arrayfire as af
 instantaneous_collisions = False #TODO : Remove from lib
 hybrid_model_enabled     = False #TODO : Remove from lib
 source_enabled           = True
-disable_collision_op     = False
+disable_collision_op     = True
 
 fields_enabled = False
 # Can be defined as 'electrostatic', 'user-defined'.
@@ -32,25 +32,16 @@ reconstruction_method_in_p = 'minmod'
 riemann_solver_in_q = 'upwind-flux'
 riemann_solver_in_p = 'upwind-flux'
 
-# Restart(Set to zero for no-restart):
-restart = 0
-restart_file = '/home/mani/work/quazar_research/bolt/example_problems/electronic_boltzmann/graphene/dumps/f_eqbm.h5'
-phi_restart_file = '/home/mani/work/quazar_research/bolt/example_problems/electronic_boltzmann/graphene/dumps/phi_eqbm.h5'
 electrostatic_solver_every_nth_step = 1000000
-solve_for_equilibrium = 0
-
-
-# File-writing Parameters:
-dump_steps = 10
-# Set to zero for no file-writing
-dt_dump_f       = 100 #ps
-# ALWAYS set dump moments and dump fields at same frequency:
-dt_dump_moments = dt_dump_fields = 10 #ps
-
 
 # Time parameters:
 dt      = 0.025/2 # ps
-t_final = 200.     # ps
+t_final = 10.     # ps
+
+# Set to zero for no file-writing
+dt_dump_f       = 2*dt #ps
+# ALWAYS set dump moments and dump fields at same frequency:
+dt_dump_moments = dt_dump_fields = 2*dt #ps
 
 # Dimensionality considered in velocity space:
 p_dim = 1
@@ -80,7 +71,7 @@ contact_geometry      = "straight" # Contacts on either side of the device
                                    # For contacts on the same side, use 
                                    # contact_geometry = "turn_around"
 
-initial_temperature = 12e-4
+initial_temperature = 12e-5
 initial_mu          = 0.015
 vel_drift_x_in      = 1e-4*fermi_velocity
 vel_drift_x_out     = 1e-4*fermi_velocity
@@ -109,11 +100,11 @@ collision_operator_nonlinear_iters  = 2
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau_defect(q1, q2, p1, p2, p3):
-    return(1.0 * q1**0 * p1**0)
+    return(np.inf * q1**0 * p1**0)
 
 @af.broadcast
 def tau_ee(q1, q2, p1, p2, p3):
-    return(0.2 * q1**0 * p1**0)
+    return(np.inf * q1**0 * p1**0)
 
 def tau(q1, q2, p1, p2, p3):
     return(tau_defect(q1, q2, p1, p2, p3))

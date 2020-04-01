@@ -2,12 +2,12 @@ import numpy as np
 import params
 
 q1_start = 0.
-q1_end   = 5.0
-N_q1     = 20
+q1_end   = 1.0
+N_q1     = 36
 
 q2_start = 0.
-q2_end   = 10.
-N_q2     = 40
+q2_end   = 2.5
+N_q2     = 90
 
 # If N_p1 > 1, mirror boundary conditions require p1 to be
 # symmetric about zero

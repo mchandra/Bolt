@@ -2,10 +2,10 @@ import numpy as np
 import arrayfire as af
 import domain
 
-in_q1_left   = 'mirror+dirichlet'
-in_q1_right  = 'mirror+dirichlet'
-in_q2_bottom = 'mirror'
-in_q2_top    = 'mirror'
+in_q1_left   = 'periodic'
+in_q1_right  = 'periodic'
+in_q2_bottom = 'periodic'
+in_q2_top    = 'periodic'
 
 @af.broadcast
 def f_left(f, t, q1, q2, p1, p2, p3, params):

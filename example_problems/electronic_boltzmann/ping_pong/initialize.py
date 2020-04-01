@@ -6,6 +6,7 @@ the system.
 import arrayfire as af
 import numpy as np
 from petsc4py import PETSc
+import domain
 
 def initialize_f(q1, q2, p1, p2, p3, params):
    
@@ -39,12 +40,43 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     else:
         raise NotImplementedError('Unsupported coordinate system in p_space')
 
-    f = (1./(af.exp( (E_upper - params.vel_drift_x*p_x
-                              - params.vel_drift_y*p_y
-                              - params.mu
-                    )/(k*params.T) 
-                  ) + 1.
-           ))
+    #TODO : Remove the following variables from here,
+    # already defined in domain.py
+    N_p1 = domain.N_p1
+    N_p2 = domain.N_p2
+    N_p3 = domain.N_p3
+    N_q1 = domain.N_q1
+    N_q2 = domain.N_q2
+    N_g  = domain.N_ghost
+    #N_s  = 1
+    N_s = len(params.mass) # Number of species
+
+    # Initialize to zero
+    #f = af.constant(0, N_p1*N_p2*N_p3, N_q1 + 2*N_g, N_q2 + 2*N_g)
+    f  = np.zeros((N_p1*N_p2*N_p3, N_s, N_q1 + 2*N_g, N_q2 + 2*N_g))
+    f = af.np_to_af_array(f)
+
+    # Initialize to zero
+    f[:] = 0
+
+    # Parameters to define a gaussian in space (representing a 2D ball)
+    A        = N_p2 # Amplitude (required for normalization)
+    sigma_q1 = 0.1 # Standard deviation in q1
+    sigma_q2 = 0.1 # Standard deviation in q2
+    q1_0     = 0.5 # Center in q1
+    q2_0     = 1.25 # Center in q2
+
+    print ("f : ", f.dims())
+    #print ("A : ", af.dims(A))
+    print ("q1 : ", q2.dims())
+    print ("q2 : ", q2.dims())
+
+    # TODO: This will work with polar2D coordinates only for the moment
+    # Particles lying on the ball need to have the same velocity (direction)
+    theta_0_index = (N_p2/2) - 1 # Direction of initial velocity
+
+    f[theta_0_index, :, :]  = A*af.exp(-(((q1-q1_0)**2)/(2*sigma_q1**2) + \
+                                       ((q2-q2_0)**2)/(2*sigma_q2**2)))
 
     af.eval(f)
     return(f)
