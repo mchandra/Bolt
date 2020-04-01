@@ -1,4 +1,4 @@
-#import numpy as np
+import numpy as np
 import arrayfire as af
 
 """
@@ -81,8 +81,25 @@ def C_q(t, q1, q2, p1, p2, p3, params):
 
     """
     C_q1, C_q2 = params.vel_band
+    
+    C_x = C_q1; C_y = C_q2
 
-    return (C_q1, C_q2)
+    x = q1; y = q2
+    
+    #TODO : Remove from here
+    a = 0.3
+    k = np.pi
+
+    dX_dx = 1.
+    dX_dy = 0.
+
+    dY_dx = a*k*af.cos(k*x)
+    dY_dy = 1.
+    
+    C_X   = dX_dx*C_x + dX_dy*C_y
+    C_Y   = dY_dx*C_x + dY_dy*C_y
+
+    return (C_X, C_Y)
 
 # This can then be called inside A_p if needed:
 # F1 = (params.char....)(E1 + ....) + T1(q1, q2, p1, p2, p3)
