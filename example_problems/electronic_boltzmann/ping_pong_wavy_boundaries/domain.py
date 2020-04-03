@@ -3,11 +3,11 @@ import params
 
 q1_start = -1.0
 q1_end   = 1.0
-N_q1     = 72
+N_q1     = 1024
 
 q2_start = -1.
 q2_end   = 1.
-N_q2     = 72
+N_q2     = 1024
 
 # If N_p1 > 1, mirror boundary conditions require p1 to be
 # symmetric about zero
@@ -41,7 +41,7 @@ p1_end   = [1.5*params.initial_mu]
 
 # If N_p2 > 1, mirror boundary conditions require p2 to be
 # symmetric about zero
-N_p2     =  128
+N_p2     =  3
 
 # In the cartesian representation of momentum space,
 # p2 = p_y (magnitude of momentum)
@@ -52,8 +52,8 @@ N_p2     =  128
 # In the 2D polar representation of momentum space,
 # p2 = p_theta (angle of momentum)
 # N_p_theta MUST be even.
-p2_start =  [-np.pi]
-p2_end   =  [np.pi]
+p2_start =  [np.pi/4]
+p2_end   =  [np.pi/4]
 
 # If N_p3 > 1, mirror boundary conditions require p3 to be
 # symmetric about zero

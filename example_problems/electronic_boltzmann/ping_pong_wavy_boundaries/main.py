@@ -114,6 +114,9 @@ print("rank = ", params.rank, "\n",
 nls.f = af.select(nls.f < 1e-20, 1e-20, nls.f)
 while(time_elapsed < t_final):
 
+    if (time_elapsed + dt > t_final):
+        dt = t_final - time_elapsed
+
     # Refine to machine error
     if (time_step==0):
         params.collision_nonlinear_iters = 10
@@ -166,4 +169,5 @@ while(time_elapsed < t_final):
          )
     PETSc.Sys.Print("--------------------\n")
 
+PETSc.Sys.Print("Time step =", time_step, ", Time =", time_elapsed, "Final time = ", t_final, "Delta_t = ", t_final - time_elapsed)
 nls.dump_distribution_function('dump_f/f_laststep')

@@ -52,32 +52,34 @@ def initialize_f(q1, q2, p1, p2, p3, params):
 
     # Initialize to zero
     #f = af.constant(0, N_p1*N_p2*N_p3, N_q1 + 2*N_g, N_q2 + 2*N_g)
-    f  = np.zeros((N_p1*N_p2*N_p3, N_s, N_q1 + 2*N_g, N_q2 + 2*N_g))
-    f = af.np_to_af_array(f)
+    #f  = np.zeros((N_p1*N_p2*N_p3, N_s, N_q1 + 2*N_g, N_q2 + 2*N_g))
+    #f = af.np_to_af_array(f)
 
     # Initialize to zero
-    f[:] = 0
+    f = 0*q1*p1
 
     # Parameters to define a gaussian in space (representing a 2D ball)
     A        = N_p2 # Amplitude (required for normalization)
-    sigma_q1 = 0.1 # Standard deviation in q1
-    sigma_q2 = 0.1 # Standard deviation in q2
-    q1_0     = 0. # Center in q1
-    q2_0     = 0. # Center in q2
+    sigma_x = 0.1 # Standard deviation in q1
+    sigma_y = 0.1 # Standard deviation in q2
+    x_0     = 0. # Center in q1
+    y_0     = 0. # Center in q2
 
     # TODO: This will work with polar2D coordinates only for the moment
     # Particles lying on the ball need to have the same velocity (direction)
     #theta_0_index = (5*N_p2/8) - 1 # Direction of initial velocity
-    theta_0_index = int(4*N_p2/8) - 1 # Direction of initial velocity
+    theta_0_index = int(4*N_p2/8) # Direction of initial velocity
     print ("Initial angle : ")
     af.display(p2[theta_0_index])
 
     a = 0.3; k = np.pi
     x = q1
     y = q2 - a*af.sin(k*q1)
-
-    f[theta_0_index, :, :]  = A*af.exp(-(((x-q1_0)**2)/(2*sigma_q1**2) + \
-                                       ((y-q2_0)**2)/(2*sigma_q2**2)))
+    
+    print(x.shape)
+    print(f.shape)
+    f[theta_0_index, :, :]  = A*af.exp(-(((x-x_0)**2)/(2*sigma_x**2) + \
+                                       ((y-y_0)**2)/(2*sigma_y**2)))
 
     af.eval(f)
     return(f)

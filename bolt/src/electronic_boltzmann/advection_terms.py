@@ -80,11 +80,11 @@ def C_q(t, q1, q2, p1, p2, p3, params):
             This can be used to inject other functions/attributes into the function
 
     """
-    C_q1, C_q2 = params.vel_band
+    C_x, C_y = params.vel_band
     
-    C_x = C_q1; C_y = C_q2
+    X = q1; Y = q2
 
-    x = q1; y = q2
+    x = X
     
     #TODO : Remove from here
     a = 0.3
