@@ -8,7 +8,7 @@ def get_cartesian_coords(q1, q2):
     #x = q1
     #y = q2 - a*af.sin(k*q1)
 
-    a = 0.1; k = 2*np.pi
+    a = 0.1; k = np.pi
     x = q1 + a*af.cos(k*q2)
     y = q2 - a*af.sin(k*q1)
 
@@ -22,7 +22,7 @@ def jacobian_dx_dq(q1, q2):
     
     # TODO: evaluate this numerically using get_cartesian_coords
 
-    a = 0.1; k = 2*np.pi
+    a = 0.1; k = np.pi
     dx_dq1 = 1.;                dx_dq2 = -a*k*af.sin(k*q2)
     dy_dq1 = -a*k*af.cos(k*q1); dy_dq2 = 1.
 #    a = 2; r = 1.1

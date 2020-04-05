@@ -35,7 +35,7 @@ riemann_solver_in_p = 'upwind-flux'
 electrostatic_solver_every_nth_step = 1000000
 
 # Time parameters:
-dt      = 0.025/(2*16*4) # ps
+dt      = 0.025/(2*8) # ps
 t_final = 10.*np.sqrt(2.)     # ps
 
 # Set to zero for no file-writing

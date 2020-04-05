@@ -3,11 +3,11 @@ import params
 
 q1_start = -1.0
 q1_end   = 1.0
-N_q1     = 1024
+N_q1     = 512
 
 q2_start = -1.
 q2_end   = 1.
-N_q2     = 1024
+N_q2     = 512
 
 # If N_p1 > 1, mirror boundary conditions require p1 to be
 # symmetric about zero
