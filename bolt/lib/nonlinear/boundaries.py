@@ -330,21 +330,28 @@ def mirror_at_an_angle_polar2D(self, f, theta):
     # theta_p = incident angle of particle
     # theta   = angle of mirror
 
-    # Operation to be performed : 2*theta - theta_p
+    # In polar coordinates, the reflection of a particle moving at an angle
+    # theta_p wrt the positive x-axis off a boundary which is at an angle
+    # theta wrt the positive x-axis results in the reflected particle moving
+    # at an angle 2*theta - theta_p wrt the positive x-axis.
+
 
     tmp = self._convert_to_p_expanded(f)
+    # Operation to be performed : 2*theta - theta_p
+    # We split this operation into 2 steps as shown below.
 
     # Operation 1 : theta_prime = theta_p - 2*theta
+    # To do this, we shift the array along the axis that contains the variation in p_theta
     N_theta = self.N_p2
     no_of_shifts = int((theta/np.pi)*N_theta)
     
-    print ("boundaries,py, no of shifts : ", no_of_shifts)
-    print ("boundaries.py, tmp shape : ", tmp.shape)
+    print ("boundaries.py, no of shifts : ", no_of_shifts)
 
-    # Shift along the p2 axis
-    tmp = af.shift(tmp, d0 = 0, d1 = no_of_shifts)
+    # Shift along the p2 axis in the negative direction
+    tmp = af.shift(tmp, d0 = 0, d1 = -no_of_shifts)
 
-    # OPeration 2 : theta_out = -theta_prime
+    # Operation 2 : theta_out = -theta_prime
+    # To do this we flip the axis that contains the variation in p_theta
     tmp = af.flip(tmp, 1)
 
     tmp = self._convert_to_q_expanded(tmp)
@@ -371,13 +378,7 @@ def apply_mirror_bcs_f_polar2D(self, boundary):
         # 0 = 5; 1 = 4; 2 = 3;
         self.f[:, :, :N_g] = af.flip(self.f[:, :, N_g:2 * N_g], 2)
         
-        # For a particle moving with initial momentum at an angle \theta
-        # with the x-axis, a collision with the left boundary changes
-        # the angle of momentum after reflection to (pi - \theta)
-        # To do this, we split the array into to equal halves,
-        # flip each of the halves along the p_theta axis and then
-        # join the two flipped halves together.
-        
+        # The left boundary being vertical is at an angle of pi/2 rad with the positive x-axis
         theta_boundary = np.pi/2
         self.f[:, :, :N_g] = mirror_at_an_angle_polar2D(self, self.f, theta_boundary)[:, :, :N_g]
 
@@ -388,13 +389,7 @@ def apply_mirror_bcs_f_polar2D(self, boundary):
         # -1 = -6; -2 = -5; -3 = -4;
         self.f[:, :, -N_g:] = af.flip(self.f[:, :, -2 * N_g:-N_g], 2)
 
-        # For a particle moving with initial momentum at an angle \theta
-        # with the x-axis, a collision with the right boundary changes
-        # the angle of momentum after reflection to (pi - \theta)
-        # To do this, we split the array into to equal halves,
-        # flip each of the halves along the p_theta axis and then
-        # join the two flipped halves together.
-
+        # The right boundary being vertical is at an angle of pi/2 rad with the positive x-axis
         theta_boundary = np.pi/2
         self.f[:, :, -N_g:] = mirror_at_an_angle_polar2D(self, self.f, theta_boundary)[:, :, -N_g:]
 
@@ -405,10 +400,7 @@ def apply_mirror_bcs_f_polar2D(self, boundary):
         # 0 = 5; 1 = 4; 2 = 3;
         self.f[:, :, :, :N_g] = af.flip(self.f[:, :, :, N_g:2 * N_g], 3)
 
-        # For a particle moving with initial momentum at an angle \theta
-        # with the x-axis, a collision with the bottom boundary changes
-        # the angle of momentum after reflection to (2*pi - \theta) = (-\theta)
-        # To do this we flip the axis that contains the variation in p_theta
+        # The bottom boundary being horizontal is at an angle of 0 rad with the positive x-axis
         theta_boundary = 0.
         self.f[:, :, :, :N_g] = mirror_at_an_angle_polar2D(self, self.f, theta_boundary)[:, :, :, :N_g]
 
@@ -419,11 +411,7 @@ def apply_mirror_bcs_f_polar2D(self, boundary):
         # -1 = -6; -2 = -5; -3 = -4;
         self.f[:, :, :, -N_g:] = af.flip(self.f[:, :, :, -2 * N_g:-N_g], 3)
 
-        # For a particle moving with initial momentum at an angle \theta
-        # with the x-axis, a collision with the top boundary changes
-        # the angle of momentum after reflection to (2*pi - \theta) = (-\theta)
-        # For horizontal boundaries, the angle of the boundary with
-        # the positive x-axis, theta_boundary = 0
+        # The top boundary being horizontal is at an angle of 0 rad with the positive x-axis
         theta_boundary = 0.
         self.f[:, :, :, -N_g:] = mirror_at_an_angle_polar2D(self, self.f, theta_boundary)[:, :, :, -N_g:]
 

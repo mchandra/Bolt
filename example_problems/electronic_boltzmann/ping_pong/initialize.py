@@ -63,8 +63,8 @@ def initialize_f(q1, q2, p1, p2, p3, params):
 
     # TODO: This will work with polar2D coordinates only for the moment
     # Particles lying on the ball need to have the same velocity (direction)
-    theta_0_index = (5*N_p2/8) - 1 # Direction of initial velocity
-
+    theta_0_index = int(6*N_p2/8) # Direction of initial velocity
+    print ("Initial angle : ", p2[theta_0_index])
     f[theta_0_index, :, :]  = A*af.exp(-(((q1-q1_0)**2)/(2*sigma_q1**2) + \
                                        ((q2-q2_0)**2)/(2*sigma_q2**2)))
 
