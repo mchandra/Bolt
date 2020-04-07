@@ -7,10 +7,10 @@ import arrayfire as af
 import numpy as np
 from petsc4py import PETSc
 
+import domain
+
 def initialize_f(q1, q2, p1, p2, p3, params):
    
-    params.p_x, params.p_y = params.get_p_x_and_p_y(p1, p2)
-
     PETSc.Sys.Print("Initializing f")
     k = params.boltzmann_constant
     
@@ -26,24 +26,31 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     params.j_x         = 0.*q1
     params.j_y         = 0.*q1
 
+    params.p_x, params.p_y = params.get_p_x_and_p_y(p1, p2)
     params.E_band   = params.band_energy(p1, p2)
     params.vel_band = params.band_velocity(p1, p2)
 
     # Evaluating velocity space resolution for each species:
-    self.dp1 = []
-    self.dp2 = []
-    self.dp3 = []
+    dp1 = []; dp2 = []; dp3 = []
+    N_p1 = domain.N_p1; N_p2 = domain.N_p2; N_p3 = domain.N_p3
+    p1_start = domain.p1_start; p1_end = domain.p1_end
+    p2_start = domain.p2_start; p2_end = domain.p2_end
+    p3_start = domain.p3_start; p3_end = domain.p3_end
 
+    N_species = len(params.mass)
     for i in range(N_species):
-        self.dp1.append((self.p1_end[i] - self.p1_start[i]) / self.N_p1)
-        self.dp2.append((self.p2_end[i] - self.p2_start[i]) / self.N_p2)
-        self.dp3.append((self.p3_end[i] - self.p3_start[i]) / self.N_p3)
+        dp1.append((p1_end[i] - p1_start[i]) / N_p1)
+        dp2.append((p2_end[i] - p2_start[i]) / N_p2)
+        dp3.append((p3_end[i] - p3_start[i]) / N_p3)
+
 
     theta = af.atan(params.p_y / params.p_x)
     p_f   = params.fermi_momentum_magnitude(theta)
 
     params.integral_measure = \
-      (4./(2.*np.pi*params.h_bar)**2) * self.dp3 * self.dp2 * self.dp1 
+      (4./(2.*np.pi*params.h_bar)**2) * dp3[0] * dp2[0] * dp1[0]
+
+    print ("initialize, integral measure :", params.integral_measure)
 
 
     f = (1./(af.exp( (params.E_band - params.vel_drift_x*params.p_x

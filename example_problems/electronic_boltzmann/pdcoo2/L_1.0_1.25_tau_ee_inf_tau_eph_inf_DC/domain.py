@@ -35,8 +35,8 @@ N_p1     =  1 # Set equal to 1 for 1D polar
 #        16.*params.boltzmann_constant*params.initial_temperature]
 
 # Uncomment the following for the 1D polar representation of momentum space
-p1_start = [0.5*params.initial_mu]
-p1_end   = [1.5*params.initial_mu]
+p1_start = [0.5*params.initial_mu/params.fermi_velocity]
+p1_end   = [1.5*params.initial_mu/params.fermi_velocity]
 
 
 # If N_p2 > 1, mirror boundary conditions require p2 to be

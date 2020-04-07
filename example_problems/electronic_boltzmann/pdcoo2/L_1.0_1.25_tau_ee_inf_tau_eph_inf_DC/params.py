@@ -40,7 +40,7 @@ electrostatic_solver_every_nth_step = 1000000
 
 # Time parameters:
 dt      = 0.025/4 # ps
-t_final = 2.*dt     # ps
+t_final = 100.    # ps
 
 
 # File-writing Parameters:
@@ -105,6 +105,9 @@ vel_drift_y = None
 j_x         = None
 j_y         = None
 phi         = None # Electric potential in the plane of graphene sheet
+p_x         = None
+p_y         = None
+integral_measure = None
 
 # Momentum quantities (will be initialized to shape = [p1*p2*p3] in initialize.py)
 E_band   = None
@@ -131,10 +134,11 @@ def fermi_momentum_magnitude(theta):
     p_f = initial_mu/fermi_velocity * polygon(n, theta, rotation = np.pi/6)
     return(p_f)
 
-def get_p_x_p_y_at_fermi_surface(theta):
-    #TODO : If cartesian coordinates are being used, conver to polar to calculate p_f
-    p_f = fermi_surface_magnitude(theta)
-    return([p_f*af.cos(theta), p_f*af.sin(theta)]) 
+#def get_p_x_p_y_at_fermi_surface(theta):
+#    #TODO : If cartesian coordinates are being used, conver to polar to calculate p_f
+#    p_f = fermi_surface_magnitude(theta)
+#    return([p_f*af.cos(theta), p_f*af.sin(theta)]) 
+
 
 def band_energy(p1, p2):
     # Note :This function is only meant to be called once to initialize E_band
@@ -199,10 +203,10 @@ def band_velocity(p1, p2):
     # Note :This function is only meant to be called once to initialize the vel vectors
 
     if (p_space_grid == 'cartesian'):
-        p_x = p1
-        p_y = p2
+        p_x_local = p1
+        p_y_local = p2
         
-        theta = af.atan(p_y/p_x)
+        theta = af.atan(p_y_local/p_x_local)
 
     elif (p_space_grid == 'polar2D'):
     	# In polar2D coordinates, p1 = radius and p2 = theta

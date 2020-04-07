@@ -167,7 +167,7 @@ def f0_ee_constant_T(f, p_x, p_y, p_z, params):
         #a_13 = af.sum(E_upper * a_3, 0)
 
         #a_20 = af.sum(p_x * a_0, 0)
-        a_02 = integral_over_p(p_x * a_0, params.integral_measure)
+        a_20 = integral_over_p(p_x * a_0, params.integral_measure)
         ##a_21 = af.sum(p_x * a_1, 0)
         #a_22 = af.sum(p_x * a_2, 0)
         a_22 = integral_over_p(p_x * a_2, params.integral_measure)
@@ -178,9 +178,9 @@ def f0_ee_constant_T(f, p_x, p_y, p_z, params):
         a_30 = integral_over_p(p_y * a_0, params.integral_measure)
         ##a_31 = af.sum(p_y * a_1, 0)
         #a_32 = af.sum(p_y * a_2, 0)
-        a_32 = integral_measure(p_y * a_2, params.integral_measure)
+        a_32 = integral_over_p(p_y * a_2, params.integral_measure)
         #a_33 = af.sum(p_y * a_3, 0)
-        a_33 = integral_measure(p_y * a_3, params.integral_measure)
+        a_33 = integral_over_p(p_y * a_3, params.integral_measure)
 
         A = [ [a_00, a_02, a_03], \
               [a_20, a_22, a_23], \
