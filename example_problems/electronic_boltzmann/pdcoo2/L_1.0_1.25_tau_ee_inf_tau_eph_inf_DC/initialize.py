@@ -9,6 +9,8 @@ from petsc4py import PETSc
 
 def initialize_f(q1, q2, p1, p2, p3, params):
    
+    params.p_x, params.p_y = params.get_p_x_and_p_y(p1, p2)
+
     PETSc.Sys.Print("Initializing f")
     k = params.boltzmann_constant
     
@@ -16,7 +18,6 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     params.T           = 0.*q1 + params.initial_temperature
     params.vel_drift_x = 0.*q1
     params.vel_drift_y = 0.*q1
-    params.phi         = 0.*q1
 
     params.mu_ee       = params.mu.copy()
     params.T_ee        = params.T.copy()
@@ -28,20 +29,26 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     params.E_band   = params.band_energy(p1, p2)
     params.vel_band = params.band_velocity(p1, p2)
 
-    E_upper = params.E_band + params.charge[0]*params.phi
+    # Evaluating velocity space resolution for each species:
+    self.dp1 = []
+    self.dp2 = []
+    self.dp3 = []
 
-    if (params.p_space_grid == 'cartesian'):
-        p_x = p1
-        p_y = p2
-    elif (params.p_space_grid == 'polar2D'):
-        p_x = p1 * af.cos(p2)
-        p_y = p1 * af.sin(p2)
-    else:
-        raise NotImplementedError('Unsupported coordinate system in p_space')
+    for i in range(N_species):
+        self.dp1.append((self.p1_end[i] - self.p1_start[i]) / self.N_p1)
+        self.dp2.append((self.p2_end[i] - self.p2_start[i]) / self.N_p2)
+        self.dp3.append((self.p3_end[i] - self.p3_start[i]) / self.N_p3)
 
-    f = (1./(af.exp( (E_upper - params.vel_drift_x*p_x
-                              - params.vel_drift_y*p_y
-                              - params.mu
+    theta = af.atan(params.p_y / params.p_x)
+    p_f   = params.fermi_momentum_magnitude(theta)
+
+    params.integral_measure = \
+      (4./(2.*np.pi*params.h_bar)**2) * self.dp3 * self.dp2 * self.dp1 
+
+
+    f = (1./(af.exp( (params.E_band - params.vel_drift_x*params.p_x
+                                    - params.vel_drift_y*params.p_y
+                                    - params.mu
                     )/(k*params.T) 
                   ) + 1.
            ))

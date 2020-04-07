@@ -24,8 +24,8 @@ import bolt.src.electronic_boltzmann.advection_terms \
     as advection_terms
 import bolt.src.electronic_boltzmann.collision_operator \
     as collision_operator
-import bolt.src.electronic_boltzmann.moment_defs \
-    as moment_defs
+import bolt.src.electronic_boltzmann.moments \
+    as moments
 
 
 # Create required folders if they do not exist already
@@ -46,7 +46,7 @@ system = physical_system(domain,
                          initialize,
                          advection_terms,
                          collision_operator.RTA,
-                         moment_defs
+                         moments
                         )
 
 # Declaring a nonlinear system object which will evolve the defined physical system:

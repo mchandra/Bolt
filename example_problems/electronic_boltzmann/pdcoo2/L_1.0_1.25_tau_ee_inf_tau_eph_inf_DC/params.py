@@ -40,7 +40,7 @@ electrostatic_solver_every_nth_step = 1000000
 
 # Time parameters:
 dt      = 0.025/4 # ps
-t_final = 100.     # ps
+t_final = 2.*dt     # ps
 
 
 # File-writing Parameters:
@@ -57,6 +57,12 @@ p_dim = 1
 p_space_grid = 'polar2D' # Supports 'cartesian' or 'polar2D' grids
 # Set p-space start and end points accordingly in domain.py
 #TODO : Use only polar2D for PdCoO2
+
+
+zero_temperature    = (p_dim==1)
+dispersion          = 'quadratic' # 'linear' or 'quadratic'
+fermi_surface_shape = 'hexagon' # Supports 'circle' or 'hexagon'
+
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 6
@@ -118,53 +124,141 @@ def tau_ee(q1, q2, p1, p2, p3):
 def tau(q1, q2, p1, p2, p3):
     return(tau_defect(q1, q2, p1, p2, p3))
 
+
+def fermi_momentum_magnitude(theta):
+    #TODO : If cartesian coordinates are being used, conver to polar to calculate p_f
+    n = 6 #number of sides of the polygon
+    p_f = initial_mu/fermi_velocity * polygon(n, theta, rotation = np.pi/6)
+    return(p_f)
+
+def get_p_x_p_y_at_fermi_surface(theta):
+    #TODO : If cartesian coordinates are being used, conver to polar to calculate p_f
+    p_f = fermi_surface_magnitude(theta)
+    return([p_f*af.cos(theta), p_f*af.sin(theta)]) 
+
 def band_energy(p1, p2):
+    # Note :This function is only meant to be called once to initialize E_band
 
     if (p_space_grid == 'cartesian'):
         p_x = p1
         p_y = p2
     elif (p_space_grid == 'polar2D'):
-        p_x = p1 * af.cos(p2)
-        p_y = p1 * af.sin(p2)
+    	# In polar2D coordinates, p1 = radius and p2 = theta
+        r = p1
+        theta = p2
+        p_x = r * af.cos(theta)
+        p_y = r * af.sin(theta)
     else : 
         raise NotImplementedError('Unsupported coordinate system in p_space')
     
-    # In polar2D coordinates, p1 = radius and p2 = theta
+    p = af.sqrt(p_x**2. + p_y**2.)
+    if (dispersion == 'linear'):
 
-    #p = af.sqrt(p_x**2. + p_y**2.)
-    #E_upper = p*fermi_velocity
-    n = 6 #number of sides of the polygon
-    E_upper = initial_mu * polygon(n, p2, rotation = np.pi/6)
+        E_upper = p*fermi_velocity
+
+    elif (dispersion == 'quadratic'):
+    
+        m = effective_mass(p1, p2)
+        E_upper = p**2/(2.*m)
+
+    if (zero_temperature):
+
+        E_upper = initial_mu * p**0.
 
     af.eval(E_upper)
     return(E_upper)
 
+
+def effective_mass(p1, p2):
+
+    if (p_space_grid == 'cartesian'):
+        p_x = p1
+        p_y = p2
+        
+        theta = af.atan(p_y/p_x)
+
+    elif (p_space_grid == 'polar2D'):
+    	# In polar2D coordinates, p1 = radius and p2 = theta
+        r = p1; theta = p2
+    else : 
+        raise NotImplementedError('Unsupported coordinate system in p_space')
+    
+    if (fermi_surface_shape == 'hexagon'):
+        
+        n = 6 # No. of side of polygon
+        mass = mass_particle * polygon(n, theta, rotation = np.pi/6)
+
+    elif (fermi_surface_shape == 'circle'):
+        
+    # For now, just return the free electron mass
+        mass = mass_particle
+
+    return(mass)
+
 def band_velocity(p1, p2):
-    # TODO :This function is only meant to be called once to initialize the vel vectors
+    # Note :This function is only meant to be called once to initialize the vel vectors
+
+    if (p_space_grid == 'cartesian'):
+        p_x = p1
+        p_y = p2
+        
+        theta = af.atan(p_y/p_x)
+
+    elif (p_space_grid == 'polar2D'):
+    	# In polar2D coordinates, p1 = radius and p2 = theta
+        r = p1; theta = p2
+    else : 
+        raise NotImplementedError('Unsupported coordinate system in p_space')
+    
+    p     = af.sqrt(p_x**2. + p_y**2.)
+    p_hat = [p_x / (p + 1e-20), p_y / (p + 1e-20)]
+
+    if (fermi_surface_shape == 'circular'):
+
+        v_f_hat = p_hat
+
+    elif (fermi_surface_shape == 'hexagon'):
+
+        v_f_hat = normal_to_hexagon_unit_vec(theta)
+
+    # Quadratic dispersion        
+    m = effective_mass(p1, p2)
+    v_f = p/m
+
+    if (dispersion == 'linear' or zero_temperature):
+
+        v_f = fermi_velocity
+
+    upper_band_velocity = [v_f * v_f_hat[0], v_f * v_f_hat[1]]
+
+    return(upper_band_velocity)
+
+def get_p_x_and_p_y(p1, p2):
 
     if (p_space_grid == 'cartesian'):
         p_x = p1
         p_y = p2
     elif (p_space_grid == 'polar2D'):
-        # Here, p1 = radius and p2 = theta
-        p_x = p1 * af.cos(p2)
-        p_y = p1 * af.sin(p2)
+    	# In polar2D coordinates, p1 = radius and p2 = theta
+        r = p1; theta = p2
+        
+        if (zero_temperature):
+            # get p_x and p_y at the Fermi surface
+            
+            if (fermi_surface_shape == 'circle'):
+                r = initial_mu/fermi_velocity # Fermi momentum
+            
+            elif (fermi_surface_shape == 'hexagon'):
+                n = 6 #No. of sides of polygon
+                r = (initial_mu/fermi_velocity) * polygon(n, theta, rotation = np.pi/6)
+
+        p_x = r * af.cos(theta)
+        p_y = r * af.sin(theta)
+
     else : 
-        raise NotImplementedError('Unsupported coordinate system in p_space') 
-    
-#    p     = af.sqrt(p_x**2. + p_y**2.)
-#    p_hat = [p_x / (p + 1e-20), p_y / (p + 1e-20)]
-#
-    v_f   = fermi_velocity
-#
-#    upper_band_velocity =  [ v_f * p_hat[0],  v_f * p_hat[1]]
-#
-#    af.eval(upper_band_velocity[0], upper_band_velocity[1])
+        raise NotImplementedError('Unsupported coordinate system in p_space')
 
-    v_f_hat = normal_to_hexagon_unit_vec(p2)
-    upper_band_velocity = [v_f * v_f_hat[0], v_f * v_f_hat[1]]
-
-    return(upper_band_velocity)
+    return([p_x, p_y])
 
 # Restart(Set to zero for no-restart):
 latest_restart = True
