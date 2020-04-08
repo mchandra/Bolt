@@ -40,7 +40,7 @@ electrostatic_solver_every_nth_step = 1000000
 
 # Time parameters:
 dt      = 0.025/4 # ps
-t_final = 100.    # ps
+t_final = 20.     # ps
 
 
 # File-writing Parameters:
@@ -102,12 +102,10 @@ mu_ee       = None # chemical potential used in the e-e operator
 T_ee        = None # Electron temperature used in the e-e operator
 vel_drift_x = None
 vel_drift_y = None
-j_x         = None
-j_y         = None
 phi         = None # Electric potential in the plane of graphene sheet
 p_x         = None
 p_y         = None
-integral_measure = None
+#integral_measure = None
 
 # Momentum quantities (will be initialized to shape = [p1*p2*p3] in initialize.py)
 E_band   = None

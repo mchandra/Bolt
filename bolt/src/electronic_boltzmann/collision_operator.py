@@ -4,6 +4,8 @@ from petsc4py import PETSc
 import numpy as np
 import arrayfire as af
 
+#from bolt.lib.nonlinear.compute_moments import compute_moments
+
 from .f_local_equilibrium import f0_ee, f0_defect
 from .f_local_equilibrium_zero_T import f0_ee_constant_T, f0_defect_constant_T
 
@@ -80,22 +82,6 @@ def RTA(f, t, q1, q2, p1, p2, p3, moments, params, flag = False):
     # When (f - f0) is NaN. Dividing by np.inf doesn't give 0
     # TODO: WORKAROUND
  
-
-    # Inject j_x and j_y into params
-
-    # TODO : Multiply by dp1*dp2 and the phase space degeneracy factor
-    # (4./(2.*np.pi*params.h_bar)**2.)
-
-    params.j_x = compute_moments('j_x')
-    params.j_y = compute_moments('j_y')
-    params.j_x = moments.j_x(f, p_x, p_y, p_z, params.integral_measure)
-    params.j_y = moments.j_y(f, p_x, p_y, p_z, params.integral_measure) 
-
-    #multiply = lambda a, b:a*b
-    
-    #params.j_x = af.sum(af.broadcast(multiply, f, p_x), 0)
-    #params.j_y = af.sum(af.broadcast(multiply, f, p_y), 0)
-
 
     af.eval(C_f)
     return(C_f)

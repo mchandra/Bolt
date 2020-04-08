@@ -68,38 +68,7 @@ p1 = domain.p1_start[0] + (0.5 + np.arange(N_p1)) * (domain.p1_end[0] - \
 p2 = domain.p2_start[0] + (0.5 + np.arange(N_p2)) * (domain.p2_end[0] - \
         domain.p2_start[0])/N_p2
 
-print ('Momentum space : ', p1[-1], p2[int(N_p2/2)])
 
-source_start = 0.0#params.contact_start
-source_end   = 0.25#params.contact_end
-
-drain_start  = 0.0#params.contact_start
-drain_end    = 0.25#params.contact_end
-
-source_indices =  (q2 > source_start) & (q2 < source_end)
-drain_indices  =  (q2 > drain_start)  & (q2 < drain_end )
-
-# Left needs to be near source, right sensor near drain
-sensor_1_left_start = 8.5 # um
-sensor_1_left_end   = 9.5 # um
-
-sensor_1_right_start = 8.5 # um
-sensor_1_right_end   = 9.5 # um
-
-sensor_1_left_indices  = (q2 > sensor_1_left_start ) & (q2 < sensor_1_left_end)
-sensor_1_right_indices = (q2 > sensor_1_right_start) & (q2 < sensor_1_right_end)
-
-sensor_2_left_start = 6.5 # um
-sensor_2_left_end   = 7.5 # um
-
-sensor_2_right_start = 6.5 # um
-sensor_2_right_end   = 7.5 # um
-
-sensor_2_left_indices  = (q2 > sensor_2_left_start ) & (q2 < sensor_2_left_end)
-sensor_2_right_indices = (q2 > sensor_2_right_start) & (q2 < sensor_2_right_end)
-
-#filepath = \
-#'/home/mchandra/gitansh/bolt_master/example_problems/electronic_boltzmann/graphene/L_5.0_10.0_tau_ee_0.2_tau_eph_1.0/dumps'
 filepath = os.getcwd()
 moment_files 		  = np.sort(glob.glob(filepath+'/dump_moments/*.bin'))
 lagrange_multiplier_files = \
@@ -108,8 +77,6 @@ lagrange_multiplier_files = \
 print ("moment files : ", moment_files.size)
 print ("lagrange multiplier files : ", lagrange_multiplier_files.size)
 
-dt = 0.025/4#params.dt
-#dump_interval = params.dump_steps
 
 time_array = np.loadtxt("dump_time_array.txt")
 
@@ -129,10 +96,7 @@ for file_number, dump_file in enumerate(moment_files[:]):
 
     lagrange_multipliers = \
         io.readBinaryFile(lagrange_multiplier_files[file_number])
-    lagrange_multipliers = lagrange_multipliers[0].reshape(N_q2, N_q1, 7)
-    #h5f  = h5py.File(lagrange_multiplier_files[file_number], 'r')
-    #lagrange_multipliers = h5f['lagrange_multipliers'][:]
-    #h5f.close()
+    lagrange_multipliers = lagrange_multipliers[0].reshape(N_q2, N_q1, 5)
     
     mu           = lagrange_multipliers[:, :, 0]
     mu_ee        = lagrange_multipliers[:, :, 1]
@@ -140,8 +104,6 @@ for file_number, dump_file in enumerate(moment_files[:]):
     vel_drift_x  = lagrange_multipliers[:, :, 3]
     vel_drift_y  = lagrange_multipliers[:, :, 4]
 
-    print (vel_drift_x.shape)
-    print (density.shape)
     
     pl.contourf(q1_meshgrid, q2_meshgrid, density.T, 100, cmap='bwr')
     pl.title(r'Time = ' + "%.2f"%(time_array[file_number]) + " ps")

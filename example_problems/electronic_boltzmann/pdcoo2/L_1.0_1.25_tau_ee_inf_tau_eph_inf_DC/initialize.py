@@ -23,8 +23,6 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     params.T_ee        = params.T.copy()
     params.vel_drift_x = 0.*q1 + 0e-3
     params.vel_drift_y = 0.*q1 + 0e-3
-    params.j_x         = 0.*q1
-    params.j_y         = 0.*q1
 
     params.p_x, params.p_y = params.get_p_x_and_p_y(p1, p2)
     params.E_band   = params.band_energy(p1, p2)
@@ -46,11 +44,31 @@ def initialize_f(q1, q2, p1, p2, p3, params):
 
     theta = af.atan(params.p_y / params.p_x)
     p_f   = params.fermi_momentum_magnitude(theta)
+    
+    if (params.p_space_grid == 'cartesian'):
+        dp_x = dp1[0]; dp_y = dp2[0]; dp_z = dp3[0]
+        params.integral_measure = \
+          (4./(2.*np.pi*params.h_bar)**2) * dp_z * dp_y * dp_x
 
-    params.integral_measure = \
-      (4./(2.*np.pi*params.h_bar)**2) * dp3[0] * dp2[0] * dp1[0]
+    elif (params.p_space_grid == 'polar2D'):
+     	# In polar2D coordinates, p1 = radius and p2 = theta
+        # Integral : \int delta(r - r_F) F(r, theta) r dr dtheta
+        r = p1; theta = p2
+        dp_r = dp1[0]; dp_theta = dp2[0]
 
-    print ("initialize, integral measure :", params.integral_measure)
+        if (params.zero_temperature):
+            # Assumption : F(r, theta) = delta(r-r_F)*F(theta)
+            params.integral_measure = \
+              (4./(2.*np.pi*params.h_bar)**2) * p_f * dp_theta
+
+        else:
+            params.integral_measure = \
+              (4./(2.*np.pi*params.h_bar)**2) * r * dp_r * dp_theta
+            
+
+    else : 
+        raise NotImplementedError('Unsupported coordinate system in p_space')
+
 
 
     f = (1./(af.exp( (params.E_band - params.vel_drift_x*params.p_x

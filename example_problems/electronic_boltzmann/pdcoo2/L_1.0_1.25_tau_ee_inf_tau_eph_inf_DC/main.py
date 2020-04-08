@@ -69,6 +69,7 @@ if(params.latest_restart == True):
     print(time_elapsed)
     if(latest_f is not None and  time_elapsed is not None):
       nls.load_distribution_function(latest_f)
+      dump_time_array = np.loadtxt("dump_time_array.txt").tolist()
       using_latest_restart = True
 
 
@@ -81,8 +82,8 @@ if using_latest_restart == False:
         nls.dump_aux_arrays([params.mu,
                              params.mu_ee,
                              params.T_ee,
-                             params.vel_drift_x, params.vel_drift_y,
-                             params.j_x, params.j_y],
+                             params.vel_drift_x, params.vel_drift_y
+                            ],
                              'lagrange_multipliers',
                              'dump_lagrange_multipliers/t=' + formatted_time
                             )
@@ -135,8 +136,8 @@ while(time_elapsed < t_final):
             nls.dump_aux_arrays([params.mu,
                              params.mu_ee,
                              params.T_ee,
-                             params.vel_drift_x, params.vel_drift_y,
-                             params.j_x, params.j_y],
+                             params.vel_drift_x, params.vel_drift_y
+                                ],
                              'lagrange_multipliers',
                              'dump_lagrange_multipliers/t=' + formatted_time
                             )
