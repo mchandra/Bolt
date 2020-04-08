@@ -169,4 +169,4 @@ while(time_elapsed < t_final):
          )
     PETSc.Sys.Print("--------------------\n")
 
-nls.dump_distribution_function('dump_f/f_laststep')
+#nls.dump_distribution_function('dump_f/t_laststep')

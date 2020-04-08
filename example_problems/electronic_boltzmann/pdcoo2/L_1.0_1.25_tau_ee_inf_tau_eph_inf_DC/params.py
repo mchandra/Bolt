@@ -127,15 +127,17 @@ def tau(q1, q2, p1, p2, p3):
 
 
 def fermi_momentum_magnitude(theta):
-    #TODO : If cartesian coordinates are being used, conver to polar to calculate p_f
-    n = 6 #number of sides of the polygon
-    p_f = initial_mu/fermi_velocity * polygon(n, theta, rotation = np.pi/6)
+    if (fermi_surface_shape == 'circle'):
+        p_f = initial_mu/fermi_velocity # Fermi momentum
+    
+    elif (fermi_surface_shape == 'hexagon'):
+        n = 6 # No. of sides of polygon
+        p_f = (initial_mu/fermi_velocity) * polygon(n, theta, rotation = np.pi/6)
+        # Note : Rotation by pi/6 results in a hexagon with horizontal top & bottom edges
+        #TODO : If cartesian coordinates are being used, convert to polar to calculate p_f
+    else : 
+        raise NotImplementedError('Unsupported shape of fermi surface')
     return(p_f)
-
-#def get_p_x_p_y_at_fermi_surface(theta):
-#    #TODO : If cartesian coordinates are being used, conver to polar to calculate p_f
-#    p_f = fermi_surface_magnitude(theta)
-#    return([p_f*af.cos(theta), p_f*af.sin(theta)]) 
 
 
 def band_energy(p1, p2):
@@ -189,6 +191,7 @@ def effective_mass(p1, p2):
         
         n = 6 # No. of side of polygon
         mass = mass_particle * polygon(n, theta, rotation = np.pi/6)
+        # Note : Rotation by pi/6 results in a hexagon with horizontal top & bottom edges
 
     elif (fermi_surface_shape == 'circle'):
         
@@ -245,15 +248,9 @@ def get_p_x_and_p_y(p1, p2):
         r = p1; theta = p2
         
         if (zero_temperature):
-            # get p_x and p_y at the Fermi surface
+            # Get p_x and p_y at the Fermi surface
+            r = fermi_momentum_magnitude(theta)
             
-            if (fermi_surface_shape == 'circle'):
-                r = initial_mu/fermi_velocity # Fermi momentum
-            
-            elif (fermi_surface_shape == 'hexagon'):
-                n = 6 #No. of sides of polygon
-                r = (initial_mu/fermi_velocity) * polygon(n, theta, rotation = np.pi/6)
-
         p_x = r * af.cos(theta)
         p_y = r * af.sin(theta)
 

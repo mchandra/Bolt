@@ -47,7 +47,6 @@ def f0_defect_constant_T(f, p_x, p_y, p_z, params):
         denominator = (k*T**2.*(af.exp(tmp) + 2. + af.exp(-tmp)) )
 
         # TODO: Multiply with the integral measure dp_x * dp_y
-        #a00 = af.sum(T  / denominator, 0)
         a00 = integral_over_p(T/denominator, params.integral_measure)
 
         fermi_dirac = 1./(af.exp( (E_upper - mu)/(k*T) ) + 1.)
@@ -55,7 +54,6 @@ def f0_defect_constant_T(f, p_x, p_y, p_z, params):
 
         zeroth_moment = f - fermi_dirac
 
-        #eqn_mass_conservation   = af.sum(zeroth_moment, 0)
         eqn_mass_conservation = integral_over_p(zeroth_moment,
                                                 params.integral_measure
                                                )
@@ -85,7 +83,6 @@ def f0_defect_constant_T(f, p_x, p_y, p_z, params):
 
     zeroth_moment = f - fermi_dirac
 
-    #eqn_mass_conservation   = af.sum(zeroth_moment, 0)
     eqn_mass_conservation   = integral_over_p(zeroth_moment,
                                               params.integral_measure
                                              )
@@ -153,12 +150,9 @@ def f0_ee_constant_T(f, p_x, p_y, p_z, params):
 
 
         # TODO: Multiply with the integral measure dp_x * dp_y
-        #a_00 = af.sum(a_0, 0)
         a_00 = integral_over_p(a_0, params.integral_measure)
         ##a_01 = af.sum(a_1, 0)
-        #a_02 = af.sum(a_2, 0)
         a_02 = integral_over_p(a_2, params.integral_measure)
-        #a_03 = af.sum(a_3, 0)
         a_03 = integral_over_p(a_3, params.integral_measure)
 
         #a_10 = af.sum(E_upper * a_0, 0)
@@ -166,20 +160,14 @@ def f0_ee_constant_T(f, p_x, p_y, p_z, params):
         #a_12 = af.sum(E_upper * a_2, 0)
         #a_13 = af.sum(E_upper * a_3, 0)
 
-        #a_20 = af.sum(p_x * a_0, 0)
         a_20 = integral_over_p(p_x * a_0, params.integral_measure)
         ##a_21 = af.sum(p_x * a_1, 0)
-        #a_22 = af.sum(p_x * a_2, 0)
         a_22 = integral_over_p(p_x * a_2, params.integral_measure)
-        #a_23 = af.sum(p_x * a_3, 0)
         a_23 = integral_over_p(p_x * a_3, params.integral_measure)
 
-        #a_30 = af.sum(p_y * a_0, 0)
         a_30 = integral_over_p(p_y * a_0, params.integral_measure)
         ##a_31 = af.sum(p_y * a_1, 0)
-        #a_32 = af.sum(p_y * a_2, 0)
         a_32 = integral_over_p(p_y * a_2, params.integral_measure)
-        #a_33 = af.sum(p_y * a_3, 0)
         a_33 = integral_over_p(p_y * a_3, params.integral_measure)
 
         A = [ [a_00, a_02, a_03], \
@@ -200,12 +188,9 @@ def f0_ee_constant_T(f, p_x, p_y, p_z, params):
         first_moment_x =      p_x*(f - fermi_dirac)
         first_moment_y =      p_y*(f - fermi_dirac)
 
-        #eqn_mass_conservation   = af.sum(zeroth_moment,  0)
         eqn_mass_conservation   = integral_over_p(zeroth_moment,  params.integral_measure)
         #eqn_energy_conservation = af.sum(second_moment,  0)
-        #eqn_mom_x_conservation  = af.sum(first_moment_x, 0)
         eqn_mom_x_conservation  = integral_over_p(first_moment_x, params.integral_measure)
-        #eqn_mom_y_conservation  = af.sum(first_moment_y, 0)
         eqn_mom_y_conservation  = integral_over_p(first_moment_y, params.integral_measure)
 
         residual = [eqn_mass_conservation, \
@@ -276,12 +261,9 @@ def f0_ee_constant_T(f, p_x, p_y, p_z, params):
     first_moment_x =      p_x*(f - fermi_dirac)
     first_moment_y =      p_y*(f - fermi_dirac)
     
-    #eqn_mass_conservation   = af.sum(zeroth_moment,  0)
     eqn_mass_conservation   = integral_over_p(zeroth_moment,  params.integral_measure)
     #eqn_energy_conservation = af.sum(second_moment,  0)
-    #eqn_mom_x_conservation  = af.sum(first_moment_x, 0)
     eqn_mom_x_conservation  = integral_over_p(first_moment_x, params.integral_measure)
-    #eqn_mom_y_conservation  = af.sum(first_moment_y, 0)
     eqn_mom_y_conservation  = integral_over_p(first_moment_y, params.integral_measure)
 
     residual = [eqn_mass_conservation, \
