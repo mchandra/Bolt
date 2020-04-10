@@ -1,5 +1,6 @@
-#import numpy as np
+import numpy as np
 import arrayfire as af
+import coords
 
 """
 Here we define the advection terms for the 
@@ -80,9 +81,36 @@ def C_q(t, q1, q2, p1, p2, p3, params):
             This can be used to inject other functions/attributes into the function
 
     """
-    C_q1, C_q2 = params.vel_band
+    C_x, C_y = params.vel_band
+    
+#    X = q1; Y = q2
+#
+#    x = X
+#    
+#    #TODO : Remove from here
+#    a = 0.3
+#    k = np.pi
+#
+#    dX_dx = 1.
+#    dX_dy = 0.
+#
+#    dY_dx = a*k*af.cos(k*x)
+#    dY_dy = 1.
+#    
+#    C_X   = dX_dx*C_x + dX_dy*C_y
+#    C_Y   = dY_dx*C_x + dY_dy*C_y
 
-    return (C_q1, C_q2)
+    jac = coords.jacobian_dq_dx(q1, q2)
+
+    dq1_dx = jac[0][0]; dq1_dy = jac[0][1]
+    dq2_dx = jac[1][0]; dq2_dy = jac[1][1]
+
+    C_q1 = C_x*dq1_dx + C_y*dq1_dy
+    C_q2 = C_x*dq2_dx + C_y*dq2_dy
+
+    g = coords.sqrt_det_g(q1, q2)
+
+    return (g*C_q1, g*C_q2)
 
 # This can then be called inside A_p if needed:
 # F1 = (params.char....)(E1 + ....) + T1(q1, q2, p1, p2, p3)
