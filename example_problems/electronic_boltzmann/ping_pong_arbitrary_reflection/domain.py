@@ -41,7 +41,7 @@ p1_end   = [1.5*params.initial_mu]
 
 # If N_p2 > 1, mirror boundary conditions require p2 to be
 # symmetric about zero
-N_p2     =  8
+N_p2     =  64
 
 # In the cartesian representation of momentum space,
 # p2 = p_y (magnitude of momentum)
@@ -52,8 +52,8 @@ N_p2     =  8
 # In the 2D polar representation of momentum space,
 # p2 = p_theta (angle of momentum)
 # N_p_theta MUST be even.
-p2_start =  [-np.pi]
-p2_end   =  [np.pi]
+p2_start = [-np.pi]
+p2_end   = [np.pi]
 
 # If N_p3 > 1, mirror boundary conditions require p3 to be
 # symmetric about zero
