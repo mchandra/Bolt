@@ -1,77 +1,25 @@
 import numpy as np
 import arrayfire as af
 
-def get_theta_left(q1, q2):
-    
-    x, y = get_cartesian_coords(q1, q2)
-    
-    # Extract x and y along left edge
-    left_edge = 0
-    x = x[0, 0, left_edge, :] 
-    y = y[0, 0, left_edge, :]
-    
-    y_1 = af.shift(y, 0, 0, 0, 1)
-    x_1 = af.shift(x, 0, 0, 0, 1)
-    
-    #print("x shape : ", x.dims()) 
-    #print("x1 shape : ", x_1.dims()) 
-    slope = af.atan((y_1 - y)/(x_1 - x))
-    #print("slope : ", slope)
-    return (slope)
+import domain
 
-def get_theta_right(q1, q2):
-    
-    x, y = get_cartesian_coords(q1, q2)
-    
-    # Extract x and y along right edge
-    right_edge = -1
-    x = x[0, 0, right_edge, :] 
-    y = y[0, 0, right_edge, :] 
-    
-    y_1 = af.shift(y, 0, 0, 0, 1)
-    x_1 = af.shift(x, 0, 0, 0, 1)
-    
-    print("right x shape : ", x.dims()) 
-    print("right x1 shape : ", x_1.dims()) 
-    slope = af.atan((y_1 - y)/(x_1 - x))
-    #print("right slope : ", slope)
-    return (slope)
+def get_theta(q1, q2, boundary):
 
-def get_theta_top(q1, q2):
+    [[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]] = jacobian_dx_dq(q1, q2)
     
-    x, y = get_cartesian_coords(q1, q2)
-    
-    # Extract x and y along top edge
-    top_edge = -1
-    x = x[0, 0, :, top_edge] 
-    y = y[0, 0, :, top_edge] 
-   
-    y_1 = af.shift(y, 0, 0, 1, 0)
-    x_1 = af.shift(x, 0, 0, 1, 0)
-    
-    print("top x shape : ", x.dims()) 
-    print("top x1 shape : ", x_1.dims()) 
-    slope = af.atan((y_1 - y)/(x_1 - x))
-    #print("top slope : ", slope)
-    return (slope)
+    dq1 = (domain.q1_end - domain.q1_start)/domain.N_q1
+    dq2 = (domain.q2_end - domain.q2_start)/domain.N_q2
 
-def get_theta_bottom(q1, q2):
-    
-    x, y = get_cartesian_coords(q1, q2)
-    
-    # Extract x and y along bottom edge
-    bottom_edge = 0
-    x = x[0, 0, :, bottom_edge] 
-    y = y[0, 0, :, bottom_edge]
-    
-    y_1 = af.shift(y, 0, 0, 1, 0)
-    x_1 = af.shift(x, 0, 0, 1, 0)
-    
-    print("bot x shape : ", x.dims()) 
-    print("bot x1 shape : ", x_1.dims()) 
-    slope = af.atan((y_1 - y)/(x_1 - x))
-    #print("bot slope : ", slope)
-    return (slope)
+    if ((boundary == "left") or (boundary == "right")):
+        dq1 = 0
+    if ((boundary == "top") or (boundary == "bottom")):
+        dq2 = 0
+
+    dy = dy_dq1*dq1 + dy_dq2*dq2
+    dx = dx_dq1*dq1 + dx_dq2*dq2
+    dy_dx = dy/dx
+
+    return (af.atan(dy_dx))
 
 def get_cartesian_coords(q1, q2):
     
@@ -109,6 +57,13 @@ def jacobian_dx_dq(q1, q2):
     return([[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]])
 
 def jacobian_dq_dx(q1, q2):
+
+    """ Returns dq/dx in a 2x2 array
+
+    Usage :         
+    [[dq1_dx, dq1_dy], [dq2_dx, dq2_dy]] = jacobian_dq_dx(q1, q2)
+
+    """
 
     A = jacobian_dx_dq(q1, q2)
 

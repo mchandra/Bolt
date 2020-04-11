@@ -372,11 +372,14 @@ def apply_mirror_bcs_f_polar2D(self, boundary):
     """
 
     N_g = self.N_ghost
+    theta_left   = self.physical_system.params.theta_left.to_ndarray()
+    theta_right  = self.physical_system.params.theta_right.to_ndarray()
+    theta_top    = self.physical_system.params.theta_top.to_ndarray()
+    theta_bottom = self.physical_system.params.theta_bottom.to_ndarray()
+
+   # print ("theta : ", theta)
 
     if(boundary == 'left'):
-        # Get theta arrays corresponding to the boundary
-        theta_left   = coords.get_theta_left(self.q1_center, self.q2_center)
-        theta_left   = af.moddims(theta_left, theta_left.dims()[3]).to_ndarray() 
         
         # x-0-x-0-x-0-|-0-x-0-x-0-x-....
         #   0   1   2   3   4   5
@@ -384,23 +387,13 @@ def apply_mirror_bcs_f_polar2D(self, boundary):
         # 0 = 5; 1 = 4; 2 = 3;
         self.f[:, :, :N_g] = af.flip(self.f[:, :, N_g:2 * N_g], 2)
         
-        tmp = self.f
-        print ("boundaries.py, theta_left : ", theta_left.shape)
-
-        # The left boundary being vertical is at an angle of pi/2 rad with the positive x-axis
-        theta_boundary = np.pi/2
-        #self.f[:, :, :N_g] = mirror_at_an_angle_polar2D(self, self.f, theta_boundary)[:, :, :N_g]
-
         index = 0
         for theta_boundary in theta_left[1:]:
-            print ("boundaries.py, theta_boundary left : ", theta_boundary)
+            #print ("boundaries.py, theta_boundary left : ", theta_boundary)
             self.f[:, :, :N_g, index:index+1] = mirror_at_an_angle_polar2D(self, self.f, theta_boundary)[:, :, :N_g, index:index+1]
             index = index + 1
 
     elif(boundary == 'right'):
-        # Get theta arrays corresponding to the boundary
-        theta_right  = coords.get_theta_right(self.q1_center, self.q2_center)
-        theta_right  = af.moddims(theta_right, theta_right.dims()[3]).to_ndarray()
     
         # ...-x-0-x-0-x-0-|-0-x-0-x-0-x
         #      -6  -5  -4  -3  -2  -1
@@ -408,22 +401,13 @@ def apply_mirror_bcs_f_polar2D(self, boundary):
         # -1 = -6; -2 = -5; -3 = -4;
         self.f[:, :, -N_g:] = af.flip(self.f[:, :, -2 * N_g:-N_g], 2)
 
-        tmp = self.f
-
-        # The right boundary being vertical is at an angle of pi/2 rad with the positive x-axis
-        theta_boundary = np.pi/2
-        #self.f[:, :, -N_g:] = mirror_at_an_angle_polar2D(self, self.f, theta_boundary)[:, :, -N_g:]
-
         index = 0
         for theta_boundary in theta_right[1:]:
-            print ("boundaries.py, theta_boundary right : ", theta_boundary)
+            #print ("boundaries.py, theta_boundary right : ", theta_boundary)
             self.f[:, :, -N_g:, index:index+1] = mirror_at_an_angle_polar2D(self, self.f, theta_boundary)[:, :, -N_g:, index:index+1]
             index = index + 1
 
     elif(boundary == 'bottom'):
-        # Get theta arrays corresponding to the boundary
-        theta_bottom = coords.get_theta_bottom(self.q1_center, self.q2_center)
-        theta_bottom = af.moddims(theta_bottom, theta_bottom.dims()[2]).to_ndarray()
 
         # x-0-x-0-x-0-|-0-x-0-x-0-x-....
         #   0   1   2   3   4   5
@@ -431,22 +415,13 @@ def apply_mirror_bcs_f_polar2D(self, boundary):
         # 0 = 5; 1 = 4; 2 = 3;
         self.f[:, :, :, :N_g] = af.flip(self.f[:, :, :, N_g:2 * N_g], 3)
     
-        tmp = self.f
-
-        # The bottom boundary being horizontal is at an angle of 0 rad with the positive x-axis
-        theta_boundary = 0.
-        #self.f[:, :, :, :N_g] = mirror_at_an_angle_polar2D(self, self.f, theta_boundary)[:, :, :, :N_g]
-
         index = 0
         for theta_boundary in theta_bottom[1:]:
-           print ("boundaries.py, theta_boundary bottom : ", theta_boundary)
+           #print ("boundaries.py, theta_boundary bottom : ", theta_boundary)
            self.f[:, :, index:index+1, :N_g] = mirror_at_an_angle_polar2D(self, self.f, theta_boundary)[:, :, index:index+1, :N_g]
            index = index + 1
 
     elif(boundary == 'top'):
-        # Get theta arrays corresponding to the boundary
-        theta_top    = coords.get_theta_top(self.q1_center, self.q2_center)
-        theta_top    = af.moddims(theta_top, theta_top.dims()[2]).to_ndarray()
 
         # ...-x-0-x-0-x-0-|-0-x-0-x-0-x
         #      -6  -5  -4  -3  -2  -1
@@ -454,15 +429,9 @@ def apply_mirror_bcs_f_polar2D(self, boundary):
         # -1 = -6; -2 = -5; -3 = -4;
         self.f[:, :, :, -N_g:] = af.flip(self.f[:, :, :, -2 * N_g:-N_g], 3)
 
-        tmp = self.f
-
-        # The top boundary being horizontal is at an angle of 0 rad with the positive x-axis
-        theta_boundary = 0.
-        #self.f[:, :, :, -N_g:] = mirror_at_an_angle_polar2D(self, self.f, theta_boundary)[:, :, :, -N_g:]
-
         index = 0
         for theta_boundary in theta_top[1:]:
-            print ("boundaries.py, theta_boundary top : ", theta_boundary)
+            #print ("boundaries.py, theta_boundary top : ", theta_boundary)
             self.f[:, :, index:index+1, -N_g:] = mirror_at_an_angle_polar2D(self, self.f, theta_boundary)[:, :, index:index+1, -N_g:]
             index = index + 1
 

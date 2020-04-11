@@ -1,6 +1,6 @@
 """
 Functions which are used in assigning the I.C's to
-the system.
+othe system.
 """
 
 import arrayfire as af
@@ -51,7 +51,7 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     x_0     = 0.5 # Center in x
     y_0     = 0.5 # Center in y
 
-    # TODO: This will work with polar2D coordinates only for the moment
+    # TODO: This will work with polar2D p-space only for the moment
     # Particles lying on the ball need to have the same velocity (direction)
     #theta_0_index = (5*N_p2/8) - 1 # Direction of initial velocity
     theta_0_index = int(6*domain.N_p2/8) # Direction of initial velocity
@@ -59,7 +59,17 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     af.display(p2[theta_0_index])
 
     x, y = coords.get_cartesian_coords(q1, q2)
-    
+
+    # Inject the boundary angles into params
+    left_edge = 0; right_edge = -1
+    params.theta_left   = af.moddims(coords.get_theta(q1, q2, "left")[0, 0, left_edge, :], f.dims()[3])
+    params.theta_right  = af.moddims(coords.get_theta(q1, q2, "right")[0, 0, right_edge, :], f.dims()[3])
+
+    bottom_edge = 0; top_edge = -1
+    params.theta_top    = af.moddims(coords.get_theta(q1, q2, "top")[0, 0, :, top_edge], f.dims()[2])
+    params.theta_bottom = af.moddims(coords.get_theta(q1, q2, "bottom")[0, 0, :, bottom_edge], f.dims()[2])
+   
+ 
     f[theta_0_index, :, :]  = A*af.exp(-( (x-x_0)**2/(2*sigma_x**2) + \
                                           (y-y_0)**2/(2*sigma_y**2)
                                         )
