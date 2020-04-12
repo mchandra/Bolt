@@ -4,8 +4,6 @@
 import numpy as np
 import arrayfire as af
 
-import coords
-
 def apply_shearing_box_bcs_f(self, boundary):
     """
     Applies the shearing box boundary conditions along boundary specified 
@@ -380,18 +378,39 @@ def apply_mirror_bcs_f_polar2D(self, boundary):
    # print ("theta : ", theta)
 
     if(boundary == 'left'):
-        
+
         # x-0-x-0-x-0-|-0-x-0-x-0-x-....
         #   0   1   2   3   4   5
         # For mirror boundary conditions:
         # 0 = 5; 1 = 4; 2 = 3;
         self.f[:, :, :N_g] = af.flip(self.f[:, :, N_g:2 * N_g], 2)
         
-        index = 0
-        for theta_boundary in theta_left[1:]:
-            #print ("boundaries.py, theta_boundary left : ", theta_boundary)
-            self.f[:, :, :N_g, index:index+1] = mirror_at_an_angle_polar2D(self, self.f, theta_boundary)[:, :, :N_g, index:index+1]
-            index = index + 1
+        shift_indices = self.physical_system.params.shift_indices_left
+
+        left_edge = 0
+        f_2D_flattened             = af.moddims(self.f[:, 0, left_edge, :], self.f.dims()[0]*self.f.dims()[3])
+        print ("boundaries.py, flattened arrays shape : ", shift_indices.dims(), f_2D_flattened.dims())
+        f_shifted_flattened        = f_2D_flattened[shift_indices]
+        f_shifted                  = af.moddims(f_shifted_flattened, self.f.dims()[0], 1, 1, self.f.dims()[3])
+        self.f[:, 0, left_edge, :] = f_shifted
+        
+        f_2D_flattened       = af.moddims(self.f[:, 0, left_edge+1, :], self.f.dims()[0]*self.f.dims()[3])
+        f_shifted_flattened  = f_2D_flattened[shift_indices]
+        f_shifted            = af.moddims(f_shifted_flattened, self.f.dims()[0], 1, 1, self.f.dims()[3])
+        self.f[:, 0, left_edge+1, :] = f_shifted
+
+        # Flip along p2 (the theta axis)
+        self.f[:, :, :N_g] = \
+            self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f),
+                                                1
+                                               )
+                                       )[:, :, :N_g]
+        
+        #index = 0
+        #for theta_boundary in theta_left[1:]:
+        #    #print ("boundaries.py, theta_boundary left : ", theta_boundary)
+        #    self.f[:, :, :N_g, index:index+1] = mirror_at_an_angle_polar2D(self, self.f, theta_boundary)[:, :, :N_g, index:index+1]
+        #    index = index + 1
 
     elif(boundary == 'right'):
     
@@ -401,11 +420,31 @@ def apply_mirror_bcs_f_polar2D(self, boundary):
         # -1 = -6; -2 = -5; -3 = -4;
         self.f[:, :, -N_g:] = af.flip(self.f[:, :, -2 * N_g:-N_g], 2)
 
-        index = 0
-        for theta_boundary in theta_right[1:]:
-            #print ("boundaries.py, theta_boundary right : ", theta_boundary)
-            self.f[:, :, -N_g:, index:index+1] = mirror_at_an_angle_polar2D(self, self.f, theta_boundary)[:, :, -N_g:, index:index+1]
-            index = index + 1
+        shift_indices = self.physical_system.params.shift_indices_right
+
+        right_edge = -1
+        f_2D_flattened             = af.moddims(self.f[:, 0, right_edge, :], self.f.dims()[0]*self.f.dims()[3])
+        print ("boundaries.py, flattened arrays shape : ", shift_indices.dims(), f_2D_flattened.dims())
+        f_shifted_flattened        = f_2D_flattened[shift_indices]
+        f_shifted                  = af.moddims(f_shifted_flattened, self.f.dims()[0], 1, 1, self.f.dims()[3])
+        self.f[:, 0, right_edge, :] = f_shifted
+        
+        f_2D_flattened       = af.moddims(self.f[:, 0, right_edge-1, :], self.f.dims()[0]*self.f.dims()[3])
+        f_shifted_flattened  = f_2D_flattened[shift_indices]
+        f_shifted            = af.moddims(f_shifted_flattened, self.f.dims()[0], 1, 1, self.f.dims()[3])
+        self.f[:, 0, right_edge-1, :] = f_shifted
+
+        self.f[:, :, -N_g:] = \
+            self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f),
+                                                1
+                                               )
+                                       )[:, :, -N_g:]
+        
+        #index = 0
+        #for theta_boundary in theta_right[1:]:
+        #    #print ("boundaries.py, theta_boundary right : ", theta_boundary)
+        #    self.f[:, :, -N_g:, index:index+1] = mirror_at_an_angle_polar2D(self, self.f, theta_boundary)[:, :, -N_g:, index:index+1]
+        #    index = index + 1
 
     elif(boundary == 'bottom'):
 
@@ -415,11 +454,30 @@ def apply_mirror_bcs_f_polar2D(self, boundary):
         # 0 = 5; 1 = 4; 2 = 3;
         self.f[:, :, :, :N_g] = af.flip(self.f[:, :, :, N_g:2 * N_g], 3)
     
-        index = 0
-        for theta_boundary in theta_bottom[1:]:
-           #print ("boundaries.py, theta_boundary bottom : ", theta_boundary)
-           self.f[:, :, index:index+1, :N_g] = mirror_at_an_angle_polar2D(self, self.f, theta_boundary)[:, :, index:index+1, :N_g]
-           index = index + 1
+        shift_indices = self.physical_system.params.shift_indices_bottom
+
+        bottom_edge = 0
+        f_2D_flattened             = af.moddims(self.f[:, 0, :, bottom_edge], self.f.dims()[0]*self.f.dims()[2])
+        print ("boundaries.py, flattened arrays shape : ", shift_indices.dims(), f_2D_flattened.dims())
+        f_shifted_flattened        = f_2D_flattened[shift_indices]
+        f_shifted                  = af.moddims(f_shifted_flattened, self.f.dims()[0], 1, self.f.dims()[2], 1)
+        self.f[:, 0, :, bottom_edge] = f_shifted
+        
+        f_2D_flattened       = af.moddims(self.f[:, 0, :, bottom_edge+1], self.f.dims()[0]*self.f.dims()[2])
+        f_shifted_flattened  = f_2D_flattened[shift_indices]
+        f_shifted            = af.moddims(f_shifted_flattened, self.f.dims()[0], 1, self.f.dims()[2], 1)
+        self.f[:, 0, :, bottom_edge+1] = f_shifted
+        
+        self.f[:, :, :, :N_g] = \
+            self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f), 
+                                                1
+                                               )
+                                       )[:, :, :, :N_g]
+        #index = 0
+        #for theta_boundary in theta_bottom[1:]:
+        #   #print ("boundaries.py, theta_boundary bottom : ", theta_boundary)
+        #   self.f[:, :, index:index+1, :N_g] = mirror_at_an_angle_polar2D(self, self.f, theta_boundary)[:, :, index:index+1, :N_g]
+        #   index = index + 1
 
     elif(boundary == 'top'):
 
@@ -428,12 +486,31 @@ def apply_mirror_bcs_f_polar2D(self, boundary):
         # For mirror boundary conditions:
         # -1 = -6; -2 = -5; -3 = -4;
         self.f[:, :, :, -N_g:] = af.flip(self.f[:, :, :, -2 * N_g:-N_g], 3)
+        
+        shift_indices = self.physical_system.params.shift_indices_top
 
-        index = 0
-        for theta_boundary in theta_top[1:]:
-            #print ("boundaries.py, theta_boundary top : ", theta_boundary)
-            self.f[:, :, index:index+1, -N_g:] = mirror_at_an_angle_polar2D(self, self.f, theta_boundary)[:, :, index:index+1, -N_g:]
-            index = index + 1
+        top_edge = -1
+        f_2D_flattened             = af.moddims(self.f[:, 0, :, top_edge], self.f.dims()[0]*self.f.dims()[2])
+        print ("boundaries.py, flattened arrays shape : ", shift_indices.dims(), f_2D_flattened.dims())
+        f_shifted_flattened        = f_2D_flattened[shift_indices]
+        f_shifted                  = af.moddims(f_shifted_flattened, self.f.dims()[0], 1, self.f.dims()[2], 1)
+        self.f[:, 0, :, top_edge] = f_shifted
+        
+        f_2D_flattened       = af.moddims(self.f[:, 0, :, top_edge-1], self.f.dims()[0]*self.f.dims()[2])
+        f_shifted_flattened  = f_2D_flattened[shift_indices]
+        f_shifted            = af.moddims(f_shifted_flattened, self.f.dims()[0], 1, self.f.dims()[2], 1)
+        self.f[:, 0, :, top_edge-1] = f_shifted
+
+        self.f[:, :, :, -N_g:] = \
+            self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f), 
+                                                1
+                                               )
+                                       )[:, :, :, -N_g:]
+        #index = 0
+        #for theta_boundary in theta_top[1:]:
+        #    #print ("boundaries.py, theta_boundary top : ", theta_boundary)
+        #    self.f[:, :, index:index+1, -N_g:] = mirror_at_an_angle_polar2D(self, self.f, theta_boundary)[:, :, index:index+1, -N_g:]
+        #    index = index + 1
 
     else:
         raise Exception('Invalid choice for boundary')

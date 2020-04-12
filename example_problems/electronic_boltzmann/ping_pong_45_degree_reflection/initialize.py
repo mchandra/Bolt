@@ -48,7 +48,7 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     A        = domain.N_p2 # Amplitude (required for normalization)
     sigma_x = 0.05 # Standard deviation in x
     sigma_y = 0.05 # Standard deviation in y
-    x_0     = 0.5 # Center in x
+    x_0     = 0.75 # Center in x
     y_0     = 0.5 # Center in y
 
     # TODO: This will work with polar2D p-space only for the moment
@@ -68,7 +68,12 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     bottom_edge = 0; top_edge = -1
     params.theta_top    = af.moddims(coords.get_theta(q1, q2, "top")[0, 0, :, top_edge], f.dims()[2])
     params.theta_bottom = af.moddims(coords.get_theta(q1, q2, "bottom")[0, 0, :, bottom_edge], f.dims()[2])
-   
+
+    # Load shift indices
+    load_shift_indices_left(q1, q2, p1, p2, p3, params)   
+    load_shift_indices_right(q1, q2, p1, p2, p3, params)   
+    load_shift_indices_bottom(q1, q2, p1, p2, p3, params)   
+    load_shift_indices_top(q1, q2, p1, p2, p3, params)   
  
     f[theta_0_index, :, :]  = A*af.exp(-( (x-x_0)**2/(2*sigma_x**2) + \
                                           (y-y_0)**2/(2*sigma_y**2)
@@ -94,3 +99,79 @@ def initialize_B(q1, q2, params):
     B3 = 0.*q1
 
     return(B1, B2, B3)
+
+
+def load_shift_indices_left(q1, q2, p1, p2, p3, params):
+    
+    # Generate the shift_indices 2D array for the left boundary
+
+    N_theta = domain.N_p2
+    shifts  = -(params.theta_left/np.pi)*N_theta #Shifts have to be in the negative direction
+
+    shift_indices = (0.*q1*p1)[:, 0, 0, :] # Initialize to zero, shape : N_theta x N_q2+2*N_g
+
+    temp = af.range(shift_indices.dims()[0]) # Should be of shape N_theta
+    index = 0
+    for value in shifts:
+        shift_indices[:, 0, 0, index] = af.shift(temp.dims()[0]*index+temp, int(value.scalar()))
+        index = index + 1
+
+    params.shift_indices_left = af.moddims(shift_indices, shift_indices.dims()[0]*shift_indices.dims()[3])
+    return
+
+def load_shift_indices_right(q1, q2, p1, p2, p3, params):
+    
+    # Generate the shift_indices 2D array for the right boundary
+
+    N_theta = domain.N_p2
+    shifts  = -(params.theta_right/np.pi)*N_theta
+
+    shift_indices = (0.*q1*p1)[:, 0, 0, :] # Initialize to zero, shape : N_theta x N_q2+2*N_g
+
+    temp = af.range(shift_indices.dims()[0]) # Should be of shape N_theta
+    index = 0
+    for value in shifts:
+        shift_indices[:, 0, 0, index] = af.shift(temp.dims()[0]*index+temp, int(value.scalar()))
+        index = index + 1
+
+    #params.shift_indices_right = shift_indices
+    params.shift_indices_right = af.moddims(shift_indices, shift_indices.dims()[0]*shift_indices.dims()[3])
+    return
+
+
+def load_shift_indices_bottom(q1, q2, p1, p2, p3, params):
+    
+    # Generate the shift_indices 2D array for the right boundary
+
+    N_theta = domain.N_p2
+    shifts  = -(params.theta_bottom/np.pi)*N_theta
+
+    shift_indices = (0.*q1*p1)[:, 0, :, 0] # Initialize to zero, shape : N_theta x N_q1+2*N_g
+
+    temp = af.range(shift_indices.dims()[0]) # Should be of shape N_theta
+    index = 0
+    for value in shifts:
+        shift_indices[:, 0, index, 0] = af.shift(temp.dims()[0]*index+temp, int(value.scalar()))
+        index = index + 1
+
+    params.shift_indices_bottom = af.moddims(shift_indices, shift_indices.dims()[0]*shift_indices.dims()[2])
+    return
+
+def load_shift_indices_top(q1, q2, p1, p2, p3, params):
+    
+    # Generate the shift_indices 2D array for the right boundary
+
+    N_theta = domain.N_p2
+    shifts  = -(params.theta_top/np.pi)*N_theta
+
+    shift_indices = (0.*q1*p1)[:, 0, :, 0] # Initialize to zero, shape : N_theta x N_q1+2*N_g
+
+    temp = af.range(shift_indices.dims()[0]) # Should be of shape N_theta
+    index = 0
+    for value in shifts:
+        shift_indices[:, 0, index, 0] = af.shift(temp.dims()[0]*index+temp, int(value.scalar()))
+        index = index + 1
+
+    #params.shift_indices_top = shift_indices
+    params.shift_indices_top = af.moddims(shift_indices, shift_indices.dims()[0]*shift_indices.dims()[2])
+    return
