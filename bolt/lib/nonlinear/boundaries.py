@@ -354,9 +354,6 @@ def apply_mirror_bcs_f_polar2D(self, boundary):
     boundary: str
               Boundary along which the boundary condition is to be applied.
     """
-
-    N_g = self.N_ghost
-    
     # theta_p = incident angle of particle wrt positive x-axis
     # theta   = angle of the mirror boundary wrt positive x-axis
 
@@ -373,6 +370,11 @@ def apply_mirror_bcs_f_polar2D(self, boundary):
 
     # Operation 2 : theta_out = -theta_prime
     # To do this we flip the axis that contains the variation in p_theta
+    
+    N_g        = self.N_ghost
+    N_q1_local = self.f.dims()[2]
+    N_q2_local = self.f.dims()[3]
+    N_theta    = self.N_p2
 
     if(boundary == 'left'):
 
@@ -386,18 +388,13 @@ def apply_mirror_bcs_f_polar2D(self, boundary):
         shift_indices = self.physical_system.params.shift_indices_left
 
         left_edge = 0
-        # For the first ghost zone
-        f_2D_flattened             = af.moddims(self.f[:, 0, left_edge, :], self.f.dims()[0]*self.f.dims()[3])
-        f_shifted_flattened        = f_2D_flattened[shift_indices]
-        f_shifted                  = af.moddims(f_shifted_flattened, self.f.dims()[0], 1, 1, self.f.dims()[3])
-        self.f[:, 0, left_edge, :] = f_shifted
-        
-        # For the second ghost zone
-        f_2D_flattened               = af.moddims(self.f[:, 0, left_edge+1, :], self.f.dims()[0]*self.f.dims()[3])
-        f_shifted_flattened          = f_2D_flattened[shift_indices]
-        f_shifted                    = af.moddims(f_shifted_flattened, self.f.dims()[0], 1, 1, self.f.dims()[3])
-        self.f[:, 0, left_edge+1, :] = f_shifted
 
+        for index in range(N_g): # For each ghost zone
+            f_2D_flattened             = af.moddims(self.f[:, 0, left_edge+index, :], N_theta*N_q2_local)
+            f_shifted_flattened        = f_2D_flattened[shift_indices]
+            f_shifted                  = af.moddims(f_shifted_flattened, N_theta, 1, 1, N_q2_local)
+            self.f[:, 0, left_edge+index, :] = f_shifted
+        
         # Operation 2 : theta_out = -theta_prime
         self.f[:, :, :N_g] = \
             self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f),
@@ -417,18 +414,13 @@ def apply_mirror_bcs_f_polar2D(self, boundary):
         shift_indices = self.physical_system.params.shift_indices_right
 
         right_edge = -1
-        # For the first ghost zone
-        f_2D_flattened              = af.moddims(self.f[:, 0, right_edge, :], self.f.dims()[0]*self.f.dims()[3])
-        f_shifted_flattened         = f_2D_flattened[shift_indices]
-        f_shifted                   = af.moddims(f_shifted_flattened, self.f.dims()[0], 1, 1, self.f.dims()[3])
-        self.f[:, 0, right_edge, :] = f_shifted
-        
-        # For the second ghost zone
-        f_2D_flattened                = af.moddims(self.f[:, 0, right_edge-1, :], self.f.dims()[0]*self.f.dims()[3])
-        f_shifted_flattened           = f_2D_flattened[shift_indices]
-        f_shifted                     = af.moddims(f_shifted_flattened, self.f.dims()[0], 1, 1, self.f.dims()[3])
-        self.f[:, 0, right_edge-1, :] = f_shifted
 
+        for index in range(N_g): # For each ghost zone
+            f_2D_flattened              = af.moddims(self.f[:, 0, right_edge-index, :], N_theta*N_q2_local)
+            f_shifted_flattened         = f_2D_flattened[shift_indices]
+            f_shifted                   = af.moddims(f_shifted_flattened, N_theta, 1, 1, N_q2_local)
+            self.f[:, 0, right_edge-index, :] = f_shifted
+        
         # Operation 2 : theta_out = -theta_prime
         self.f[:, :, -N_g:] = \
             self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f),
@@ -448,17 +440,12 @@ def apply_mirror_bcs_f_polar2D(self, boundary):
         shift_indices = self.physical_system.params.shift_indices_bottom
 
         bottom_edge = 0
-        # For the first ghost zone
-        f_2D_flattened               = af.moddims(self.f[:, 0, :, bottom_edge], self.f.dims()[0]*self.f.dims()[2])
-        f_shifted_flattened          = f_2D_flattened[shift_indices]
-        f_shifted                    = af.moddims(f_shifted_flattened, self.f.dims()[0], 1, self.f.dims()[2], 1)
-        self.f[:, 0, :, bottom_edge] = f_shifted
-        
-        # For the second ghost zone
-        f_2D_flattened                 = af.moddims(self.f[:, 0, :, bottom_edge+1], self.f.dims()[0]*self.f.dims()[2])
-        f_shifted_flattened            = f_2D_flattened[shift_indices]
-        f_shifted                      = af.moddims(f_shifted_flattened, self.f.dims()[0], 1, self.f.dims()[2], 1)
-        self.f[:, 0, :, bottom_edge+1] = f_shifted
+    
+        for index in range(N_g): # For each ghost zone
+            f_2D_flattened               = af.moddims(self.f[:, 0, :, bottom_edge+index], N_theta*N_q1_local)
+            f_shifted_flattened          = f_2D_flattened[shift_indices]
+            f_shifted                    = af.moddims(f_shifted_flattened, N_theta, 1, N_q1_local, 1)
+            self.f[:, 0, :, bottom_edge+index] = f_shifted
         
         # Operation 2 : theta_out = -theta_prime
         self.f[:, :, :, :N_g] = \
@@ -479,18 +466,13 @@ def apply_mirror_bcs_f_polar2D(self, boundary):
         shift_indices = self.physical_system.params.shift_indices_top
 
         top_edge = -1
-        # For the first ghost zone
-        f_2D_flattened             = af.moddims(self.f[:, 0, :, top_edge], self.f.dims()[0]*self.f.dims()[2])
-        f_shifted_flattened        = f_2D_flattened[shift_indices]
-        f_shifted                  = af.moddims(f_shifted_flattened, self.f.dims()[0], 1, self.f.dims()[2], 1)
-        self.f[:, 0, :, top_edge]  = f_shifted
         
-        # For the second ghost zone
-        f_2D_flattened              = af.moddims(self.f[:, 0, :, top_edge-1], self.f.dims()[0]*self.f.dims()[2])
-        f_shifted_flattened         = f_2D_flattened[shift_indices]
-        f_shifted                   = af.moddims(f_shifted_flattened, self.f.dims()[0], 1, self.f.dims()[2], 1)
-        self.f[:, 0, :, top_edge-1] = f_shifted
-
+        for index in range(N_g): # For each ghost zone
+            f_2D_flattened             = af.moddims(self.f[:, 0, :, top_edge-index], N_theta*N_q1_local)
+            f_shifted_flattened        = f_2D_flattened[shift_indices]
+            f_shifted                  = af.moddims(f_shifted_flattened, N_theta, 1, N_q1_local, 1)
+            self.f[:, 0, :, top_edge-index]  = f_shifted
+        
         # Operation 2 : theta_out = -theta_prime
         self.f[:, :, :, -N_g:] = \
             self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f), 

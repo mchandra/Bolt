@@ -91,6 +91,12 @@ j_x         = None
 j_y         = None
 phi         = None # Electric potential in the plane of graphene sheet
 
+# Index arrays used to perform shifting for mirror bcs
+shift_indices_left = None
+shift_indices_right = None
+shift_indices_bottom = None
+shift_indices_top = None
+
 # Momentum quantities (will be initialized to shape = [p1*p2*p3] in initialize.py)
 E_band   = None
 vel_band = None
