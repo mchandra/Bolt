@@ -88,6 +88,7 @@ def df_dt_fvm(f, self, term_to_return = 'all'):
         
         # First get the purely spatial sqrt_get_g
         g_tmp = coords.sqrt_det_g(self.q1_center, self.q2_center)
+        #g_tmp = self.physical_system.params.sqrt_det_g(self.q1_center, self.q2_center)
         # Now need to make it compatible with the higher dim data structure f      
         g = multiply(g_tmp, self.p1_center**0)
         

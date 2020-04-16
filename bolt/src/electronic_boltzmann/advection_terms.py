@@ -101,6 +101,7 @@ def C_q(t, q1, q2, p1, p2, p3, params):
 #    C_Y   = dY_dx*C_x + dY_dy*C_y
 
     jac = coords.jacobian_dq_dx(q1, q2)
+    #jac = params.jacobian_dq_dx(q1, q2)
 
     dq1_dx = jac[0][0]; dq1_dy = jac[0][1]
     dq2_dx = jac[1][0]; dq2_dy = jac[1][1]
@@ -109,6 +110,7 @@ def C_q(t, q1, q2, p1, p2, p3, params):
     C_q2 = C_x*dq2_dx + C_y*dq2_dy
 
     g = coords.sqrt_det_g(q1, q2)
+    #g = params.sqrt_det_g(q1, q2)
 
     return (g*C_q1, g*C_q2)
 
