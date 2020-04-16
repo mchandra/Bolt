@@ -40,19 +40,13 @@ def get_cartesian_coords(q1, q2):
 
 def jacobian_dx_dq(q1, q2):
     
-    # TODO: evaluate this numerically using get_cartesian_coords
+    eps = 1e-7 # small parameter needed for numerical differentiation. Can't be too small though!
+    x, y                         = get_cartesian_coords(q1,     q2    )
+    x_plus_eps_q1, y_plus_eps_q1 = get_cartesian_coords(q1+eps, q2    )
+    x_plus_eps_q2, y_plus_eps_q2 = get_cartesian_coords(q1,     q2+eps)
 
-    #a = 0.0; k = np.pi
-    dx_dq1 = 1.;                dx_dq2 = 0.
-    dy_dq1 = q2;                dy_dq2 = 1. + q1
-#    a = 2; r = 1.1
-#    dx_dq1 = 1. + a*af.sqrt(r**2. - q2**2.)
-#
-#    dx_dq2 = -a*q1*q2/af.sqrt(r**2. - q2**2.)
-#
-#    dy_dq1 = 0.
-#
-#    dy_dq2 = 1.
+    dx_dq1 = (x_plus_eps_q1 - x)/eps; dy_dq1 = (y_plus_eps_q1 - y)/eps
+    dx_dq2 = (x_plus_eps_q2 - x)/eps; dy_dq2 = (y_plus_eps_q2 - y)/eps
 
     return([[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]])
 
