@@ -36,7 +36,7 @@ electrostatic_solver_every_nth_step = 1000000
 
 # Time parameters:
 dt      = 0.025/8 # ps
-t_final = 5.     # ps
+t_final = 20.     # ps
 
 # Set to zero for no file-writing
 dt_dump_f       = 2*dt #ps
@@ -90,6 +90,12 @@ vel_drift_y = None
 j_x         = None
 j_y         = None
 phi         = None # Electric potential in the plane of graphene sheet
+
+# Index arrays used to perform shifting for mirror bcs
+shift_indices_left = None
+shift_indices_right = None
+shift_indices_bottom = None
+shift_indices_top = None
 
 # Momentum quantities (will be initialized to shape = [p1*p2*p3] in initialize.py)
 E_band   = None

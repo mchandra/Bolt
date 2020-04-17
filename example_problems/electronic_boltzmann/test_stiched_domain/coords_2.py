@@ -1,7 +1,7 @@
 import numpy as np
 import arrayfire as af
 
-import domain
+import domain_2 as domain
 
 def get_theta(q1, q2, boundary):
 
@@ -23,18 +23,14 @@ def get_theta(q1, q2, boundary):
 
 def get_cartesian_coords(q1, q2):
     
-    # g = 1 for the following transformation
-    #a = 0.3; k = np.pi
     #x = q1
-    #y = q2 - a*af.sin(k*q1)
+    #y = q2*(1 + q1)
+    weight = 0.5*(1+af.tanh(q2))
 
-    #a = 0.; k = np.pi
-    x = q1
-    y = q2*(1 + q1)
-
-    #a = 2; r = 1.1
-    #x = q1*(1 +  a*af.sqrt(r**2. - q2**2.))
-    #y = q2
+    #x = (1. - weight)*q1 + weight*q1*(1 - 0.5*q2)
+    x = q1*(1 - 0.5*q2)
+    #x = q1*(2 + q2)
+    y = q2
 
     return(x, y)
 

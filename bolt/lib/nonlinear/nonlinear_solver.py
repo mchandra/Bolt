@@ -144,6 +144,8 @@ class nonlinear_solver(object):
                 self.physical_system.params.mass[0, i]   = list_mass[i]
                 self.physical_system.params.charge[0, i] = list_charge[i]
 
+        self.physical_system.params.rank = self._comm.rank
+
         PETSc.Sys.Print('\nBackend Details for Nonlinear Solver:')
         # Printing the backend details for each rank/device/node:
         PETSc.Sys.syncPrint(indent('Rank ' + str(self._comm.rank) + ' of ' + str(self._comm.size-1)))
@@ -247,10 +249,19 @@ class nonlinear_solver(object):
                 raise Exception('NONE boundary conditions need to be applied to \
                                  both the boundaries of a particular axis'
                                )
-
         nproc_in_q1 = PETSc.DECIDE
         nproc_in_q2 = PETSc.DECIDE
 
+        # Break up the domain into manually defined portions
+        ownership_ranges = None
+        if self.physical_system.params.enable_manual_domain_decomposition:
+            ownership_q1 = [self.N_q1*self.physical_system.params.q1_partition[0],
+                           self.N_q1*self.physical_system.params.q1_partition[1]]
+            ownership_q2 = [self.N_q2*self.physical_system.params.q2_partition[0],
+                            self.N_q2*self.physical_system.params.q2_partition[1]]
+            ownership_ranges = (ownership_q1, ownership_q2)
+        # TODO : Implement error handling and give clean messages
+        
         # Since shearing boundary conditions require interpolations which are non-local:
         if(self.boundary_conditions.in_q2_bottom == 'shearing-box'):
             nproc_in_q1 = 1
@@ -275,9 +286,11 @@ class nonlinear_solver(object):
                                          proc_sizes    = (nproc_in_q1, 
                                                           nproc_in_q2
                                                          ),
+                                         ownership_ranges = ownership_ranges,
                                          stencil_type  = 1,
                                          comm          = self._comm
                                         )
+        lx, ly = self._da_f.getOwnershipRanges()
 
         # This DA is used by the FileIO routine dump_moments():
         # Finding the number of definitions for the moments:
@@ -293,6 +306,7 @@ class nonlinear_solver(object):
                                                     proc_sizes = (nproc_in_q1, 
                                                                   nproc_in_q2
                                                                  ),
+                                                    ownership_ranges = ownership_ranges,
                                                     comm       = self._comm
                                                    )
 
@@ -333,6 +347,14 @@ class nonlinear_solver(object):
         # Coordinates of the local zone in a global coord system
         self.q1_start_local = self.q1_start + _i_q1_start * self.dq1
         self.q2_start_local = self.q2_start + _i_q2_start * self.dq2
+
+        print("nonlinear.py: rank = ", self._comm.rank,
+              "(q1_start_local, q2_start_local) =  (", 
+              self.q1_start_local, self.q2_start_local, ")"
+             )
+        print("nonlinear.py: rank = ", self._comm.rank,
+              "ownership_ranges : lx = ", lx, "ly = ", ly
+             )
 
         self.N_q1_local = _N_q1_local
         self.N_q2_local = _N_q2_local

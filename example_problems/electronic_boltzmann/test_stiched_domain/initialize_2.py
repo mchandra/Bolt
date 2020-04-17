@@ -7,8 +7,8 @@ import arrayfire as af
 import numpy as np
 from petsc4py import PETSc
 
-import domain
-import coords
+import domain_2 as domain
+import coords_2 as coords
 
 def initialize_f(q1, q2, p1, p2, p3, params):
    
@@ -44,18 +44,18 @@ def initialize_f(q1, q2, p1, p2, p3, params):
 
     # Initialize to zero
     f = 0*q1*p1
-
+ 
     # Parameters to define a gaussian in space (representing a 2D ball)
     A        = domain.N_p2 # Amplitude (required for normalization)
     sigma_x = 0.05 # Standard deviation in x
     sigma_y = 0.05 # Standard deviation in y
-    x_0     = 0.5 # Center in x
-    y_0     = 0.5 # Center in y
-
+    x_0     = 0. # Center in x
+    y_0     = 0. # Center in y
+ 
     # TODO: This will work with polar2D p-space only for the moment
     # Particles lying on the ball need to have the same velocity (direction)
     #theta_0_index = (5*N_p2/8) - 1 # Direction of initial velocity
-    theta_0_index = int(6*domain.N_p2/8) # Direction of initial velocity
+    theta_0_index = int(5*domain.N_p2/8) # Direction of initial velocity
     
     print ("Initial angle : ")
     af.display(p2[theta_0_index])
@@ -68,10 +68,16 @@ def initialize_f(q1, q2, p1, p2, p3, params):
 
     x, y = coords.get_cartesian_coords(q1, q2)
  
-    f[theta_0_index, :, :]  = A*af.exp(-( (x-x_0)**2/(2*sigma_x**2) + \
-                                          (y-y_0)**2/(2*sigma_y**2)
-                                        )
-                                      )
+#    f[theta_0_index, :, :]  = A + A*af.exp(-( (x-x_0)**2/(2*sigma_x**2) + \
+#                                          (y-y_0)**2/(2*sigma_y**2)
+#                                        )
+#                                      )
+    f = (1./(af.exp( (E_upper - params.vel_drift_x*p_x
+                              - params.vel_drift_y*p_y
+                              - params.mu
+                    )/(k*params.T) 
+                  ) + 1.
+           ))
 
     af.eval(f)
     return(f)

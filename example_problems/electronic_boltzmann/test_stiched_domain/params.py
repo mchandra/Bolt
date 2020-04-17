@@ -4,7 +4,7 @@ import arrayfire as af
 instantaneous_collisions = False #TODO : Remove from lib
 hybrid_model_enabled     = False #TODO : Remove from lib
 source_enabled           = True
-disable_collision_op     = True
+disable_collision_op     = False
 
 fields_enabled = False
 # Can be defined as 'electrostatic', 'user-defined'.
@@ -35,13 +35,13 @@ riemann_solver_in_p = 'upwind-flux'
 electrostatic_solver_every_nth_step = 1000000
 
 # Time parameters:
-dt      = 0.025/(8) # ps
-t_final = 5.*np.sqrt(2.)     # ps
+dt      = 0.025/32 # ps
+t_final = 1#5.*np.sqrt(2.)     # ps
 
 # Set to zero for no file-writing
-dt_dump_f       = 4*dt #ps
+dt_dump_f       = 10000*dt #ps
 # ALWAYS set dump moments and dump fields at same frequency:
-dt_dump_moments = dt_dump_fields = 4*dt #ps
+dt_dump_moments = dt_dump_fields = 2*dt #ps
 
 # Dimensionality considered in velocity space:
 p_dim = 1
@@ -49,7 +49,7 @@ p_space_grid = 'polar2D' # Supports 'cartesian' or 'polar2D' grids
 # Set p-space start and end points accordingly in domain.py
 
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices = 3
+num_devices = 6
 
 # Constants:
 mass_particle      = 0.910938356 # x 1e-30 kg
@@ -65,8 +65,8 @@ epsilon0           = 8.854187817 # x [aC^2 / (aJ um) ]
 epsilon_relative      = 3.9 # SiO2
 backgate_potential    = -10 # V
 global_chem_potential = 0.03
-contact_start         = 4.5 # um
-contact_end           = 5.5 # um
+contact_start         = -1. # um
+contact_end           = -0.75 # um
 contact_geometry      = "straight" # Contacts on either side of the device
                                    # For contacts on the same side, use 
                                    # contact_geometry = "turn_around"
