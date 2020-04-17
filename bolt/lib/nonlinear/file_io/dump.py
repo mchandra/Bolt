@@ -11,9 +11,10 @@ def dump_aux_arrays(self, arrays, name, file_name):
     if (self.dump_aux_arrays_initial_call):
         self._da_aux_arrays = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                                    dof        = len(arrays),
-                                                   proc_sizes = (PETSc.DECIDE,
-                                                                 PETSc.DECIDE
+                                                   proc_sizes = (self._nproc_in_q1,
+                                                                 self._nproc_in_q2
                                                                 ),
+                                                   ownership_ranges = self._ownership_ranges,
                                                    comm       = self._comm
                                                  )
         self._glob_aux       = self._da_aux_arrays.createGlobalVec()

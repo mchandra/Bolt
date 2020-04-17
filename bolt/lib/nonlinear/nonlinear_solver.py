@@ -249,25 +249,23 @@ class nonlinear_solver(object):
                 raise Exception('NONE boundary conditions need to be applied to \
                                  both the boundaries of a particular axis'
                                )
-        nproc_in_q1 = PETSc.DECIDE
-        nproc_in_q2 = PETSc.DECIDE
+        self._nproc_in_q1 = PETSc.DECIDE
+        self._nproc_in_q2 = PETSc.DECIDE
 
         # Break up the domain into manually defined portions
-        ownership_ranges = None
+        self._ownership_ranges = None
         if self.physical_system.params.enable_manual_domain_decomposition:
-            ownership_q1 = [self.N_q1*self.physical_system.params.q1_partition[0],
-                           self.N_q1*self.physical_system.params.q1_partition[1]]
-            ownership_q2 = [self.N_q2*self.physical_system.params.q2_partition[0],
-                            self.N_q2*self.physical_system.params.q2_partition[1]]
-            ownership_ranges = (ownership_q1, ownership_q2)
+            ownership_q1 = [self.N_q1*item for item in self.physical_system.params.q1_partition]
+            ownership_q2 = [self.N_q2*item for item in self.physical_system.params.q2_partition]
+            self._ownership_ranges = (ownership_q1, ownership_q2)
         # TODO : Implement error handling and give clean messages
         
         # Since shearing boundary conditions require interpolations which are non-local:
         if(self.boundary_conditions.in_q2_bottom == 'shearing-box'):
-            nproc_in_q1 = 1
+            self._nproc_in_q1 = 1
         
         if(self.boundary_conditions.in_q1_left == 'shearing-box'):
-            nproc_in_q2 = 1
+            self._nproc_in_q2 = 1
 
         # DMDA is a data structure to handle a distributed structure 
         # grid and its related core algorithms. It stores metadata of
@@ -283,10 +281,10 @@ class nonlinear_solver(object):
                                          boundary_type = (petsc_bc_in_q1,
                                                           petsc_bc_in_q2
                                                          ),
-                                         proc_sizes    = (nproc_in_q1, 
-                                                          nproc_in_q2
+                                         proc_sizes    = (self._nproc_in_q1, 
+                                                          self._nproc_in_q2
                                                          ),
-                                         ownership_ranges = ownership_ranges,
+                                         ownership_ranges = self._ownership_ranges,
                                          stencil_type  = 1,
                                          comm          = self._comm
                                         )
@@ -303,10 +301,10 @@ class nonlinear_solver(object):
         self._da_dump_moments = PETSc.DMDA().create([self.N_q1, self.N_q2],
                                                     dof        =   self.N_species
                                                                  * len(attributes),
-                                                    proc_sizes = (nproc_in_q1, 
-                                                                  nproc_in_q2
+                                                    proc_sizes = (self._nproc_in_q1, 
+                                                                  self._nproc_in_q2
                                                                  ),
-                                                    ownership_ranges = ownership_ranges,
+                                                    ownership_ranges = self._ownership_ranges,
                                                     comm       = self._comm
                                                    )
 
