@@ -40,34 +40,34 @@ def get_cartesian_coords(q1, q2):
 
     x = X; y = Y
 
-    indices_1     =  X < -4.62
-    indices_2     = (X < 0    ) * (X > -4.62)
-    indices_4     = (X > 26.3 ) * (X < 29.46) * (Y > 12)
-    indices_5_top = (X > 29.46) * (X < 32.98) * (Y > 12)
-    indices_5_bot = (X > 29.46) * (X < 32.98) * (Y < 12)
-    indices_6_top = (X > 32.98)               * (Y > 12) 
-    indices_6_bot = (X > 32.98)               * (Y < 12)
-
-    if (af.any_true(indices_1)):
-        y[indices_1]     = 0.816*Y[indices_1]
-    
-    if (af.any_true(indices_2)):
-        y[indices_2]     = (Y *(1 + 0.04*(X)))[indices_2]
-    
-    if (af.any_true(indices_4)):
-        y[indices_4]     = ((Y-12) *(1 - 2*0.0451*(X-26.3)))[indices_4] + 12
-    
-    if (af.any_true(indices_5_top)):
-        y[indices_5_top] = ((Y-12) *(1 - 2*0.0451*(X-26.3)))[indices_5_top] + 12
-    
-    if (af.any_true(indices_5_bot)):
-        y[indices_5_bot] = ((Y-12) *(1 - 0.1193*(X-29.46)))[indices_5_bot] + 12
-    
-    if (af.any_true(indices_6_top)):
-        y[indices_6_top] = 0.40*(Y[indices_6_top]-12) + 12
-    
-    if (af.any_true(indices_6_bot)):
-        y[indices_6_bot] = 0.58*(Y[indices_6_bot]-12) + 12
+#    indices_1     =  X < -4.62
+#    indices_2     = (X < 0    ) * (X > -4.62)
+#    indices_4     = (X > 26.3 ) * (X < 29.46) * (Y > 12)
+#    indices_5_top = (X > 29.46) * (X < 32.98) * (Y > 12)
+#    indices_5_bot = (X > 29.46) * (X < 32.98) * (Y < 12)
+#    indices_6_top = (X > 32.98)               * (Y > 12) 
+#    indices_6_bot = (X > 32.98)               * (Y < 12)
+#
+#    if (af.any_true(indices_1)):
+#        y[indices_1]     = 0.816*Y[indices_1]
+#    
+#    if (af.any_true(indices_2)):
+#        y[indices_2]     = (Y *(1 + 0.04*(X)))[indices_2]
+#    
+#    if (af.any_true(indices_4)):
+#        y[indices_4]     = ((Y-12) *(1 - 2*0.0451*(X-26.3)))[indices_4] + 12
+#    
+#    if (af.any_true(indices_5_top)):
+#        y[indices_5_top] = ((Y-12) *(1 - 2*0.0451*(X-26.3)))[indices_5_top] + 12
+#    
+#    if (af.any_true(indices_5_bot)):
+#        y[indices_5_bot] = ((Y-12) *(1 - 0.1193*(X-29.46)))[indices_5_bot] + 12
+#    
+#    if (af.any_true(indices_6_top)):
+#        y[indices_6_top] = 0.40*(Y[indices_6_top]-12) + 12
+#    
+#    if (af.any_true(indices_6_bot)):
+#        y[indices_6_bot] = 0.58*(Y[indices_6_bot]-12) + 12
 
     return(x, y)
 
@@ -92,38 +92,38 @@ def jacobian_dx_dq(q1, q2):
     dx_dX = 1 + 0*X; dx_dY = 0*X
     dy_dX = 0*X;     dy_dY = 1 + 0*X
     
-    indices_1     =  X < -4.62
-    indices_2     = (X < 0    ) * (X > -4.62)
-    indices_4     = (X > 26.3 ) * (X < 29.46) * (Y > 12)
-    indices_5_top = (X > 29.46) * (X < 32.98) * (Y > 12)
-    indices_5_bot = (X > 29.46) * (X < 32.98) * (Y < 12)
-    indices_6_top = (X > 32.98)               * (Y > 12) 
-    indices_6_bot = (X > 32.98)               * (Y < 12)
-
-    if (af.any_true(indices_1)):
-        dy_dY[indices_1] = 0.816
-    
-    if (af.any_true(indices_2)):
-        dy_dX[indices_2] = 0.04*Y[indices_2]
-        dy_dY[indices_2] = (1 + 0.04*X)[indices_2]
-    
-    if (af.any_true(indices_4)):
-        dy_dX[indices_4] = -2*0.0451*(Y-12)[indices_4]
-        dy_dY[indices_4] = (1 - 2*0.0451*(X-26.3))[indices_4]
-    
-    if (af.any_true(indices_5_top)):
-        dy_dX[indices_5_top] = -2*0.0451*(Y-12)[indices_5_top]
-        dy_dY[indices_5_top] = (1 - 2*0.0451*(X-26.3))[indices_5_top]
-    
-    if (af.any_true(indices_5_bot)):
-        dy_dX[indices_5_bot] = -0.1193*(Y-12)[indices_5_bot]
-        dy_dY[indices_5_bot] = (1 - 0.1193*(X-29.46))[indices_5_bot]
-    
-    if (af.any_true(indices_6_top)):
-        dy_dY[indices_6_top] = 0.40
-    
-    if (af.any_true(indices_6_bot)):
-        dy_dY[indices_6_bot] = 0.58
+#    indices_1     =  X < -4.62
+#    indices_2     = (X < 0    ) * (X > -4.62)
+#    indices_4     = (X > 26.3 ) * (X < 29.46) * (Y > 12)
+#    indices_5_top = (X > 29.46) * (X < 32.98) * (Y > 12)
+#    indices_5_bot = (X > 29.46) * (X < 32.98) * (Y < 12)
+#    indices_6_top = (X > 32.98)               * (Y > 12) 
+#    indices_6_bot = (X > 32.98)               * (Y < 12)
+#
+#    if (af.any_true(indices_1)):
+#        dy_dY[indices_1] = 0.816
+#    
+#    if (af.any_true(indices_2)):
+#        dy_dX[indices_2] = 0.04*Y[indices_2]
+#        dy_dY[indices_2] = (1 + 0.04*X)[indices_2]
+#    
+#    if (af.any_true(indices_4)):
+#        dy_dX[indices_4] = -2*0.0451*(Y-12)[indices_4]
+#        dy_dY[indices_4] = (1 - 2*0.0451*(X-26.3))[indices_4]
+#    
+#    if (af.any_true(indices_5_top)):
+#        dy_dX[indices_5_top] = -2*0.0451*(Y-12)[indices_5_top]
+#        dy_dY[indices_5_top] = (1 - 2*0.0451*(X-26.3))[indices_5_top]
+#    
+#    if (af.any_true(indices_5_bot)):
+#        dy_dX[indices_5_bot] = -0.1193*(Y-12)[indices_5_bot]
+#        dy_dY[indices_5_bot] = (1 - 0.1193*(X-29.46))[indices_5_bot]
+#    
+#    if (af.any_true(indices_6_top)):
+#        dy_dY[indices_6_top] = 0.40
+#    
+#    if (af.any_true(indices_6_bot)):
+#        dy_dY[indices_6_bot] = 0.58
 
     dx_dq1 = dx_dX; dx_dq2 = dx_dY
     dy_dq1 = dy_dX; dy_dq2 = dy_dY

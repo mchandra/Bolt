@@ -4,7 +4,7 @@ import arrayfire as af
 instantaneous_collisions = False #TODO : Remove from lib
 hybrid_model_enabled     = False #TODO : Remove from lib
 source_enabled           = True
-disable_collision_op     = True
+disable_collision_op     = False
 
 fields_enabled = False
 # Can be defined as 'electrostatic', 'user-defined'.
@@ -41,7 +41,7 @@ t_final = 500     # ps
 # Set to zero for no file-writing
 dt_dump_f       = 10000*dt #ps
 # ALWAYS set dump moments and dump fields at same frequency:
-dt_dump_moments = dt_dump_fields = 4*dt #ps
+dt_dump_moments = dt_dump_fields = 10*dt #ps
 
 # Dimensionality considered in velocity space:
 p_dim = 1
@@ -49,7 +49,7 @@ p_space_grid = 'polar2D' # Supports 'cartesian' or 'polar2D' grids
 # Set p-space start and end points accordingly in domain.py
 
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices = 4
+num_devices = 2
 
 # Constants:
 mass_particle      = 0.910938356 # x 1e-30 kg
