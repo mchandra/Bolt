@@ -21,112 +21,93 @@ def get_theta(q1, q2, boundary):
 
     return (af.atan(dy_dx))
 
-def get_cartesian_coords(q1, q2):
-    
-    # g = 1 for the following transformation
-    #a = 0.3; k = np.pi
-    #x = q1
-    #y = q2 - a*af.sin(k*q1)
-
-    #a = 0.; k = np.pi
-    #x = q1
-    #y = q2*(1 + q1)
-
-    #a = 2; r = 1.1
-    #x = q1*(1 +  a*af.sqrt(r**2. - q2**2.))
-    #y = q2
+def get_cartesian_coords_for_post(q1, q2):
 
     X = q1; Y = q2
 
     x = X; y = Y
 
-#    indices_1     =  X < -4.62
-#    indices_2     = (X < 0    ) * (X > -4.62)
-#    indices_4     = (X > 26.3 ) * (X < 29.46) * (Y > 12)
-#    indices_5_top = (X > 29.46) * (X < 32.98) * (Y > 12)
-#    indices_5_bot = (X > 29.46) * (X < 32.98) * (Y < 12)
-#    indices_6_top = (X > 32.98)               * (Y > 12) 
-#    indices_6_bot = (X > 32.98)               * (Y < 12)
-#
-#    if (af.any_true(indices_1)):
-#        y[indices_1]     = 0.816*Y[indices_1]
-#    
-#    if (af.any_true(indices_2)):
-#        y[indices_2]     = (Y *(1 + 0.04*(X)))[indices_2]
-#    
-#    if (af.any_true(indices_4)):
-#        y[indices_4]     = ((Y-12) *(1 - 2*0.0451*(X-26.3)))[indices_4] + 12
-#    
-#    if (af.any_true(indices_5_top)):
-#        y[indices_5_top] = ((Y-12) *(1 - 2*0.0451*(X-26.3)))[indices_5_top] + 12
-#    
-#    if (af.any_true(indices_5_bot)):
-#        y[indices_5_bot] = ((Y-12) *(1 - 0.1193*(X-29.46)))[indices_5_bot] + 12
-#    
-#    if (af.any_true(indices_6_top)):
-#        y[indices_6_top] = 0.40*(Y[indices_6_top]-12) + 12
-#    
-#    if (af.any_true(indices_6_bot)):
-#        y[indices_6_bot] = 0.58*(Y[indices_6_bot]-12) + 12
+    indices_1     =  X < -4.62
+    indices_2     = (X < 0    ) * (X > -4.62)
+    indices_4     = (X > 26.3 ) * (X < 29.46) * (Y > 12)
+    indices_5_top = (X > 29.46) * (X < 32.98) * (Y > 12)
+    indices_5_bot = (X > 29.46) * (X < 32.98) * (Y < 12)
+    indices_6_top = (X > 32.98)               * (Y > 12) 
+    indices_6_bot = (X > 32.98)               * (Y < 12)
+
+    if (af.any_true(indices_1)):
+        y[indices_1]     = 0.816*Y[indices_1]
+    
+    if (af.any_true(indices_2)):
+        y[indices_2]     = (Y *(1 + 0.04*(X)))[indices_2]
+    
+    if (af.any_true(indices_4)):
+        y[indices_4]     = ((Y-12) *(1 - 2*0.0451*(X-26.3)))[indices_4] + 12
+    
+    if (af.any_true(indices_5_top)):
+        y[indices_5_top] = ((Y-12) *(1 - 2*0.0451*(X-26.3)))[indices_5_top] + 12
+    
+    if (af.any_true(indices_5_bot)):
+        y[indices_5_bot] = ((Y-12) *(1 - 0.1193*(X-29.46)))[indices_5_bot] + 12
+    
+    if (af.any_true(indices_6_top)):
+        y[indices_6_top] = 0.40*(Y[indices_6_top]-12) + 12
+    
+    if (af.any_true(indices_6_bot)):
+        y[indices_6_bot] = 0.58*(Y[indices_6_bot]-12) + 12
+    
+    return(x, y)
+
+
+def get_cartesian_coords(q1, q2):
+
+    q1_midpoint = 0.5*(af.max(q1) + af.min(q1))
+    q2_midpoint = 0.5*(af.max(q2) + af.min(q2))
+
+    x = q1
+
+    if (q1_midpoint < -4.62): # Domain 1 and 7
+        y = 0.816*q2
+
+    elif ((q1_midpoint > -4.62) and (q1_midpoint < 0)): # Domain 2 and 8
+        y = (q2 *(1 + 0.04*(q1)))
+
+    elif ((q1_midpoint > 0) and (q1_midpoint < 26.3)): # Domain 3 and 9
+        y = q2
+
+    elif ((q1_midpoint > 26.3) and (q1_midpoint < 29.46) and (q2_midpoint < 12)): # Domain 4
+        y = q2
+
+    elif ((q1_midpoint > 29.46) and (q1_midpoint < 32.98) and (q2_midpoint < 12)): # Domain 5
+        y = ((q2-12) *(1 - 0.1193*(q1-29.46))) + 12
+
+    elif ((q1_midpoint > 32.98) and (q2_midpoint < 12)): # Domain 6
+        y = 0.58*(q2-12) + 12
+
+    elif ((q1_midpoint > 26.3) and (q1_midpoint < 29.46) and (q2_midpoint > 12)): # Domain 10
+        y = ((q2-12) *(1 - 2*0.0451*(q1-26.3))) + 12
+
+    elif ((q1_midpoint > 29.46) and (q1_midpoint < 32.98) and (q2_midpoint > 12)): # Domain 11
+        y = ((q2-12) *(1 - 2*0.0451*(q1-26.3))) + 12
+
+    elif ((q1_midpoint > 32.98) and (q2_midpoint > 12)):  # Domain 12
+        y = 0.40*(q2-12) + 12
+
+    else:
+        raise NotImplementedError('q1_center/q2_center out of bounds!') 
+        
 
     return(x, y)
 
 def jacobian_dx_dq(q1, q2):
     
-    # TODO: evaluate this numerically using get_cartesian_coords
+    eps = 1e-7 # small parameter needed for numerical differentiation. Can't be too small though!
+    x, y                         = get_cartesian_coords(q1,     q2    )
+    x_plus_eps_q1, y_plus_eps_q1 = get_cartesian_coords(q1+eps, q2    )
+    x_plus_eps_q2, y_plus_eps_q2 = get_cartesian_coords(q1,     q2+eps)
 
-    #a = 0.0; k = np.pi
-#    dx_dq1 = 1.;                dx_dq2 = 0.
-#    dy_dq1 = q2;                dy_dq2 = 1. + q1
-#    a = 2; r = 1.1
-#    dx_dq1 = 1. + a*af.sqrt(r**2. - q2**2.)
-#
-#    dx_dq2 = -a*q1*q2/af.sqrt(r**2. - q2**2.)
-#
-#    dy_dq1 = 0.
-#
-#    dy_dq2 = 1.
-
-    X = q1; Y = q2
-
-    dx_dX = 1 + 0*X; dx_dY = 0*X
-    dy_dX = 0*X;     dy_dY = 1 + 0*X
-    
-#    indices_1     =  X < -4.62
-#    indices_2     = (X < 0    ) * (X > -4.62)
-#    indices_4     = (X > 26.3 ) * (X < 29.46) * (Y > 12)
-#    indices_5_top = (X > 29.46) * (X < 32.98) * (Y > 12)
-#    indices_5_bot = (X > 29.46) * (X < 32.98) * (Y < 12)
-#    indices_6_top = (X > 32.98)               * (Y > 12) 
-#    indices_6_bot = (X > 32.98)               * (Y < 12)
-#
-#    if (af.any_true(indices_1)):
-#        dy_dY[indices_1] = 0.816
-#    
-#    if (af.any_true(indices_2)):
-#        dy_dX[indices_2] = 0.04*Y[indices_2]
-#        dy_dY[indices_2] = (1 + 0.04*X)[indices_2]
-#    
-#    if (af.any_true(indices_4)):
-#        dy_dX[indices_4] = -2*0.0451*(Y-12)[indices_4]
-#        dy_dY[indices_4] = (1 - 2*0.0451*(X-26.3))[indices_4]
-#    
-#    if (af.any_true(indices_5_top)):
-#        dy_dX[indices_5_top] = -2*0.0451*(Y-12)[indices_5_top]
-#        dy_dY[indices_5_top] = (1 - 2*0.0451*(X-26.3))[indices_5_top]
-#    
-#    if (af.any_true(indices_5_bot)):
-#        dy_dX[indices_5_bot] = -0.1193*(Y-12)[indices_5_bot]
-#        dy_dY[indices_5_bot] = (1 - 0.1193*(X-29.46))[indices_5_bot]
-#    
-#    if (af.any_true(indices_6_top)):
-#        dy_dY[indices_6_top] = 0.40
-#    
-#    if (af.any_true(indices_6_bot)):
-#        dy_dY[indices_6_bot] = 0.58
-
-    dx_dq1 = dx_dX; dx_dq2 = dx_dY
-    dy_dq1 = dy_dX; dy_dq2 = dy_dY
+    dx_dq1 = (x_plus_eps_q1 - x)/eps; dy_dq1 = (y_plus_eps_q1 - y)/eps
+    dx_dq2 = (x_plus_eps_q2 - x)/eps; dy_dq2 = (y_plus_eps_q2 - y)/eps
 
     return([[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]])
 

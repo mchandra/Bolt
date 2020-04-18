@@ -6,6 +6,20 @@ hybrid_model_enabled     = False #TODO : Remove from lib
 source_enabled           = True
 disable_collision_op     = False
 
+# Manual domain decomposition (for advanced users)
+# The number of sub-domains into which the domain is decomposed
+# should be equal to the number of mpiprocesses (set in the jobscript)
+
+enable_manual_domain_decomposition = True
+q1_partition = [150./605, 38./605, 219./605, 27./605, 29./605, 142./605] # List of the fractional ranges of each subdomain in q1
+# The above indices correspond to  x = [-4.5700, -0.0075, 26.286, 29.5287, 33.010, 50]
+# TODO : Automate the indices using coords
+q2_partition = [1./2, 1./2] # List of the fractional ranges of each subdomain in q2
+
+# Note : The N_q1/N_q2 should be exactly divisible by the denominator of the
+# corresponding fractional ranges specified above.
+# For example : if q1_partion = [1./3, 2./3], then N_q1%3 == 0
+
 fields_enabled = False
 # Can be defined as 'electrostatic', 'user-defined'.
 # The initial conditions need to be specified under initialize
@@ -41,7 +55,7 @@ t_final = 500     # ps
 # Set to zero for no file-writing
 dt_dump_f       = 10000*dt #ps
 # ALWAYS set dump moments and dump fields at same frequency:
-dt_dump_moments = dt_dump_fields = 10*dt #ps
+dt_dump_moments = dt_dump_fields = 2*dt #ps
 
 # Dimensionality considered in velocity space:
 p_dim = 1
@@ -84,6 +98,12 @@ vel_drift_y = None
 j_x         = None
 j_y         = None
 phi         = None # Electric potential in the plane of graphene sheet
+
+# Index arrays used to perform shifting for mirror bcs
+shift_indices_left = None
+shift_indices_right = None
+shift_indices_bottom = None
+shift_indices_top = None
 
 # Momentum quantities (will be initialized to shape = [p1*p2*p3] in initialize.py)
 E_band   = None

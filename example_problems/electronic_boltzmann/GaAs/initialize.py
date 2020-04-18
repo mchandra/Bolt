@@ -43,10 +43,11 @@ def initialize_f(q1, q2, p1, p2, p3, params):
 
     # Load shift indices for all 4 boundaries into params. Required to perform
     # mirroring operations along boundaries at arbitrary angles.
-    load_shift_indices_left(q1, q2, p1, p2, p3, params)   
-    load_shift_indices_right(q1, q2, p1, p2, p3, params)   
-    load_shift_indices_bottom(q1, q2, p1, p2, p3, params)   
-    load_shift_indices_top(q1, q2, p1, p2, p3, params)   
+    params.shift_indices_left, params.shift_indices_right, \
+    params.shift_indices_bottom, params.shift_indices_top = \
+            compute_shift_indices(q1, q2, p1, p2, p3, params)   
+
+    params.x, params.y = coords.get_cartesian_coords(q1, q2)
 
     f = (1./(af.exp( (E_upper - params.vel_drift_x*p_x
                               - params.vel_drift_y*p_y
@@ -79,124 +80,105 @@ def initialize_B(q1, q2, params):
 
 # TODO : The code below is specific to the zero T formulation. Should it be here?
 
-def load_shift_indices_left(q1, q2, p1, p2, p3, params):
+def compute_shift_indices(q1, q2, p1, p2, p3, params):
     """
     Inject the shift_indices corresponding to a shift operation of -2*theta for the left boundary,
     where theta is the angular variation of the left boundary.
     """
-    # Initialize to zero 
+    N_theta       = domain.N_p2
+
+    # Define edge indices
+    left_edge = 0; right_edge = -1
+    bottom_edge = 0; top_edge = -1
+    
+    temp = af.range(N_theta) # Indices with no shift. Shape : N_theta
+
+
+    # Left boundary
+
+    # Initialize to zero
     shift_indices = (0.*q1*p1)[:, 0, 0, :]
-    dims  = shift_indices.dims() # Shape : N_theta x 1 x 1 x N_q2+2*N_g
+    N_q2_local    = shift_indices.dims()[3]
 
     # Get the angular variation of the left boundary.
-    left_edge = 0
-    theta_left = af.moddims(coords.get_theta(q1, q2, "left")[0, 0, left_edge, :], dims[3])
+    theta_left = coords.get_theta(q1, q2, "left")[0, 0, left_edge, :]
+    theta_left = af.moddims(theta_left, N_q2_local) # Convert to 1D array
 
     # Calculate the number of shifts of the array along the p_theta axis
     # required for an angular shift of -2*theta_left
-    N_theta = domain.N_p2
     shifts  = -((2*theta_left)/(2*np.pi))*N_theta 
 
     # Populate shift_indices 2D array using shifts.
-    temp = af.range(dims[0]) # Should be of shape N_theta
-    #index = 0
     for index, value in enumerate(shifts):
-        shift_indices[:, 0, 0, index] = af.shift(dims[0]*index+temp, int(value.scalar()))
-    #    index = index + 1
+        shift_indices[:, 0, 0, index] = af.shift(N_theta*index+temp, int(value.scalar()))
 
-    # Convert into a 1D array and store in params
-    params.shift_indices_left = af.moddims(shift_indices, dims[0]*dims[3])
-    return
+    # Convert into a 1D array
+    shift_indices_left = af.moddims(shift_indices, N_theta*N_q2_local)
+   
 
-def load_shift_indices_right(q1, q2, p1, p2, p3, params):
-    """
-    Inject the shift_indices corresponding to a shift operation of -2*theta for the right boundary,
-    where theta is the angular variation of the right boundary
-    """
-    
+    # Right boundary 
+
     # Initialize to zero
     shift_indices = (0.*q1*p1)[:, 0, 0, :] # Shape : N_theta x 1 x 1 x N_q2+2*N_g
-    dims = shift_indices.dims()
 
     # Get the angular variation of the right boundary.
-    right_edge = -1
-    theta_right = af.moddims(coords.get_theta(q1, q2, "right")[0, 0, right_edge, :], dims[3])
+    theta_right = coords.get_theta(q1, q2, "right")[0, 0, right_edge, :]
+    theta_right = af.moddims(theta_right, N_q2_local) # Convert to 1D array
 
     # Calculate the number of shifts of the array along the p_theta axis
     # required for an angular shift of -2*theta_right
-    N_theta = domain.N_p2
     shifts  = -(theta_right/np.pi)*N_theta
 
 
     # Populate shift_indices 2D array using shifts.
-    temp = af.range(dims[0]) # Should be of shape N_theta
-    #index = 0
     for index, value in enumerate(shifts):
-        shift_indices[:, 0, 0, index] = af.shift(dims[0]*index+temp, int(value.scalar()))
-    #    index = index + 1
+        shift_indices[:, 0, 0, index] = af.shift(N_theta*index+temp, int(value.scalar()))
 
-    # Convert into a 1D array and store in params
-    params.shift_indices_right = af.moddims(shift_indices, dims[0]*dims[3])
-    return
+    # Convert into a 1D array
+    shift_indices_right = af.moddims(shift_indices, N_theta*N_q2_local)
 
-
-def load_shift_indices_bottom(q1, q2, p1, p2, p3, params):
-    """
-    Inject the shift_indices corresponding to a shift operation of -2*theta for the bottom boundary,
-    where theta is the angular variation of the bottom boundary
-    """
+    
+    # Bottom boundary
     
     # Initialize to zero
     shift_indices = (0.*q1*p1)[:, 0, :, 0] # Shape : N_theta x 1 x  N_q1+2*N_g x 1
-    dims = shift_indices.dims()
+    N_q1_local    = shift_indices.dims()[2]
 
     # Get the angular variation of the bottom boundary.
-    bottom_edge = 0
-    theta_bottom = af.moddims(coords.get_theta(q1, q2, "bottom")[0, 0, :, bottom_edge], dims[2])
+    theta_bottom = coords.get_theta(q1, q2, "bottom")[0, 0, :, bottom_edge]
+    theta_bottom = af.moddims(theta_bottom, N_q1_local) # Convert to 1D array
 
     # Calculate the number of shifts of the array along the p_theta axis
     # required for an angular shift of -2*theta_bottom
-    N_theta = domain.N_p2
     shifts  = -(theta_bottom/np.pi)*N_theta
 
     # Populate shift_indices 2D array using shifts.
-    temp = af.range(shift_indices.dims()[0]) # Should be of shape N_theta
-    #index = 0
     for index, value in enumerate(shifts):
-        shift_indices[:, 0, index, 0] = af.shift(dims[0]*index+temp, int(value.scalar()))
-    #   index = index + 1
+        shift_indices[:, 0, index, 0] = af.shift(N_theta*index+temp, int(value.scalar()))
 
-    # Convert into a 1D array and store in params
-    params.shift_indices_bottom = af.moddims(shift_indices, dims[0]*dims[2])
-    return
+    # Convert into a 1D array
+    shift_indices_bottom = af.moddims(shift_indices, N_theta*N_q1_local)
 
-def load_shift_indices_top(q1, q2, p1, p2, p3, params):
-    """
-    Inject the shift_indices corresponding to a shift operation of -2*theta for the top boundary,
-    where theta is the angular variation of the top boundary
-    """
+
+    # Top Boundary
 
     # Initialize to zero
     shift_indices = (0.*q1*p1)[:, 0, :, 0] # Shape : N_theta x 1 x N_q1+2*N_g x 1
-    dims = shift_indices.dims()
     
     # Get the angular variation of the top boundary.
-    top_edge = -1
-    theta_top = af.moddims(coords.get_theta(q1, q2, "top")[0, 0, :, top_edge], dims[2])
+    theta_top = coords.get_theta(q1, q2, "top")[0, 0, :, top_edge]
+    theta_top = af.moddims(theta_top, N_q1_local) # Convert to 1D array
  
     # Calculate the number of shifts of the array along the p_theta axis
     # required for an angular shift of -2*theta_top
-    N_theta = domain.N_p2
     shifts  = -(theta_top/np.pi)*N_theta
 
 
     # Populate shift_indices 2D array using shifts.
-    temp = af.range(dims[0]) # Should be of shape N_theta
-    #index = 0
     for index, value in enumerate(shifts):
-        shift_indices[:, 0, index, 0] = af.shift(dims[0]*index+temp, int(value.scalar()))
-    #    index = index + 1
+        shift_indices[:, 0, index, 0] = af.shift(N_theta*index+temp, int(value.scalar()))
 
-    #Convert to a 1D array and store in params
-    params.shift_indices_top = af.moddims(shift_indices, dims[0]*dims[2])
-    return
+    #Convert to a 1D array
+    shift_indices_top = af.moddims(shift_indices, N_theta*N_q1_local)
+    
+    return(shift_indices_left, shift_indices_right, shift_indices_bottom, shift_indices_top)
