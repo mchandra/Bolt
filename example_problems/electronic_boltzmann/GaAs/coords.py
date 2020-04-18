@@ -21,43 +21,6 @@ def get_theta(q1, q2, boundary):
 
     return (af.atan(dy_dx))
 
-def get_cartesian_coords_for_post(q1, q2):
-
-    X = q1; Y = q2
-
-    x = X; y = Y
-
-    indices_1     =  X < -4.62
-    indices_2     = (X < 0    ) * (X > -4.62)
-    indices_4     = (X > 26.3 ) * (X < 29.46) * (Y > 12)
-    indices_5_top = (X > 29.46) * (X < 32.98) * (Y > 12)
-    indices_5_bot = (X > 29.46) * (X < 32.98) * (Y < 12)
-    indices_6_top = (X > 32.98)               * (Y > 12) 
-    indices_6_bot = (X > 32.98)               * (Y < 12)
-
-    if (af.any_true(indices_1)):
-        y[indices_1]     = 0.816*Y[indices_1]
-    
-    if (af.any_true(indices_2)):
-        y[indices_2]     = (Y *(1 + 0.04*(X)))[indices_2]
-    
-    if (af.any_true(indices_4)):
-        y[indices_4]     = ((Y-12) *(1 - 2*0.0451*(X-26.3)))[indices_4] + 12
-    
-    if (af.any_true(indices_5_top)):
-        y[indices_5_top] = ((Y-12) *(1 - 2*0.0451*(X-26.3)))[indices_5_top] + 12
-    
-    if (af.any_true(indices_5_bot)):
-        y[indices_5_bot] = ((Y-12) *(1 - 0.1193*(X-29.46)))[indices_5_bot] + 12
-    
-    if (af.any_true(indices_6_top)):
-        y[indices_6_top] = 0.40*(Y[indices_6_top]-12) + 12
-    
-    if (af.any_true(indices_6_bot)):
-        y[indices_6_bot] = 0.58*(Y[indices_6_bot]-12) + 12
-    
-    return(x, y)
-
 
 def get_cartesian_coords(q1, q2):
 
@@ -65,18 +28,13 @@ def get_cartesian_coords(q1, q2):
     q2_midpoint = 0.5*(af.max(q2) + af.min(q2))
 
     x = q1
+    y = q2
 
     if (q1_midpoint < -4.62): # Domain 1 and 7
         y = 0.816*q2
 
     elif ((q1_midpoint > -4.62) and (q1_midpoint < 0)): # Domain 2 and 8
         y = (q2 *(1 + 0.04*(q1)))
-
-    elif ((q1_midpoint > 0) and (q1_midpoint < 26.3)): # Domain 3 and 9
-        y = q2
-
-    elif ((q1_midpoint > 26.3) and (q1_midpoint < 29.46) and (q2_midpoint < 12)): # Domain 4
-        y = q2
 
     elif ((q1_midpoint > 29.46) and (q1_midpoint < 32.98) and (q2_midpoint < 12)): # Domain 5
         y = ((q2-12) *(1 - 0.1193*(q1-29.46))) + 12
@@ -93,9 +51,6 @@ def get_cartesian_coords(q1, q2):
     elif ((q1_midpoint > 32.98) and (q2_midpoint > 12)):  # Domain 12
         y = 0.40*(q2-12) + 12
 
-    else:
-        raise NotImplementedError('q1_center/q2_center out of bounds!') 
-        
 
     return(x, y)
 

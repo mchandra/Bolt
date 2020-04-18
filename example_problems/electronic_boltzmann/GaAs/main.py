@@ -99,6 +99,23 @@ assert(params.dt_dump_f > dt)
 assert(params.dt_dump_moments > dt)
 assert(params.dt_dump_fields > dt)
 
+# Dump information about the spatial coordinate transformation
+nls.dump_coordinate_info([params.x,
+                 params.y,
+                 params.q1,
+                 params.q2,
+                 params.dq1_dx,
+                 params.dq1_dy,
+                 params.dq2_dx,
+                 params.dq2_dy,
+                 params.dx_dq1,
+                 params.dx_dq2,
+                 params.dy_dq1,
+                 params.dy_dq2,
+                 params.sqrt_det_g],
+                 'coords',
+                 'coords'
+                )
 
 #if (params.restart):
 #    nls.load_distribution_function(params.restart_file)
@@ -145,9 +162,11 @@ while(time_elapsed < t_final):
             if (params.rank==0):
                 np.savetxt("dump_time_array.txt", dump_time_array)
 
+    #if(math.modf(time_elapsed/params.dt_dump_f)[0] < 1e-12):
+    #    formatted_time = format_time(time_elapsed)
+    #    nls.dump_distribution_function('dump_f/t=' + formatted_time)        
     if(math.modf(time_elapsed/params.dt_dump_f)[0] < 1e-12):
-        formatted_time = format_time(time_elapsed)
-        nls.dump_distribution_function('dump_f/t=' + formatted_time)        
+        nls.dump_distribution_function('dump_f/f_restart')        
 
     PETSc.Sys.Print("Time step =", time_step, ", Time =", time_elapsed)
 

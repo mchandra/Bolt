@@ -53,9 +53,9 @@ dt      = 0.025/(4) # ps
 t_final = 500     # ps
 
 # Set to zero for no file-writing
-dt_dump_f       = 10000*dt #ps
+dt_dump_f       = 1000*dt #ps
 # ALWAYS set dump moments and dump fields at same frequency:
-dt_dump_moments = dt_dump_fields = 2*dt #ps
+dt_dump_moments = dt_dump_fields = 20*dt #ps
 
 # Dimensionality considered in velocity space:
 p_dim = 1
@@ -63,7 +63,7 @@ p_space_grid = 'polar2D' # Supports 'cartesian' or 'polar2D' grids
 # Set p-space start and end points accordingly in domain.py
 
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices = 2
+num_devices = 6
 
 # Constants:
 mass_particle      = 0.910938356 # x 1e-30 kg
@@ -83,7 +83,7 @@ global_chem_potential = 0.03
 initial_temperature = 12e-5
 initial_mu          = 0.015
 vel_drift_y_in      = 1e-4*fermi_velocity
-source_type         = 'AC' # Select 'AC' or 'DC'
+source_type         = 'DC' # Select 'AC' or 'DC'
 AC_freq             = 1./100 # ps^-1 (only for AC)
 
 B3_mean = 1. # T

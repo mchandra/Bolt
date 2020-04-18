@@ -6,6 +6,37 @@ import numpy as np
 import arrayfire as af
 from bolt.lib.utils.af_petsc_conversion import af_to_petsc_glob_array
 
+def dump_coordinate_info(self, arrays, name, file_name):
+
+    self._da_coord_arrays = PETSc.DMDA().create([self.N_q1, self.N_q2],
+                                                   dof        = len(arrays),
+                                                   proc_sizes = (self._nproc_in_q1,
+                                                                 self._nproc_in_q2
+                                                                ),
+                                                   ownership_ranges = self._ownership_ranges,
+                                                   comm       = self._comm
+                                                 )
+    self._glob_coord       = self._da_coord_arrays.createGlobalVec()
+    self._glob_coord_array = self._glob_coord.getArray()
+
+
+    N_g = self.N_ghost
+
+    for i in range(len(arrays)):
+        if (i==0):
+            array_to_dump = arrays[0][:, :,  N_g:-N_g, N_g:-N_g]
+        else:
+            array_to_dump = af.join(0, array_to_dump,
+                                    arrays[i][:, :,
+                                    N_g:-N_g,
+                                    N_g:-N_g]
+                                   )
+    af.flat(array_to_dump).to_ndarray(self._glob_coord_array)
+    PETSc.Object.setName(self._glob_coord, name)
+    viewer = PETSc.Viewer().createBinary(file_name + '.bin', 'w', comm=self._comm)
+    viewer(self._glob_coord)
+
+
 def dump_aux_arrays(self, arrays, name, file_name):
 
     if (self.dump_aux_arrays_initial_call):
@@ -33,7 +64,6 @@ def dump_aux_arrays(self, arrays, name, file_name):
                                     N_g:-N_g,
                                     N_g:-N_g]
                                    )
-
     af.flat(array_to_dump).to_ndarray(self._glob_aux_array)
     PETSc.Object.setName(self._glob_aux, name)
     viewer = PETSc.Viewer().createBinary(file_name + '.bin', 'w', comm=self._comm)

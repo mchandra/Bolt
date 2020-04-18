@@ -48,6 +48,10 @@ def initialize_f(q1, q2, p1, p2, p3, params):
             compute_shift_indices(q1, q2, p1, p2, p3, params)   
 
     params.x, params.y = coords.get_cartesian_coords(q1, q2)
+    params.q1 = q1; params.q2 = q2
+    [[params.dx_dq1, params.dx_dq2], [params.dy_dq1, params.dy_dq2]] = coords.jacobian_dx_dq(q1, q2)
+    [[params.dq1_dx, params.dq1_dy], [params.dq2_dx, params.dq2_dy]] = coords.jacobian_dq_dx(q1, q2)
+    params.sqrt_det_g = coords.sqrt_det_g(q1, q2)
 
     f = (1./(af.exp( (E_upper - params.vel_drift_x*p_x
                               - params.vel_drift_y*p_y

@@ -533,6 +533,7 @@ class nonlinear_solver(object):
     dump_distribution_function = dump.dump_distribution_function
     dump_moments               = dump.dump_moments
     dump_aux_arrays            = dump.dump_aux_arrays
+    dump_coordinate_info       = dump.dump_coordinate_info
     dump_EM_fields             = dump.dump_EM_fields
 
     load_distribution_function = load.load_distribution_function

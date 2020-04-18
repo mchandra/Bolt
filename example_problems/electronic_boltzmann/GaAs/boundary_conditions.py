@@ -1,6 +1,9 @@
 import numpy as np
 import arrayfire as af
 
+import domain
+import coords
+
 in_q1_left   = 'mirror+dirichlet'
 in_q1_right  = 'mirror'
 in_q2_bottom = 'mirror+dirichlet'
@@ -17,10 +20,15 @@ def f_left(f, t, q1, q2, p1, p2, p3, params):
     t     = params.current_time
     omega = 2. * np.pi * params.AC_freq
     
-    #print (params.y.shape, q2.shape)
-    contact_width = 19.486 # TODO: use y[0, -1] - y[0, 0]; get y from coords.py
-    #contact_width = params.y[0, 0, 0, :] #- params.y[0, 0, 0, 0]
-    #print ("boundary_conditions.py : ", contact_width)
+    q1_start = af.Array([domain.q1_start])
+    q2_start = af.Array([domain.q2_start])
+    q2_end   = af.Array([domain.q2_end])
+
+    x_start, y_start = coords.get_cartesian_coords(q1_start, q2_start)
+    x_start, y_end   = coords.get_cartesian_coords(q1_start, q2_end)
+    
+    contact_width = y_end.scalar() - y_start.scalar()#19.486
+    print ("boundary_conditions.py : ", contact_width)
 
     if (params.source_type == 'AC'):
         vel_drift_x_out  = -params.vel_drift_y_in/contact_width  * np.sin(omega*t)
