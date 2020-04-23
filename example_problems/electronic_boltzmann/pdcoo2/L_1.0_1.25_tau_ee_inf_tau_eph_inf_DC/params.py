@@ -40,7 +40,7 @@ electrostatic_solver_every_nth_step = 1000000
 
 # Time parameters:
 dt      = 0.025/4 # ps
-t_final = 20.     # ps
+t_final = 25.     # ps
 
 
 # File-writing Parameters:
@@ -218,7 +218,7 @@ def band_velocity(p1, p2):
     p     = af.sqrt(p_x**2. + p_y**2.)
     p_hat = [p_x / (p + 1e-20), p_y / (p + 1e-20)]
 
-    if (fermi_surface_shape == 'circular'):
+    if (fermi_surface_shape == 'circle'):
 
         v_f_hat = p_hat
 
