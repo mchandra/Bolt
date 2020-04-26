@@ -482,11 +482,12 @@ def apply_mirror_bcs_f_polar2D(self, boundary, mirror_start=None, mirror_end=Non
 
     if(boundary == 'left'):
 
+        tmp = self.f.copy()
         # x-0-x-0-x-0-|-0-x-0-x-0-x-....
         #   0   1   2   3   4   5
         # For mirror boundary conditions:
         # 0 = 5; 1 = 4; 2 = 3;
-        self.f[:, :, :N_g] = af.flip(self.f[:, :, N_g:2 * N_g], 2)
+        tmp[:, :, :N_g] = af.flip(tmp[:, :, N_g:2 * N_g], 2)
         
         # Operation 1 : theta_prime = theta_p - 2*theta
         shift_indices = self.physical_system.params.shift_indices_left
@@ -494,25 +495,35 @@ def apply_mirror_bcs_f_polar2D(self, boundary, mirror_start=None, mirror_end=Non
         left_edge = 0
 
         for index in range(N_g): # For each ghost zone
-            f_2D_flattened             = af.moddims(self.f[:, 0, left_edge+index, :], N_theta*N_q2_local)
+            f_2D_flattened             = af.moddims(tmp[:, 0, left_edge+index, :], N_theta*N_q2_local)
             f_shifted_flattened        = f_2D_flattened[shift_indices]
             f_shifted                  = af.moddims(f_shifted_flattened, N_theta, 1, 1, N_q2_local)
-            self.f[:, 0, left_edge+index, :] = f_shifted
+            tmp[:, 0, left_edge+index, :] = f_shifted
         
         # Operation 2 : theta_out = -theta_prime
-        self.f[:, :, :N_g] = \
-            self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f),
+        if ((mirror_start != None) and (mirror_end != None)):
+            mirror_indices = (self.q2_center > mirror_start) & (self.q2_center < mirror_end)
+            mirror_indices = af.tile(mirror_indices, self.N_p2) 
+            self.f[:, :, :N_g] = \
+                mirror_indices[:, :, :N_g]*self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(tmp),
+                                                1
+                                               )
+                                       )[:, :, :N_g] + (1-mirror_indices)[:, :, :N_g]*self.f[:, :, :N_g]
+        else:        
+            self.f[:, :, :N_g] = \
+                self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(tmp),
                                                 1
                                                )
                                        )[:, :, :N_g]
         
     elif(boundary == 'right'):
     
+        tmp = self.f.copy()
         # ...-x-0-x-0-x-0-|-0-x-0-x-0-x
         #      -6  -5  -4  -3  -2  -1
         # For mirror boundary conditions:
         # -1 = -6; -2 = -5; -3 = -4;
-        self.f[:, :, -N_g:] = af.flip(self.f[:, :, -2 * N_g:-N_g], 2)
+        tmp[:, :, -N_g:] = af.flip(tmp[:, :, -2 * N_g:-N_g], 2)
 
         # Operation 1 : theta_prime = theta_p - 2*theta
         shift_indices = self.physical_system.params.shift_indices_right
@@ -520,14 +531,23 @@ def apply_mirror_bcs_f_polar2D(self, boundary, mirror_start=None, mirror_end=Non
         right_edge = -1
 
         for index in range(N_g): # For each ghost zone
-            f_2D_flattened              = af.moddims(self.f[:, 0, right_edge-index, :], N_theta*N_q2_local)
+            f_2D_flattened              = af.moddims(tmp[:, 0, right_edge-index, :], N_theta*N_q2_local)
             f_shifted_flattened         = f_2D_flattened[shift_indices]
             f_shifted                   = af.moddims(f_shifted_flattened, N_theta, 1, 1, N_q2_local)
-            self.f[:, 0, right_edge-index, :] = f_shifted
+            tmp[:, 0, right_edge-index, :] = f_shifted
         
         # Operation 2 : theta_out = -theta_prime
-        self.f[:, :, -N_g:] = \
-            self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(self.f),
+        if ((mirror_start != None) and (mirror_end != None)):
+            mirror_indices = (self.q2_center > mirror_start) & (self.q2_center < mirror_end)
+            mirror_indices = af.tile(mirror_indices, self.N_p2) 
+            self.f[:, :, -N_g:] = \
+                mirror_indices[:, :, -N_g:]*self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(tmp),
+                                                1
+                                               )
+                                       )[:, :, -N_g:] + (1-mirror_indices)[:, :, -N_g:]*self.f[:, :, -N_g:]
+        else : 
+            self.f[:, :, -N_g:] = \
+                self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(tmp),
                                                 1
                                                )
                                        )[:, :, -N_g:]
@@ -792,6 +812,34 @@ def apply_bcs_f(self):
                 apply_mirror_bcs_f_polar2D(self, 'top',
                      mirror_start = horizontal_boundary_lims[index][0],
                      mirror_end   = horizontal_boundary_lims[index][1])
+            else:
+                raise NotImplementedError('Unsupported coordinate system in p_space')
+
+    vertical_boundaries    = self.physical_system.params.vertical_boundaries
+    vertical_boundary_lims = self.physical_system.params.vertical_boundary_lims
+    for index in range(len(vertical_boundaries)):
+        # If local zone includes the internal mirror boundary at the left:
+        if(i_q1_start == int(vertical_boundaries[index])):
+    
+            if (self.physical_system.params.p_space_grid =='cartesian'):
+                apply_mirror_bcs_f_cartesian(self, 'left')
+            elif (self.physical_system.params.p_space_grid == 'polar2D'):
+                apply_mirror_bcs_f_polar2D(self, 'left',
+                     mirror_start = vertical_boundary_lims[index][0],
+                     mirror_end   = vertical_boundary_lims[index][1])
+            else:
+                raise NotImplementedError('Unsupported coordinate system in p_space')
+
+    for index in range(len(vertical_boundaries)):
+        # If local zone includes the internal mirror boundary at the right:
+        if(i_q1_end == int(vertical_boundaries[index]) - 1):
+    
+            if (self.physical_system.params.p_space_grid == 'cartesian'):
+                apply_mirror_bcs_f_cartesian(self, 'right')
+            elif (self.physical_system.params.p_space_grid == 'polar2D'):
+                apply_mirror_bcs_f_polar2D(self, 'right',
+                     mirror_start = vertical_boundary_lims[index][0],
+                     mirror_end   = vertical_boundary_lims[index][1])
             else:
                 raise NotImplementedError('Unsupported coordinate system in p_space')
         

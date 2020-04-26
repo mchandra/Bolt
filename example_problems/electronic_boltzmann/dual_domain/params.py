@@ -11,8 +11,8 @@ disable_collision_op     = False
 # should be equal to the number of mpiprocesses (set in the jobscript)
 
 enable_manual_domain_decomposition = True
-q1_partition = [1.] # List of the fractional ranges of each subdomain in q1
-q2_partition = [30./60, 30./60] # List of the fractional ranges of each subdomain in q2
+q1_partition = [20./40, 20./40] # List of the fractional ranges of each subdomain in q1
+q2_partition = [1.] # List of the fractional ranges of each subdomain in q2
 # The above indices correspond to  y = [1.25]
 # TODO : Automate the indices using coords
 
@@ -22,9 +22,11 @@ q2_partition = [30./60, 30./60] # List of the fractional ranges of each subdomai
 
 
 # Internal mirror boundary
-horizontal_boundaries    = [30, 30] # index of boundary axis along q2
-horizontal_boundary_lims = [(0., 0.45), (0.55, 1.0)] # boundary lims along q1
+horizontal_boundaries    = [] # index of boundary axis along q2
+horizontal_boundary_lims = [] # boundary lims along q1
 
+vertical_boundaries    = [20] # index of boundary axis along q2
+vertical_boundary_lims = [(0, 1.4)] # boundary lims along q1
 
 fields_enabled = False
 # Can be defined as 'electrostatic', 'user-defined'.
@@ -134,7 +136,7 @@ def tau_defect(q1, q2, p1, p2, p3):
     if (q2_midpoint < 0.75):
         tau_mr = np.inf
     else :
-        tau_mr = 0.1
+        tau_mr = 0.01
 
     return(tau_mr * q1**0 * p1**0)
 
