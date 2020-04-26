@@ -20,6 +20,12 @@ q2_partition = [30./60, 30./60] # List of the fractional ranges of each subdomai
 # corresponding fractional ranges specified above.
 # For example : if q1_partion = [1./3, 2./3], then N_q1%3 == 0
 
+
+# Internal mirror boundary
+horizontal_boundaries    = [30, 30] # index of boundary axis along q2
+horizontal_boundary_lims = [(0., 0.45), (0.55, 1.0)] # boundary lims along q1
+
+
 fields_enabled = False
 # Can be defined as 'electrostatic', 'user-defined'.
 # The initial conditions need to be specified under initialize

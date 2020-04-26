@@ -534,119 +534,6 @@ def apply_mirror_bcs_f_polar2D(self, boundary, mirror_start=None, mirror_end=Non
 
     elif(boundary == 'bottom'):
 
-        tmp = self.f
-        # x-0-x-0-x-0-|-0-x-0-x-0-x-....
-        #   0   1   2   3   4   5
-        # For mirror boundary conditions:
-        # 0 = 5; 1 = 4; 2 = 3;
-        tmp[:, :, :, :N_g] = af.flip(tmp[:, :, :, N_g:2 * N_g], 3)
-    
-        # Operation 1 : theta_prime = theta_p - 2*theta
-        shift_indices = self.physical_system.params.shift_indices_bottom
-
-        bottom_edge = 0
-    
-        for index in range(N_g): # For each ghost zone
-            f_2D_flattened               = af.moddims(tmp[:, 0, :, bottom_edge+index], N_theta*N_q1_local)
-            f_shifted_flattened          = f_2D_flattened[shift_indices]
-            f_shifted                    = af.moddims(f_shifted_flattened, N_theta, 1, N_q1_local, 1)
-            tmp[:, 0, :, bottom_edge+index] = f_shifted
-        
-        # Operation 2 : theta_out = -theta_prime
-        if ((mirror_start != None) and (mirror_end != None)):
-            print ("boundaries.py, going into if bottom")
-            #mirror_indices = (self.q1_center > mirror_start) & (self.q1_center < mirror_end)
-            #print ("boundaries.py, mirror indices : ", mirror_indices)
-            #self.f[:, :, mirror_indices, :N_g] = \
-            #    self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(tmp), 
-            #                                    1
-            #                                   )
-            #                           )[:, :, mirror_indices, :N_g]
-        else :
-            print ("boundaries.py, going into else bottom")
-            self.f[:, :, :, :N_g] = \
-                self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(tmp), 
-                                                1
-                                               )
-                                       )[:, :, :, :N_g]
-
-    elif(boundary == 'top'):
-        tmp = self.f
-
-        # ...-x-0-x-0-x-0-|-0-x-0-x-0-x
-        #      -6  -5  -4  -3  -2  -1
-        # For mirror boundary conditions:
-        # -1 = -6; -2 = -5; -3 = -4;
-        tmp[:, :, :, -N_g:] = af.flip(tmp[:, :, :, -2 * N_g:-N_g], 3)
-        
-        # Operation 1 : theta_prime = theta_p - 2*theta
-        shift_indices = self.physical_system.params.shift_indices_top
-
-        top_edge = -1
-        
-        for index in range(N_g): # For each ghost zone
-            f_2D_flattened             = af.moddims(tmp[:, 0, :, top_edge-index], N_theta*N_q1_local)
-            f_shifted_flattened        = f_2D_flattened[shift_indices]
-            f_shifted                  = af.moddims(f_shifted_flattened, N_theta, 1, N_q1_local, 1)
-            tmp[:, 0, :, top_edge-index]  = f_shifted
-        
-        # Operation 2 : theta_out = -theta_prime
-        if ((mirror_start != None) and (mirror_end != None)):
-            print ("boundaries.py, going into if else top")
-            #mirror_indices = (self.q1_center > mirror_start) & (self.q1_center < mirror_end)
-            #self.f[:, :, mirror_indices, -N_g:] = \
-            #    self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(tmp), 
-            #                                    1
-            #                                   )
-            #                           )[:, :, mirror_indices, -N_g:]
-        else :
-            print ("boundaries.py, going into else top")
-            self.f[:, :, :, -N_g:] = \
-                self._convert_to_q_expanded(af.flip(self._convert_to_p_expanded(tmp), 
-                                                1
-                                               )
-                                       )[:, :, :, -N_g:]
-
-
-    else:
-        raise Exception('Invalid choice for boundary')
-
-    return
-
-def apply_mirror_bcs_f_polar2D_test(self, boundary, mirror_start=None, mirror_end=None):
-    """
-    Applies mirror boundary conditions along boundary specified 
-    for the distribution function when momentum space is on a 2D polar grid
-    
-    Parameters
-    ----------
-    boundary: str
-              Boundary along which the boundary condition is to be applied.
-    """
-    # theta_p = incident angle of particle wrt positive x-axis
-    # theta   = angle of the mirror boundary wrt positive x-axis
-
-    # In polar coordinates, the reflection of a particle moving at an angle
-    # theta_p wrt the positive x-axis off a boundary which is at an angle
-    # theta wrt the positive x-axis results in the reflected particle moving
-    # at an angle 2*theta - theta_p wrt the positive x-axis.
-    
-    # Operation to be performed : 2*theta - theta_p
-    # We split this operation into 2 steps as shown below.
-
-    # Operation 1 : theta_prime = theta_p - 2*theta
-    # To do this, we shift the array along the axis that contains the variation in p_theta
-
-    # Operation 2 : theta_out = -theta_prime
-    # To do this we flip the axis that contains the variation in p_theta
-    
-    N_g        = self.N_ghost
-    N_q1_local = self.f.dims()[2]
-    N_q2_local = self.f.dims()[3]
-    N_theta    = self.N_p2
-
-    if(boundary == 'bottom'):
-
         tmp = self.f.copy()
         # x-0-x-0-x-0-|-0-x-0-x-0-x-....
         #   0   1   2   3   4   5
@@ -880,75 +767,34 @@ def apply_bcs_f(self):
         else:
             raise NotImplementedError('Unavailable/Invalid boundary condition')
 
-    # If local zone includes the internal boundary at the bottom:
-    if(i_q2_end == self.N_q2-1):
-
-        if(self.boundary_conditions.in_q2_bottom == 'dirichlet'):
-            apply_dirichlet_bcs_f(self, 'bottom')
-
-        elif(self.boundary_conditions.in_q2_bottom == 'mirror'):
+    horizontal_boundaries    = self.physical_system.params.horizontal_boundaries
+    horizontal_boundary_lims = self.physical_system.params.horizontal_boundary_lims
+    for index in range(len(horizontal_boundaries)):
+        # If local zone includes the internal mirror boundary at the bottom:
+        if(i_q2_start == int(horizontal_boundaries[index])):
+    
             if (self.physical_system.params.p_space_grid =='cartesian'):
                 apply_mirror_bcs_f_cartesian(self, 'bottom')
             elif (self.physical_system.params.p_space_grid == 'polar2D'):
-                apply_mirror_bcs_f_polar2D_test(self, 'bottom', mirror_start = 0., mirror_end = 0.5)
+                apply_mirror_bcs_f_polar2D(self, 'bottom',
+                     mirror_start = horizontal_boundary_lims[index][0],
+                     mirror_end   = horizontal_boundary_lims[index][1])
             else:
                 raise NotImplementedError('Unsupported coordinate system in p_space')
 
-        elif(self.boundary_conditions.in_q2_bottom == 'mirror+dirichlet'):
-            if (self.physical_system.params.p_space_grid == 'cartesian'):
-                apply_mirror_bcs_f_cartesian(self, 'bottom')
-            elif (self.physical_system.params.p_space_grid == 'polar2D'):
-                apply_mirror_bcs_f_polar2D_test(self, 'bottom', mirror_start, 0., mirror_end = 0.5)
-            else:
-                raise NotImplementedError('Unsupported coordinate system in p_space')
-            apply_dirichlet_bcs_f(self, 'bottom')
-        
-        # This is automatically handled by the PETSc function globalToLocal()
-        elif(   self.boundary_conditions.in_q2_bottom == 'periodic'
-             or self.boundary_conditions.in_q2_bottom == 'none' # no ghost zones (1D)
-            ):
-            pass
-
-        elif(self.boundary_conditions.in_q2_bottom == 'shearing-box'):
-            apply_shearing_box_bcs_f(self, 'bottom')
-
-        else:
-            raise NotImplementedError('Unavailable/Invalid boundary condition')
-
-    # If local zone includes the internal boundary at the top:
-    if(i_q2_start == 0):
-
-        if(self.boundary_conditions.in_q2_top == 'dirichlet'):
-            apply_dirichlet_bcs_f(self, 'top')
-
-        elif(self.boundary_conditions.in_q2_top == 'mirror'):
+    for index in range(len(horizontal_boundaries)):
+        # If local zone includes the internal mirror boundary at the top:
+        if(i_q2_end == int(horizontal_boundaries[index]) - 1):
+    
             if (self.physical_system.params.p_space_grid == 'cartesian'):
                 apply_mirror_bcs_f_cartesian(self, 'top')
             elif (self.physical_system.params.p_space_grid == 'polar2D'):
-                apply_mirror_bcs_f_polar2D_test(self, 'top', mirror_start = 0., mirror_end = 0.5)
+                apply_mirror_bcs_f_polar2D(self, 'top',
+                     mirror_start = horizontal_boundary_lims[index][0],
+                     mirror_end   = horizontal_boundary_lims[index][1])
             else:
                 raise NotImplementedError('Unsupported coordinate system in p_space')
         
-        elif(self.boundary_conditions.in_q2_top == 'mirror+dirichlet'):
-            if (self.physical_system.params.p_space_grid == 'cartesian'):
-                apply_mirror_bcs_f_cartesian(self, 'top')            
-            elif (self.physical_system.params.p_space_grid == 'polar2D'):
-                apply_mirror_bcs_f_polar2D_test(self, 'top', mirror_start = 0., mirror_end = 0.5)
-            else:
-                raise NotImplementedError('Unsupported coordinate system in p_space')
-            apply_dirichlet_bcs_f(self, 'top')
-        
-        # This is automatically handled by the PETSc function globalToLocal()
-        elif(   self.boundary_conditions.in_q2_top == 'periodic'
-             or self.boundary_conditions.in_q2_top == 'none' # no ghost zones (1D)
-            ):
-            pass
-
-        elif(self.boundary_conditions.in_q2_top == 'shearing-box'):
-            apply_shearing_box_bcs_f(self, 'top')
-
-        else:
-            raise NotImplementedError('Unavailable/Invalid boundary condition')
 
     af.eval(self.f)
 
