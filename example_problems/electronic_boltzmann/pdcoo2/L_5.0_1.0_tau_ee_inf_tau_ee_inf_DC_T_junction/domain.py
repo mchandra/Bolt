@@ -6,8 +6,8 @@ q1_end   = 5.25
 N_q1     = 210
 
 q2_start = 0.
-q2_end   = 1.0
-N_q2     = 40
+q2_end   = 3.0
+N_q2     = 120
 
 # If N_p1 > 1, mirror boundary conditions require p1 to be
 # symmetric about zero

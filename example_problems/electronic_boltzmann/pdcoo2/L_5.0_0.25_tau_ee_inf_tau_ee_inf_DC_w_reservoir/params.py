@@ -14,21 +14,21 @@ disable_collision_op     = False
 # should be equal to the number of mpiprocesses (set in the jobscript)
 
 enable_manual_domain_decomposition = True
-q1_partition = [40./200, 120./200, 40./200] # List of the fractional ranges of each subdomain in q1
+q1_partition = [20./120, 80./120, 20./120] # List of the fractional ranges of each subdomain in q1
 # The above indices correspond to  x = [-4.5700, -0.0075, 26.286, 29.5287, 33.010, 50]
 # TODO : Automate the indices using coords
-q2_partition = [1.] # List of the fractional ranges of each subdomain in q2
+q2_partition = [5./20, 10./20, 5./20] # List of the fractional ranges of each subdomain in q2
 
 # Note : The N_q1/N_q2 should be exactly divisible by the denominator of the
 # corresponding fractional ranges specified above.
 # For example : if q1_partion = [1./3, 2./3], then N_q1%3 == 0
 
 # Internal mirror boundary
-horizontal_boundaries    = [] # index of boundary axis along q2
-horizontal_boundary_lims = [] # boundary lims along q1
+horizontal_boundaries    = [5, 15] # index of boundary axis along q2
+horizontal_boundary_lims = [(0.5, 2.5), (0.5, 2.5)] # boundary lims along q1
 
-vertical_boundaries    = [] # index of boundary axis along q2
-vertical_boundary_lims = [] # boundary lims along q1
+vertical_boundaries    = [20, 20, 100, 100] # index of boundary axis along q2
+vertical_boundary_lims = [(0., 0.125), (0.375, 0.5), (0., 0.125), (0.375, 0.5)] # boundary lims along q1
 
 fields_enabled = False
 # Can be defined as 'electrostatic', 'user-defined'.
@@ -74,8 +74,8 @@ dt_dump_moments = dt_dump_fields = 5*dt #ps
 
 
 # Material specific input
-dispersion          = 'quadratic' # 'linear' or 'quadratic'
-fermi_surface_shape = 'hexagon' # Supports 'circle' or 'hexagon'
+dispersion          = 'linear' # 'linear' or 'quadratic'
+fermi_surface_shape = 'circle' # Supports 'circle' or 'hexagon'
 
 # Dimensionality considered in velocity space:
 p_dim = 1

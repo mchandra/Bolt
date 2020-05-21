@@ -17,18 +17,18 @@ enable_manual_domain_decomposition = True
 q1_partition = [170./210, 40./210] # List of the fractional ranges of each subdomain in q1
 # The above indices correspond to  x = [-4.5700, -0.0075, 26.286, 29.5287, 33.010, 50]
 # TODO : Automate the indices using coords
-q2_partition = [1.] # List of the fractional ranges of each subdomain in q2
+q2_partition = [40./120, 40./120, 40./120] # List of the fractional ranges of each subdomain in q2
 
 # Note : The N_q1/N_q2 should be exactly divisible by the denominator of the
 # corresponding fractional ranges specified above.
 # For example : if q1_partion = [1./3, 2./3], then N_q1%3 == 0
 
 # Internal mirror boundary
-horizontal_boundaries    = [] # index of boundary axis along q2
-horizontal_boundary_lims = [] # boundary lims along q1
+horizontal_boundaries    = [40, 80] # index of boundary axis along q2
+horizontal_boundary_lims = [(0, 4.25), (0., 4.25)] # boundary lims along q1
 
-vertical_boundaries    = [] # index of boundary axis along q2
-vertical_boundary_lims = [] # boundary lims along q1
+vertical_boundaries    = [170] # index of boundary axis along q2
+vertical_boundary_lims = [(0., 1.), (2., 3.)] # boundary lims along q1
 
 fields_enabled = False
 # Can be defined as 'electrostatic', 'user-defined'.

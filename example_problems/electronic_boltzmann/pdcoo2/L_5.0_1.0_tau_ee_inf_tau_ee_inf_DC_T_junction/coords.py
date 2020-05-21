@@ -9,8 +9,8 @@ def get_cartesian_coords(q1, q2):
     x = q1
     y = q2
 
-    if (q1_midpoint > 4.25):
-        y = 3*q2-1
+#    if (q1_midpoint > 4.25):
+#        y = 3*q2-1
 
     return(x, y)
 

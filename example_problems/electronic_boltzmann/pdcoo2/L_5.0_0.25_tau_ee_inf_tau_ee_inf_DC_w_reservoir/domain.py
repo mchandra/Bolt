@@ -2,8 +2,8 @@ import numpy as np
 import params
 
 q1_start = 0.
-q1_end   = 5.0
-N_q1     = 200
+q1_end   = 3.0
+N_q1     = 120
 
 q2_start = 0.
 q2_end   = 0.5
