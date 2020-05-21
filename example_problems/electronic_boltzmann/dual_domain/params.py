@@ -1,9 +1,6 @@
 import numpy as np
 import arrayfire as af
 
-from bolt.src.electronic_boltzmann.utils.polygon import polygon
-from bolt.src.electronic_boltzmann.utils.unit_vectors import normal_to_hexagon_unit_vec
-
 instantaneous_collisions = False #TODO : Remove from lib
 hybrid_model_enabled     = False #TODO : Remove from lib
 source_enabled           = True
@@ -14,14 +11,15 @@ disable_collision_op     = False
 # should be equal to the number of mpiprocesses (set in the jobscript)
 
 enable_manual_domain_decomposition = True
-q1_partition = [150./605, 38./605, 219./605, 27./605, 29./605, 142./605] # List of the fractional ranges of each subdomain in q1
-# The above indices correspond to  x = [-4.5700, -0.0075, 26.286, 29.5287, 33.010, 50]
+q1_partition = [20./40, 20./40] # List of the fractional ranges of each subdomain in q1
+q2_partition = [1.] # List of the fractional ranges of each subdomain in q2
+# The above indices correspond to  y = [1.25]
 # TODO : Automate the indices using coords
-q2_partition = [1./2, 1./2] # List of the fractional ranges of each subdomain in q2
 
 # Note : The N_q1/N_q2 should be exactly divisible by the denominator of the
 # corresponding fractional ranges specified above.
 # For example : if q1_partion = [1./3, 2./3], then N_q1%3 == 0
+
 
 # Internal mirror boundary
 horizontal_boundaries    = [] # index of boundary axis along q2
@@ -60,22 +58,17 @@ electrostatic_solver_every_nth_step = 1000000
 
 # Time parameters:
 dt      = 0.025/(4) # ps
-t_final = 500     # ps
+t_final = 50     # ps
 
 # Set to zero for no file-writing
-dt_dump_f       = 1000*dt #ps
+dt_dump_f       = 500*dt #ps
 # ALWAYS set dump moments and dump fields at same frequency:
 dt_dump_moments = dt_dump_fields = 20*dt #ps
-
-# Material specific input
-dispersion          = 'linear' # 'linear' or 'quadratic'
-fermi_surface_shape = 'circle' # Supports 'circle' or 'hexagon'
 
 # Dimensionality considered in velocity space:
 p_dim = 1
 p_space_grid = 'polar2D' # Supports 'cartesian' or 'polar2D' grids
 # Set p-space start and end points accordingly in domain.py
-zero_temperature = (p_dim==1)
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 6
@@ -94,14 +87,21 @@ epsilon0           = 8.854187817 # x [aC^2 / (aJ um) ]
 epsilon_relative      = 3.9 # SiO2
 backgate_potential    = -10 # V
 global_chem_potential = 0.03
+contact_start         = 0. # um
+contact_end           = 0.25 # um
+contact_geometry      = "straight" # Contacts on either side of the device
+                                   # For contacts on the same side, use 
+                                   # contact_geometry = "turn_around"
 
 initial_temperature = 12e-5
 initial_mu          = 0.015
-vel_drift_y_in      = 1e-4*fermi_velocity
+vel_drift_x_in      = 1e-4*fermi_velocity
+vel_drift_x_out     = 1e-4*fermi_velocity
 source_type         = 'DC' # Select 'AC' or 'DC'
 AC_freq             = 1./100 # ps^-1 (only for AC)
 
 B3_mean = 1. # T
+
 
 # Spatial quantities (will be initialized to shape = [q1, q2] in initalize.py)
 mu          = None # chemical potential used in the e-ph operator
@@ -110,8 +110,8 @@ mu_ee       = None # chemical potential used in the e-e operator
 T_ee        = None # Electron temperature used in the e-e operator
 vel_drift_x = None
 vel_drift_y = None
-p_x         = None
-p_y         = None
+j_x         = None
+j_y         = None
 phi         = None # Electric potential in the plane of graphene sheet
 
 # Index arrays used to perform shifting for mirror bcs
@@ -129,7 +129,16 @@ collision_operator_nonlinear_iters  = 2
 # Variation of collisional-timescale parameter through phase space:
 @af.broadcast
 def tau_defect(q1, q2, p1, p2, p3):
-    return(np.inf * q1**0 * p1**0)
+    
+    q1_midpoint = 0.5*(af.max(q1) + af.min(q1))
+    q2_midpoint = 0.5*(af.max(q2) + af.min(q2))
+    
+    if (q2_midpoint < 0.75):
+        tau_mr = np.inf
+    else :
+        tau_mr = 0.01
+
+    return(tau_mr * q1**0 * p1**0)
 
 @af.broadcast
 def tau_ee(q1, q2, p1, p2, p3):
@@ -138,22 +147,7 @@ def tau_ee(q1, q2, p1, p2, p3):
 def tau(q1, q2, p1, p2, p3):
     return(tau_defect(q1, q2, p1, p2, p3))
 
-def fermi_momentum_magnitude(theta):
-    if (fermi_surface_shape == 'circle'):
-        p_f = initial_mu/fermi_velocity # Fermi momentum
-    
-    elif (fermi_surface_shape == 'hexagon'):
-        n = 6 # No. of sides of polygon
-        p_f = (initial_mu/fermi_velocity) * polygon(n, theta, rotation = np.pi/6)
-        # Note : Rotation by pi/6 results in a hexagon with horizontal top & bottom edges
-        #TODO : If cartesian coordinates are being used, convert to polar to calculate p_f
-    else : 
-        raise NotImplementedError('Unsupported shape of fermi surface')
-    return(p_f)
-
-
 def band_energy(p1, p2):
-    # Note :This function is only meant to be called once to initialize E_band
 
     if (p_space_grid == 'cartesian'):
         p_x = p1
@@ -165,108 +159,32 @@ def band_energy(p1, p2):
         raise NotImplementedError('Unsupported coordinate system in p_space')
     
     p = af.sqrt(p_x**2. + p_y**2.)
-    if (dispersion == 'linear'):
-
-        E_upper = p*fermi_velocity
-
-    elif (dispersion == 'quadratic'):
     
-        m = effective_mass(p1, p2)
-        E_upper = p**2/(2.*m)
-
-    if (zero_temperature):
-
-        E_upper = initial_mu * p**0.
+    E_upper = p*fermi_velocity
 
     af.eval(E_upper)
     return(E_upper)
 
-def effective_mass(p1, p2):
+def band_velocity(p1, p2):
 
     if (p_space_grid == 'cartesian'):
         p_x = p1
         p_y = p2
-        
-        theta = af.atan(p_y/p_x)
-
     elif (p_space_grid == 'polar2D'):
-    	# In polar2D coordinates, p1 = radius and p2 = theta
-        r = p1; theta = p2
+        p_x = p1 * af.cos(p2)
+        p_y = p1 * af.sin(p2)
     else : 
-        raise NotImplementedError('Unsupported coordinate system in p_space')
-    
-    if (fermi_surface_shape == 'hexagon'):
-        
-        n = 6 # No. of side of polygon
-        mass = mass_particle * polygon(n, theta, rotation = np.pi/6)
-        # Note : Rotation by pi/6 results in a hexagon with horizontal top & bottom edges
-
-    elif (fermi_surface_shape == 'circle'):
-        
-    # For now, just return the free electron mass
-        mass = mass_particle
-
-    return(mass)
-
-def band_velocity(p1, p2):
-    # Note :This function is only meant to be called once to initialize the vel vectors
-
-    if (p_space_grid == 'cartesian'):
-        p_x_local = p1
-        p_y_local = p2
-        
-        theta = af.atan(p_y_local/p_x_local)
-
-    elif (p_space_grid == 'polar2D'):
-    	# In polar2D coordinates, p1 = radius and p2 = theta
-        r = p1; theta = p2
-    else : 
-        raise NotImplementedError('Unsupported coordinate system in p_space')
+        raise NotImplementedError('Unsupported coordinate system in p_space') 
     
     p     = af.sqrt(p_x**2. + p_y**2.)
     p_hat = [p_x / (p + 1e-20), p_y / (p + 1e-20)]
 
-    if (fermi_surface_shape == 'circle'):
+    v_f   = fermi_velocity
 
-        v_f_hat = p_hat
+    upper_band_velocity =  [ v_f * p_hat[0],  v_f * p_hat[1]]
 
-    elif (fermi_surface_shape == 'hexagon'):
-
-        v_f_hat = normal_to_hexagon_unit_vec(theta)
-
-    # Quadratic dispersion        
-    m = effective_mass(p1, p2)
-    v_f = p/m
-
-    if (dispersion == 'linear' or zero_temperature):
-
-        v_f = fermi_velocity
-
-    upper_band_velocity = [v_f * v_f_hat[0], v_f * v_f_hat[1]]
-
+    af.eval(upper_band_velocity[0], upper_band_velocity[1])
     return(upper_band_velocity)
-
-
-def get_p_x_and_p_y(p1, p2):
-
-    if (p_space_grid == 'cartesian'):
-        p_x = p1
-        p_y = p2
-    elif (p_space_grid == 'polar2D'):
-    	# In polar2D coordinates, p1 = radius and p2 = theta
-        r = p1; theta = p2
-        
-        if (zero_temperature):
-            # Get p_x and p_y at the Fermi surface
-            r = fermi_momentum_magnitude(theta)
-            
-        p_x = r * af.cos(theta)
-        p_y = r * af.sin(theta)
-
-    else : 
-        raise NotImplementedError('Unsupported coordinate system in p_space')
-
-    return([p_x, p_y])
 
 # Restart(Set to zero for no-restart):
 latest_restart = True

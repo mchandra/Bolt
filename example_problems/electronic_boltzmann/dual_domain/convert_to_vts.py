@@ -58,12 +58,16 @@ coords_array[1::2] = y.flatten()
 scalar_da.setCoordinates(coords_vec)
 vector_da.setCoordinates(coords_vec)
 
-filename = "t=00000179.250000.bin"
-dump_file = 'dump_moments/'+filename
+filepath = '.'
+
+#filename = "t=00000500.000000.bin"
+#filename = "t=00000307.000000.bin"
+filename = "t=00001181.250000.bin"
+dump_file = filepath+'/hydro_moments_3/'+filename
 moments = io.readBinaryFile(dump_file)
 moments = moments[0].reshape(N_q2, N_q1, 3)
 
-dump_file = 'dump_lagrange_multipliers/'+filename
+dump_file = filepath+'/hydro_lagrange_multipliers_3/'+filename
 lagrange_multipliers = io.readBinaryFile(dump_file)
 lagrange_multipliers = lagrange_multipliers[0].reshape(N_q2, N_q1, 7)
 
@@ -82,7 +86,7 @@ vel_drift_array[::3]  = vel_drift_x.flatten()
 vel_drift_array[1::3] = vel_drift_y.flatten()
 # third component is zero; do nothing
 
-viewer = PETSc.Viewer().createVTK('GaAs.vts', 'w')
+viewer = PETSc.Viewer().createVTK('hydro.vts', 'w')
 density_vec.view(viewer)
 vel_drift_x_vec.view(viewer)
 vel_drift_y_vec.view(viewer)

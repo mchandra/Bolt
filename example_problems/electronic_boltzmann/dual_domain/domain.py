@@ -1,14 +1,13 @@
 import numpy as np
 import params
 
-q1_start = -22.64
-q1_end   = 50.
-dq1_tmp  = .06*2
-N_q1     = int((q1_end - q1_start)/dq1_tmp)
+q1_start = 0.
+q1_end   = 1.
+N_q1     = 40
 
 q2_start = 0
-q2_end   = 24
-N_q2     = int((q2_end - q2_start)/dq1_tmp)
+q2_end   = 1.5
+N_q2     = 60
 
 
 # If N_p1 > 1, mirror boundary conditions require p1 to be
@@ -31,14 +30,14 @@ N_p1     =  1 # Set equal to 1 for 1D polar
 # p1_start and p1_end are set such that p1_center is mu
 
 # Uncomment the following for the 2D polar representation of momentum space
-#p1_start = [params.initial_mu/params.fermi_velocity - \
+#p1_start = [params.initial_mu - \
 #        16.*params.boltzmann_constant*params.initial_temperature]
-#p1_end   = [params.initial_mu/params.fermi_velocity + \
+#p1_end   = [params.initial_mu + \
 #        16.*params.boltzmann_constant*params.initial_temperature]
 
 # Uncomment the following for the 1D polar representation of momentum space
-p1_start = [0.5*params.initial_mu/params.fermi_velocity]
-p1_end   = [1.5*params.initial_mu/params.fermi_velocity]
+p1_start = [0.5*params.initial_mu]
+p1_end   = [1.5*params.initial_mu]
 
 
 # If N_p2 > 1, mirror boundary conditions require p2 to be
