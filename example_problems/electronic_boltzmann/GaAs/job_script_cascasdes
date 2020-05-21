@@ -1,0 +1,14 @@
+#!/bin/bash
+#SBATCH -J GaAs
+#SBATCH -t 24:00:00
+#SBATCH --partition=v100_normal_q
+#SBATCH --gres=gpu:2
+#SBATCH --nodes=4
+#SBATCH --ntasks-per-node=2
+#SBATCH -A R_Antenna1
+
+cd $SLURM_SUBMIT_DIR
+
+export PYTHONPATH=/work/cascades/adbhutg/bolt
+LD_PRELOAD=/lib64/libstdc++.so.6.0.19 mpirun -np $SLURM_NTASKS python main.py
+
