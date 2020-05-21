@@ -9,6 +9,27 @@ hybrid_model_enabled     = False #TODO : Remove from lib
 source_enabled           = True
 disable_collision_op     = False
 
+# Manual domain decomposition (for advanced users)
+# The number of sub-domains into which the domain is decomposed
+# should be equal to the number of mpiprocesses (set in the jobscript)
+
+enable_manual_domain_decomposition = False
+q1_partition = [] # List of the fractional ranges of each subdomain in q1
+# The above indices correspond to  x = [-4.5700, -0.0075, 26.286, 29.5287, 33.010, 50]
+# TODO : Automate the indices using coords
+q2_partition = [] # List of the fractional ranges of each subdomain in q2
+
+# Note : The N_q1/N_q2 should be exactly divisible by the denominator of the
+# corresponding fractional ranges specified above.
+# For example : if q1_partion = [1./3, 2./3], then N_q1%3 == 0
+
+# Internal mirror boundary
+horizontal_boundaries    = [] # index of boundary axis along q2
+horizontal_boundary_lims = [] # boundary lims along q1
+
+vertical_boundaries    = [] # index of boundary axis along q2
+vertical_boundary_lims = [] # boundary lims along q1
+
 fields_enabled = False
 # Can be defined as 'electrostatic', 'user-defined'.
 # The initial conditions need to be specified under initialize
@@ -52,16 +73,17 @@ dt_dump_f       = 1000*dt #ps
 dt_dump_moments = dt_dump_fields = 5*dt #ps
 
 
+# Material specific input
+dispersion          = 'quadratic' # 'linear' or 'quadratic'
+fermi_surface_shape = 'hexagon' # Supports 'circle' or 'hexagon'
+
 # Dimensionality considered in velocity space:
 p_dim = 1
 p_space_grid = 'polar2D' # Supports 'cartesian' or 'polar2D' grids
 # Set p-space start and end points accordingly in domain.py
 #TODO : Use only polar2D for PdCoO2
-
-
 zero_temperature    = (p_dim==1)
-dispersion          = 'quadratic' # 'linear' or 'quadratic'
-fermi_surface_shape = 'hexagon' # Supports 'circle' or 'hexagon'
+
 
 
 # Number of devices(GPUs/Accelerators) on each node:
@@ -102,10 +124,15 @@ mu_ee       = None # chemical potential used in the e-e operator
 T_ee        = None # Electron temperature used in the e-e operator
 vel_drift_x = None
 vel_drift_y = None
-phi         = None # Electric potential in the plane of graphene sheet
 p_x         = None
 p_y         = None
-#integral_measure = None
+phi         = None # Electric potential in the plane of graphene sheet
+
+# Index arrays used to perform shifting for mirror bcs
+shift_indices_left = None
+shift_indices_right = None
+shift_indices_bottom = None
+shift_indices_top = None
 
 # Momentum quantities (will be initialized to shape = [p1*p2*p3] in initialize.py)
 E_band   = None

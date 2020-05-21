@@ -100,6 +100,23 @@ assert(params.dt_dump_f >= dt)
 assert(params.dt_dump_moments >= dt)
 assert(params.dt_dump_fields >= dt)
 
+# Dump information about the spatial coordinate transformation
+nls.dump_coordinate_info([params.x,
+                 params.y,
+                 params.q1,
+                 params.q2,
+                 params.dq1_dx,
+                 params.dq1_dy,
+                 params.dq2_dx,
+                 params.dq2_dy,
+                 params.dx_dq1,
+                 params.dx_dq2,
+                 params.dy_dq1,
+                 params.dy_dq2,
+                 params.sqrt_det_g],
+                 'coords',
+                 'coords'
+                )
 
 #if (params.restart):
 #    nls.load_distribution_function(params.restart_file)

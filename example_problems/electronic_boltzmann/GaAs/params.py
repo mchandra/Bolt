@@ -27,8 +27,8 @@ q2_partition = [1./2, 1./2] # List of the fractional ranges of each subdomain in
 horizontal_boundaries    = [] # index of boundary axis along q2
 horizontal_boundary_lims = [] # boundary lims along q1
 
-vertical_boundaries    = [20] # index of boundary axis along q2
-vertical_boundary_lims = [(0, 1.4)] # boundary lims along q1
+vertical_boundaries    = [] # index of boundary axis along q2
+vertical_boundary_lims = [] # boundary lims along q1
 
 fields_enabled = False
 # Can be defined as 'electrostatic', 'user-defined'.
@@ -159,8 +159,10 @@ def band_energy(p1, p2):
         p_x = p1
         p_y = p2
     elif (p_space_grid == 'polar2D'):
-        p_x = p1 * af.cos(p2)
-        p_y = p1 * af.sin(p2)
+        r = p1
+        theta = p2
+        p_x = r * af.cos(theta)
+        p_y = r * af.sin(theta)
     else : 
         raise NotImplementedError('Unsupported coordinate system in p_space')
     
