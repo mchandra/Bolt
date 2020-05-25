@@ -24,7 +24,7 @@ import initialize
 
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
+pl.rcParams['figure.figsize']  = 12, 5
 pl.rcParams['figure.dpi']      = 100
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
@@ -104,6 +104,8 @@ lagrange_multiplier_files = \
 dt = params.dt
 dump_interval = params.dump_steps
 
+time_array = params.dt_dump_moments * np.arange(0, moment_files.size, 1)
+
 file_number = 0
 moments = io.readBinaryFile(moment_files[file_number])
 moments = moments[0].reshape(N_q2, N_q1, 3)
@@ -112,46 +114,49 @@ density_bg = moments[:, :, 0]
 
 
 sensor_1_signal_array = []
+sensor_2_signal_array = []
 print("Reading sensor signal...")
-file_number = -1
-moments = io.readBinaryFile(moment_files[file_number])
-moments = moments[0].reshape(N_q2, N_q1, 3)
-
-density = moments[:, :, 0]
-density = density - density_bg
-
-lagrange_multipliers = \
-        io.readBinaryFile(lagrange_multiplier_files[file_number])
-lagrange_multipliers = lagrange_multipliers[0].reshape(N_q2, N_q1, 5)
+for file_number, dump_file in enumerate(moment_files):
+#    file_number = -1
+    moments = io.readBinaryFile(moment_files[file_number])
+    moments = moments[0].reshape(N_q2, N_q1, 3)
     
-mu           = lagrange_multipliers[:, :, 0]
-mu_ee        = lagrange_multipliers[:, :, 1]
-T_ee         = lagrange_multipliers[:, :, 2]
-vel_drift_x  = lagrange_multipliers[:, :, 3]
-vel_drift_y  = lagrange_multipliers[:, :, 4]
+    density = moments[:, :, 0]
+    density = density - density_bg
+    
+    lagrange_multipliers = \
+            io.readBinaryFile(lagrange_multiplier_files[file_number])
+    lagrange_multipliers = lagrange_multipliers[0].reshape(N_q2, N_q1, 5)
+        
+    vel_drift_x  = lagrange_multipliers[:, :, 3]
+    vel_drift_y  = lagrange_multipliers[:, :, 4]
+    
+    indices = (q1>4.25)
+    sensor_1_top     = np.mean(vel_drift_y[0,  indices])
+    sensor_1_bottom  = np.mean(vel_drift_y[-1, indices])
+    
+#    sensor_1_top     = (density[0,  :])
+#    sensor_1_bottom  = (density[-1, :])
+    
+    sensor_1_signal_array.append(sensor_1_top)
 
-source = np.mean(density[source_indices, 0])
-drain  = np.mean(density[drain_indices, -1])
+sensor_1_signal_array = np.array(sensor_1_signal_array)
 
-#sensor_1_top     = (vel_drift_y[0,  :])
-#sensor_1_bottom  = (vel_drift_y[-1, :])
+time_index = time_array > 28
 
-sensor_1_top     = (density[0,  :])
-sensor_1_bottom  = (density[-1, :])
+pl.plot(time_array[time_index], sensor_1_signal_array[time_index])
+pl.axvline(31.25, color = 'k', ls = '--')
+pl.axvline(50.00, color = 'k', ls = '--')
 
-indices = (q1>4.25)
-
-pl.plot(q1[indices], sensor_1_top[indices])
-pl.plot(q1[indices], sensor_1_bottom[indices])
+#pl.plot(q1[indices], sensor_1_top[indices])
+#pl.plot(q1[indices], sensor_1_bottom[indices])
 #pl.axhline(0, color='black', linestyle='--')
 
-#pl.legend(['Source $I(t)$', 'Measured $V(t)$'], loc=1)
-#pl.text(135, 1.14, '$\phi : %.2f \; rad$' %phase_diff)
-pl.xlabel(r'x ($\mu$m)')
-#pl.xlim([0, 200])
-#pl.ylim([-1.1, 1.1])
+pl.xlabel(r'Time (ps)')
+#pl.xlim(xmin = 30.)
+#pl.ylim([-0.00008, -0.00007])
 
-pl.title("No secondary Injection")
+#pl.title("No secondary Injection")
 #pl.suptitle('$\\tau_\mathrm{mc} = 0.2$ ps, $\\tau_\mathrm{mr} = 0.5$ ps')
 pl.savefig('images/iv' + '.png')
 pl.clf()

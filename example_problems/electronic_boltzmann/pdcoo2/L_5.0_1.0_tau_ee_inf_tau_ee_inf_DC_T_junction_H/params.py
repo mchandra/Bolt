@@ -14,7 +14,7 @@ disable_collision_op     = False
 # should be equal to the number of mpiprocesses (set in the jobscript)
 
 enable_manual_domain_decomposition = True
-q1_partition = [170./210, 40./210] # List of the fractional ranges of each subdomain in q1
+q1_partition = [35./ 210, 135./210, 40./210] # List of the fractional ranges of each subdomain in q1
 # The above indices correspond to  x = [-4.5700, -0.0075, 26.286, 29.5287, 33.010, 50]
 # TODO : Automate the indices using coords
 q2_partition = [40./120, 40./120, 40./120] # List of the fractional ranges of each subdomain in q2
@@ -25,10 +25,10 @@ q2_partition = [40./120, 40./120, 40./120] # List of the fractional ranges of ea
 
 # Internal mirror boundary
 horizontal_boundaries    = [40, 80] # index of boundary axis along q2
-horizontal_boundary_lims = [(0, 4.25), (0., 4.25)] # boundary lims along q1
+horizontal_boundary_lims = [(1.73/2, 4.25), (1.73/2, 4.25)] # boundary lims along q1
 
-vertical_boundaries    = [170, 170] # index of boundary axis along q2
-vertical_boundary_lims = [(0., 1.), (2., 3.0)] # boundary lims along q1
+vertical_boundaries    = [35, 35, 170, 170] # index of boundary axis along q2
+vertical_boundary_lims = [(0., 1.), (2., 3.), (0., 1.), (2., 3.)] # boundary lims along q1
 
 fields_enabled = False
 # Can be defined as 'electrostatic', 'user-defined'.
@@ -61,7 +61,7 @@ electrostatic_solver_every_nth_step = 1000000
 
 # Time parameters:
 dt      = 0.025/4 # ps
-t_final = 300.     # ps
+t_final = 100.     # ps
 
 
 # File-writing Parameters:

@@ -21,7 +21,7 @@ import PetscBinaryIO
 
 import domain
 #import boundary_conditions
-#import params
+import params
 #import initialize
 #import coords
 
@@ -111,7 +111,8 @@ print ("moment files : ", moment_files.size)
 print ("lagrange multiplier files : ", lagrange_multiplier_files.size)
 
 
-time_array = np.loadtxt(filepath+"/dump_time_array.txt")
+#time_array = np.loadtxt(filepath+"/dump_time_array.txt")
+time_array = params.dt_dump_moments * np.arange(0, moment_files.size, 1)
 
 
 file_number = 0
@@ -122,13 +123,14 @@ density_bg = moments[:, :, 0]
 
 
 
+start = 1600
 for file_number, dump_file in enumerate(moment_files[:]):
 
-    file_number = -1
-    print("file number = ", file_number, "of ", moment_files.size)
-    print (moment_files[file_number])
+#    file_number = -1
+    print("file number = ", start+file_number, "of ", moment_files.size)
+    print (moment_files[start+file_number])
 
-    moments = io.readBinaryFile(moment_files[file_number])
+    moments = io.readBinaryFile(moment_files[start+file_number])
     moments = moments[0].reshape(N_q2, N_q1, 3)
     
     density = moments[:, :, 0]
@@ -136,7 +138,7 @@ for file_number, dump_file in enumerate(moment_files[:]):
     j_y     = moments[:, :, 2]
 
     lagrange_multipliers = \
-        io.readBinaryFile(lagrange_multiplier_files[file_number])
+        io.readBinaryFile(lagrange_multiplier_files[start+file_number])
     lagrange_multipliers = lagrange_multipliers[0].reshape(N_q2, N_q1, 5)
     
     mu           = lagrange_multipliers[:, :, 0]
@@ -158,7 +160,7 @@ for file_number, dump_file in enumerate(moment_files[:]):
     #plot_grid(x[::5, ::5], y[::5, ::5], alpha=0.5)
     pl.contourf(x, y, density.T, 100, norm=MidpointNormalize(midpoint=0, vmin=density_min, vmax=density_max), cmap='bwr')
     pl.colorbar()
-    pl.title(r'Time = ' + "%.2f"%(time_array[file_number]) + " ps")
+    pl.title(r'Time = ' + "%.2f"%(time_array[start+file_number]) + " ps")
     
     pl.streamplot(x[:, 0], y[0, :], 
                   vel_drift_x, vel_drift_y,
@@ -169,9 +171,11 @@ for file_number, dump_file in enumerate(moment_files[:]):
     pl.axvline(4.25, ymin = 0., ymax = 0.33, color = 'k', ls = '--', lw = 3)
     pl.axvline(4.25, ymin = 0.66, ymax = 1.0, color = 'k', ls = '--', lw = 3)
 
-    pl.axvline(1.73/2, color = 'k', ls = '--')
-    pl.axvline(1.73+1.73/2, color = 'k', ls = '--')
+    pl.axvline(1.73/2, ymin = 0., ymax = 0.33, color = 'k', ls = '--', lw = 3)
+    pl.axvline(1.73/2, ymin = 0.66, ymax = 1.0, color = 'k', ls = '--', lw = 3)
 
+    pl.axhline(1., xmin = 1.73/(2.*5.25), xmax = 4.25/5.25, color = 'k', ls = '--', lw = 3)
+    pl.axhline(2., xmin = 1.73/(2.*5.25), xmax = 4.25/5.25, color = 'k', ls = '--', lw = 3)
     
     pl.xlim([q1[0], q1[-1]])
     pl.ylim([q2[0], q2[-1]])
@@ -180,6 +184,6 @@ for file_number, dump_file in enumerate(moment_files[:]):
     pl.xlabel(r'$x\;(\mu \mathrm{m})$')
     pl.ylabel(r'$y\;(\mu \mathrm{m})$')
     pl.suptitle('$\\tau_\mathrm{mc} = \infty$, $\\tau_\mathrm{mr} = \infty$')
-    pl.savefig('images/dump_' + '%06d'%file_number + '.png')
+    pl.savefig('images/dump_' + '%06d'%(start+file_number) + '.png')
     pl.clf()
 
