@@ -24,8 +24,8 @@ import bolt.src.electronic_boltzmann.advection_terms \
     as advection_terms
 import bolt.src.electronic_boltzmann.collision_operator \
     as collision_operator
-import bolt.src.electronic_boltzmann.moment_defs \
-    as moment_defs
+import bolt.src.electronic_boltzmann.moments \
+    as moments
 
 
 # Create required folders if they do not exist already
@@ -46,7 +46,7 @@ system = physical_system(domain,
                          initialize,
                          advection_terms,
                          collision_operator.RTA,
-                         moment_defs
+                         moments
                         )
 
 # Declaring a nonlinear system object which will evolve the defined physical system:
@@ -69,6 +69,7 @@ if(params.latest_restart == True):
     print(time_elapsed)
     if(latest_f is not None and  time_elapsed is not None):
       nls.load_distribution_function(latest_f)
+      dump_time_array = np.loadtxt("dump_time_array.txt").tolist()
       using_latest_restart = True
 
 
@@ -81,8 +82,8 @@ if using_latest_restart == False:
         nls.dump_aux_arrays([params.mu,
                              params.mu_ee,
                              params.T_ee,
-                             params.vel_drift_x, params.vel_drift_y,
-                             params.j_x, params.j_y],
+                             params.vel_drift_x, params.vel_drift_y
+                            ],
                              'lagrange_multipliers',
                              'dump_lagrange_multipliers/t=' + formatted_time
                             )
@@ -95,10 +96,27 @@ if using_latest_restart == False:
         nls.load_distribution_function('dump_f/t=' + formatted_time)
 
 # Checking that the file writing intervals are greater than dt:
-assert(params.dt_dump_f > dt)
-assert(params.dt_dump_moments > dt)
-assert(params.dt_dump_fields > dt)
+assert(params.dt_dump_f >= dt)
+assert(params.dt_dump_moments >= dt)
+assert(params.dt_dump_fields >= dt)
 
+# Dump information about the spatial coordinate transformation
+nls.dump_coordinate_info([params.x,
+                 params.y,
+                 params.q1,
+                 params.q2,
+                 params.dq1_dx,
+                 params.dq1_dy,
+                 params.dq2_dx,
+                 params.dq2_dy,
+                 params.dx_dq1,
+                 params.dx_dq2,
+                 params.dy_dq1,
+                 params.dy_dq2,
+                 params.sqrt_det_g],
+                 'coords',
+                 'coords'
+                )
 
 #if (params.restart):
 #    nls.load_distribution_function(params.restart_file)
@@ -120,6 +138,8 @@ while(time_elapsed < t_final):
     else:
         params.collision_nonlinear_iters = params.collision_operator_nonlinear_iters
 
+    dump_steps = params.dump_steps
+
     if(params.dt_dump_moments != 0):
         # We step by delta_dt to get the values at dt_dump
         delta_dt =   (1 - math.modf(time_elapsed/params.dt_dump_moments)[0]) \
@@ -133,8 +153,8 @@ while(time_elapsed < t_final):
             nls.dump_aux_arrays([params.mu,
                              params.mu_ee,
                              params.T_ee,
-                             params.vel_drift_x, params.vel_drift_y,
-                             params.j_x, params.j_y],
+                             params.vel_drift_x, params.vel_drift_y
+                                ],
                              'lagrange_multipliers',
                              'dump_lagrange_multipliers/t=' + formatted_time
                             )
@@ -166,4 +186,4 @@ while(time_elapsed < t_final):
          )
     PETSc.Sys.Print("--------------------\n")
 
-nls.dump_distribution_function('dump_f/f_laststep')
+#nls.dump_distribution_function('dump_f/t_laststep')

@@ -9,8 +9,8 @@ import matplotlib.gridspec as gridspec
 import matplotlib.patches as patches
 matplotlib.use('agg')
 import pylab as pl
-import yt
-yt.enable_parallelism()
+#import yt
+#yt.enable_parallelism()
 
 import PetscBinaryIO
 
@@ -18,7 +18,7 @@ import domain
 import boundary_conditions
 import params
 import initialize
-
+#import coords
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
@@ -67,33 +67,58 @@ q2 = domain.q2_start + (0.5 + np.arange(N_q2)) * (domain.q2_end - domain.q2_star
 
 q2_meshgrid, q1_meshgrid = np.meshgrid(q2, q1)
 
+q1_meshgrid = af.from_ndarray(q1_meshgrid)
+q2_meshgrid = af.from_ndarray(q2_meshgrid)
+
+
+coords = io.readBinaryFile("coords.bin")
+coords = coords[0].reshape(N_q2, N_q1, 13)
+    
+x = coords[:, :, 0].T
+y = coords[:, :, 1].T
+
+p2_start = domain.p2_start[0]
+p2_end   = domain.p2_end[0]
+
+p2 = p2_start + (0.5 + np.arange(N_p2)) * (p2_end - p2_start)/N_p2
+
 filepath = os.getcwd()
 distribution_function_files = np.sort(glob.glob(filepath+'/dump_f/*.bin'))
 
 time_array = np.loadtxt("dump_time_array.txt")
 
-for file_number, dump_file in yt.parallel_objects(enumerate(distribution_function_files)):
 
-    print("file number = ", file_number, "of ", distribution_function_files.size)
+theta_0_index = int(4*N_p2/8) # Direction of initial velocity
+theta = p2[theta_0_index]
+
+print("theta = ", theta)
+
+
+for file_number, dump_file in enumerate(distribution_function_files[:]):
+    
+    print("file_number = ", file_number, "of", distribution_function_files[:].size)
     
     dist_func_file = distribution_function_files[file_number]
     dist_func = io.readBinaryFile(dist_func_file)
-    dist_func = dist_func[0].reshape(N_q2, N_q1, N_s, N_p3, N_p2, N_p1) 
+    dist_func = dist_func[0].reshape(N_q2, N_q1, N_s, N_p3, N_p2, N_p1)
     
-    #dist_func_at_a_p = dist_func[:, :, 3]
+
     dist_func_p_avged = np.mean(dist_func, axis = (2, 3,4,5))
     print (dist_func_p_avged.shape)
-    pl.contourf(q1_meshgrid, q2_meshgrid, dist_func_p_avged.transpose(), 20, cmap='bwr')
+    print (x.shape, y.shape)
+    pl.contourf(x, y, dist_func_p_avged.transpose(), 20, cmap='bwr')
     
-    pl.title(r'Time = ' + "%.2f"%(time_array[file_number]) + " ps")
-    pl.xlim([domain.q1_start, domain.q1_end])
-    pl.ylim([domain.q2_start, domain.q2_end])
-        
+    print ("Read dist func files")
+    #pl.contourf(y, x, dist_func_p_avged.transpose(), 100, cmap='bwr')
     pl.gca().set_aspect('equal')
+   
+    pl.title(r'Time = ' + "%.2f"%(time_array[file_number]) + " ps")
+        
     pl.xlabel(r'$x\;(\mu \mathrm{m})$')
     pl.ylabel(r'$y\;(\mu \mathrm{m})$')
-    
+
     pl.savefig('images/dump_%06d'%file_number + '.png')
     pl.clf()
-    
+
+
 

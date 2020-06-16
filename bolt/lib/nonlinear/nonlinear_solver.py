@@ -351,6 +351,10 @@ class nonlinear_solver(object):
               self.q1_start_local, self.q2_start_local, ")"
              )
         print("nonlinear.py: rank = ", self._comm.rank,
+              "(N_q1_local, N_q2_local) =  (", 
+              _N_q1_local, _N_q2_local, ")"
+             )
+        print("nonlinear.py: rank = ", self._comm.rank,
               "ownership_ranges : lx = ", lx, "ly = ", ly
              )
 

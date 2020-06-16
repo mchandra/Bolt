@@ -2,12 +2,12 @@ import numpy as np
 import params
 
 q1_start = 0.
-q1_end   = 1.0
-N_q1     = 36
+q1_end   = 1.
+N_q1     = 100
 
 q2_start = 0.
-q2_end   = 2.5
-N_q2     = 90
+q2_end   = 1.
+N_q2     = 100
 
 # If N_p1 > 1, mirror boundary conditions require p1 to be
 # symmetric about zero
@@ -29,14 +29,14 @@ N_p1     =  1 # Set equal to 1 for 1D polar
 # p1_start and p1_end are set such that p1_center is mu
 
 # Uncomment the following for the 2D polar representation of momentum space
-#p1_start = [params.initial_mu - \
+#p1_start = [params.initial_mu/params.fermi_velocity - \
 #        16.*params.boltzmann_constant*params.initial_temperature]
-#p1_end   = [params.initial_mu + \
+#p1_end   = [params.initial_mu/params.fermi_velocity + \
 #        16.*params.boltzmann_constant*params.initial_temperature]
 
 # Uncomment the following for the 1D polar representation of momentum space
-p1_start = [0.5*params.initial_mu]
-p1_end   = [1.5*params.initial_mu]
+p1_start = [0.5*params.initial_mu/params.fermi_velocity]
+p1_end   = [1.5*params.initial_mu/params.fermi_velocity]
 
 
 # If N_p2 > 1, mirror boundary conditions require p2 to be
@@ -52,8 +52,10 @@ N_p2     =  1024
 # In the 2D polar representation of momentum space,
 # p2 = p_theta (angle of momentum)
 # N_p_theta MUST be even.
-p2_start =  [-np.pi]
-p2_end   =  [np.pi]
+#p2_start =  [-np.pi]
+#p2_end   =  [np.pi]
+p2_start =  [-3.14159265359]
+p2_end   =  [3.14159265359]
 
 # If N_p3 > 1, mirror boundary conditions require p3 to be
 # symmetric about zero

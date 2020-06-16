@@ -2,10 +2,10 @@ import numpy as np
 import arrayfire as af
 import domain
 
-in_q1_left   = 'periodic'
-in_q1_right  = 'periodic'
-in_q2_bottom = 'periodic'
-in_q2_top    = 'periodic'
+in_q1_left   = 'mirror'
+in_q1_right  = 'mirror'
+in_q2_bottom = 'mirror'
+in_q2_top    = 'mirror'
 
 @af.broadcast
 def f_left(f, t, q1, q2, p1, p2, p3, params):
@@ -17,13 +17,7 @@ def f_left(f, t, q1, q2, p1, p2, p3, params):
     
     t     = params.current_time
     omega = 2. * np.pi * params.AC_freq
-    
-    if (params.source_type == 'AC'):
-        vel_drift_x_in  = params.vel_drift_x_in  * np.sin(omega*t)
-    elif (params.source_type == 'DC'):
-        vel_drift_x_in  = params.vel_drift_x_in
-    else:
-        raise NotImplementedError('Unsupported source_type')
+    vel_drift_x_in  = params.vel_drift_x_in
 
     if (params.p_space_grid == 'cartesian'):
         p_x = p1 
@@ -44,8 +38,8 @@ def f_left(f, t, q1, q2, p1, p2, p3, params):
         q2_contact_start = params.contact_start
         q2_contact_end   = params.contact_end
         
-        cond = ((q2 >= q2_contact_start) & \
-                (q2 <= q2_contact_end) \
+        cond = ((params.y >= q2_contact_start) & \
+                (params.y <= q2_contact_end) \
                )
 
         f_left = cond*fermi_dirac_in + (1 - cond)*f
@@ -53,12 +47,7 @@ def f_left(f, t, q1, q2, p1, p2, p3, params):
     elif (params.contact_geometry=="turn_around"):
         # Contacts on the same side of the device
 
-        if (params.source_type == 'AC'):
-            vel_drift_x_out = -params.vel_drift_x_in * np.sin(omega*t)
-        elif (params.source_type == 'DC'):
-            vel_drift_x_out = -params.vel_drift_x_in
-        else:
-            raise NotImplementedError('Unsupported source_type')
+        vel_drift_x_out = -params.vel_drift_x_in * np.sin(omega*t)
 
         fermi_dirac_out = (1./(af.exp( (E_upper - vel_drift_x_out*p_x - mu)/(k*T) ) + 1.)
                           )
@@ -83,12 +72,7 @@ def f_right(f, t, q1, q2, p1, p2, p3, params):
 
     t     = params.current_time
     omega = 2. * np.pi * params.AC_freq
-    if (params.source_type == 'AC'):
-        vel_drift_x_out = params.vel_drift_x_out * np.sin(omega*t)
-    elif (params.source_type == 'DC'):
-        vel_drift_x_out = params.vel_drift_x_out 
-    else:
-        raise NotImplementedError('Unsupported source_type')
+    vel_drift_x_out = params.vel_drift_x_out
     
     if (params.p_space_grid == 'cartesian'):
         p_x = p1 
@@ -108,8 +92,8 @@ def f_right(f, t, q1, q2, p1, p2, p3, params):
         q2_contact_start = params.contact_start
         q2_contact_end   = params.contact_end
         
-        cond = ((q2 >= q2_contact_start) & \
-                (q2 <= q2_contact_end) \
+        cond = ((params.y >= q2_contact_start) & \
+                (params.y <= q2_contact_end) \
                )
 
         f_right = cond*fermi_dirac_out + (1 - cond)*f

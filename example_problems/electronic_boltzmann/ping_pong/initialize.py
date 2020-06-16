@@ -6,7 +6,12 @@ the system.
 import arrayfire as af
 import numpy as np
 from petsc4py import PETSc
+
 import domain
+import coords
+
+from bolt.lib.utils.coord_transformation \
+    import compute_shift_indices, jacobian_dq_dx, jacobian_dx_dq, sqrt_det_g
 
 def initialize_f(q1, q2, p1, p2, p3, params):
    
@@ -17,7 +22,6 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     params.T           = 0.*q1 + params.initial_temperature
     params.vel_drift_x = 0.*q1
     params.vel_drift_y = 0.*q1
-    params.phi         = 0.*q1
 
     params.mu_ee       = params.mu.copy()
     params.T_ee        = params.T.copy()
@@ -26,57 +30,87 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     params.j_x         = 0.*q1
     params.j_y         = 0.*q1
 
+    params.p_x, params.p_y = params.get_p_x_and_p_y(p1, p2)
     params.E_band   = params.band_energy(p1, p2)
     params.vel_band = params.band_velocity(p1, p2)
 
-    E_upper = params.E_band + params.charge[0]*params.phi
+    # Load shift indices for all 4 boundaries into params. Required to perform
+    # mirroring operations along boundaries at arbitrary angles.
+    params.shift_indices_left, params.shift_indices_right, \
+    params.shift_indices_bottom, params.shift_indices_top = \
+            compute_shift_indices(q1, q2, p1, p2, p3, params)   
 
+    params.x, params.y = coords.get_cartesian_coords(q1, q2)
+    params.q1 = q1; params.q2 = q2
+    [[params.dx_dq1, params.dx_dq2], [params.dy_dq1, params.dy_dq2]] = jacobian_dx_dq(q1, q2)
+    [[params.dq1_dx, params.dq1_dy], [params.dq2_dx, params.dq2_dy]] = jacobian_dq_dx(q1, q2)
+    params.sqrt_det_g = sqrt_det_g(q1, q2)
+
+    # Calculation of integral measure
+    # Evaluating velocity space resolution for each species:
+    dp1 = []; dp2 = []; dp3 = []
+    N_p1 = domain.N_p1; N_p2 = domain.N_p2; N_p3 = domain.N_p3
+    p1_start = domain.p1_start; p1_end = domain.p1_end
+    p2_start = domain.p2_start; p2_end = domain.p2_end
+    p3_start = domain.p3_start; p3_end = domain.p3_end
+
+    N_species = len(params.mass)
+    for i in range(N_species):
+        dp1.append((p1_end[i] - p1_start[i]) / N_p1)
+        dp2.append((p2_end[i] - p2_start[i]) / N_p2)
+        dp3.append((p3_end[i] - p3_start[i]) / N_p3)
+
+
+    theta = af.atan(params.p_y / params.p_x)
+    p_f   = params.fermi_momentum_magnitude(theta)
+    
     if (params.p_space_grid == 'cartesian'):
-        p_x = p1
-        p_y = p2
+        dp_x = dp1[0]; dp_y = dp2[0]; dp_z = dp3[0]
+        params.integral_measure = \
+          (4./(2.*np.pi*params.h_bar)**2) * dp_z * dp_y * dp_x
+
     elif (params.p_space_grid == 'polar2D'):
-        p_x = p1 * af.cos(p2)
-        p_y = p1 * af.sin(p2)
-    else:
+     	# In polar2D coordinates, p1 = radius and p2 = theta
+        # Integral : \int delta(r - r_F) F(r, theta) r dr dtheta
+        r = p1; theta = p2
+        dp_r = dp1[0]; dp_theta = dp2[0]
+
+        if (params.zero_temperature):
+            # Assumption : F(r, theta) = delta(r-r_F)*F(theta)
+            params.integral_measure = \
+              (4./(2.*np.pi*params.h_bar)**2) * p_f * dp_theta
+
+        else:
+            params.integral_measure = \
+              (4./(2.*np.pi*params.h_bar)**2) * r * dp_r * dp_theta
+            
+
+    else : 
         raise NotImplementedError('Unsupported coordinate system in p_space')
 
-    #TODO : Remove the following variables from here,
-    # already defined in domain.py
-    N_p1 = domain.N_p1
-    N_p2 = domain.N_p2
-    N_p3 = domain.N_p3
-    N_q1 = domain.N_q1
-    N_q2 = domain.N_q2
-    N_g  = domain.N_ghost
-    #N_s  = 1
-    N_s = len(params.mass) # Number of species
 
     # Initialize to zero
-    #f = af.constant(0, N_p1*N_p2*N_p3, N_q1 + 2*N_g, N_q2 + 2*N_g)
-    f  = np.zeros((N_p1*N_p2*N_p3, N_s, N_q1 + 2*N_g, N_q2 + 2*N_g))
-    f = af.np_to_af_array(f)
-
-    # Initialize to zero
-    f[:] = 0
+    f = 0*q1*p1
 
     # Parameters to define a gaussian in space (representing a 2D ball)
-    A        = N_p2 # Amplitude (required for normalization)
-    sigma_q1 = 0.1 # Standard deviation in q1
-    sigma_q2 = 0.1 # Standard deviation in q2
-    q1_0     = 0.5 # Center in q1
-    q2_0     = 1.25 # Center in q2
+    A        = domain.N_p2 # Amplitude (required for normalization)
+    sigma_x = 0.05 # Standard deviation in x
+    sigma_y = 0.05 # Standard deviation in y
+    x_0     = 0.5 # Center in x
+    y_0     = 0.5 # Center in y
 
-    print ("f : ", f.dims())
-    #print ("A : ", af.dims(A))
-    print ("q1 : ", q2.dims())
-    print ("q2 : ", q2.dims())
-
-    # TODO: This will work with polar2D coordinates only for the moment
+    # TODO: This will work with polar2D p-space only for the moment
     # Particles lying on the ball need to have the same velocity (direction)
-    theta_0_index = (N_p2/2) - 1 # Direction of initial velocity
+    #theta_0_index = (5*N_p2/8) - 1 # Direction of initial velocity
+    theta_0_index = int(6*domain.N_p2/8) # Direction of initial velocity
+    
+    print ("Initial angle : ")
+    af.display(p2[theta_0_index])
 
-    f[theta_0_index, :, :]  = A*af.exp(-(((q1-q1_0)**2)/(2*sigma_q1**2) + \
-                                       ((q2-q2_0)**2)/(2*sigma_q2**2)))
+    f[theta_0_index, :, :]  = A*af.exp(-( (params.x-x_0)**2/(2*sigma_x**2) + \
+                                          (params.y-y_0)**2/(2*sigma_y**2)
+                                        )
+                                      )
 
     af.eval(f)
     return(f)
