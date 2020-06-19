@@ -199,3 +199,65 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
     shift_indices_top = af.moddims(shift_indices, N_theta*N_q1_local)
     
     return(shift_indices_left, shift_indices_right, shift_indices_bottom, shift_indices_top)
+
+
+def affine(q1, q2,
+           x_y_bottom_left, x_y_bottom_right, 
+           x_y_top_right, x_y_top_left,
+           X_Y_bottom_left, X_Y_bottom_right, 
+           X_Y_top_right, X_Y_top_left,
+          ):
+
+    '''
+        Inputs :
+            - Grid in q1 and q2
+            - coordinates of 4 points on the original grid (x, y)
+            - coordinates of the corresponding 4 points on the desired transformed grid (X, Y)
+        Output : Transformed grid
+    '''
+    
+    x0, y0 = x_y_bottom_left;  X0, Y0 = X_Y_bottom_left
+    x1, y1 = x_y_bottom_right; X1, Y1 = X_Y_bottom_right
+    x2, y2 = x_y_top_right;    X2, Y2 = X_Y_top_right
+    x3, y3 = x_y_top_left;     X3, Y3 = X_Y_top_left
+
+    
+    #x = a0 + a1*X + a2*Y + a3*X*Y
+    #y = b0 + b1*X + b2*Y + b3*X*Y
+    
+    #x0 = a0 + a1*X0 + a2*Y0 + a3*X0*Y0
+    #x1 = a0 + a1*X1 + a2*Y1 + a3*X1*Y1
+    #x2 = a0 + a1*X2 + a2*Y2 + a3*X2*Y2
+    #x3 = a0 + a1*X3 + a2*Y3 + a3*X3*Y3
+    
+    # A x = b
+    A = np.array([[1, X0, Y0, X0*Y0],
+                  [1, X1, Y1, X1*Y1],
+                  [1, X2, Y2, X2*Y2],
+                  [1, X3, Y3, X3*Y3],
+                 ])
+    b = np.array([[x0],
+                  [x1],
+                  [x2],
+                  [x3]
+                 ])
+
+    a0, a1, a2, a3 = np.linalg.solve(A, b)
+    
+    #y0 = b0 + b1*X0 + b2*Y0 + b3*X0*Y0
+    #y1 = b0 + b1*X1 + b2*Y1 + b3*X1*Y1
+    #y2 = b0 + b1*X2 + b2*Y2 + b3*X2*Y2
+    #y3 = b0 + b1*X3 + b2*Y3 + b3*X3*Y3
+
+    b = np.array([[y0],
+                  [y1],
+                  [y2],
+                  [y3]
+                 ])
+
+    b0, b1, b2, b3 = np.linalg.solve(A, b)
+    
+    x = a0 + a1*q1 + a2*q2 + a3*q1*q2
+    y = b0 + b1*q1 + b2*q2 + b3*q1*q2
+    
+    return(x, y)
