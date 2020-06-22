@@ -40,11 +40,21 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     params.shift_indices_bottom, params.shift_indices_top = \
             compute_shift_indices(q1, q2, p1, p2, p3, params)   
 
-    params.x, params.y = coords.get_cartesian_coords(q1, q2)
+    params.x, params.y = coords.get_cartesian_coords(q1, q2,
+                                                     q1_start_local_left=params.q1_start_local_left, 
+                                                     q2_start_local_bottom=params.q2_start_local_bottom)
+    print ("initialize : ", params.q1_start_local_left, params.q2_start_local_bottom)
+
     params.q1 = q1; params.q2 = q2
-    [[params.dx_dq1, params.dx_dq2], [params.dy_dq1, params.dy_dq2]] = jacobian_dx_dq(q1, q2)
-    [[params.dq1_dx, params.dq1_dy], [params.dq2_dx, params.dq2_dy]] = jacobian_dq_dx(q1, q2)
-    params.sqrt_det_g = sqrt_det_g(q1, q2)
+    [[params.dx_dq1, params.dx_dq2], [params.dy_dq1, params.dy_dq2]] = jacobian_dx_dq(q1, q2,
+                                                                                      q1_start_local_left=params.q1_start_local_left, 
+                                                                                      q2_start_local_bottom=params.q2_start_local_bottom)
+    [[params.dq1_dx, params.dq1_dy], [params.dq2_dx, params.dq2_dy]] = jacobian_dq_dx(q1, q2,
+                                                                                      q1_start_local_left=params.q1_start_local_left, 
+                                                                                      q2_start_local_bottom=params.q2_start_local_bottom)
+    params.sqrt_det_g = sqrt_det_g(q1, q2,
+                                       q1_start_local_left=params.q1_start_local_left, 
+                                       q2_start_local_bottom=params.q2_start_local_bottom)
 
     # Calculation of integral measure
     # Evaluating velocity space resolution for each species:

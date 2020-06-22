@@ -8,13 +8,22 @@ def quadratic(X, Y,
               x_y_bottom_left, x_y_bottom_right, 
               x_y_top_right, x_y_top_left,
               x_y_bottom_center, x_y_right_center,
-              x_y_top_center, x_y_left_center,
-              X_Y_bottom_left, X_Y_bottom_right, 
-              X_Y_top_right, X_Y_top_left,
-              X_Y_bottom_center, X_Y_right_center,
-              X_Y_top_center, X_Y_left_center,
+              x_y_top_center, x_y_left_center
           ):
+    # Maps from ref element [-1, 1] x [-1, 1] to physical domain
+
+    # Nodes on the reference element
+    X_Y_bottom_left   = [-1, -1]
+    X_Y_bottom_center = [ 0, -1]
+    X_Y_bottom_right  = [ 1, -1]
     
+    X_Y_left_center   = [-1, 0]
+    X_Y_right_center  = [ 1, 0]
+    
+    X_Y_top_left      = [-1, 1]
+    X_Y_top_center    = [ 0, 1]
+    X_Y_top_right     = [ 1, 1]
+   
     x0, y0 = x_y_bottom_left;  X0, Y0 = X_Y_bottom_left
     x1, y1 = x_y_bottom_right; X1, Y1 = X_Y_bottom_right
     x2, y2 = x_y_top_right;    X2, Y2 = X_Y_top_right
@@ -104,21 +113,11 @@ def quadratic(X, Y,
     return(x, y)
 
 
-#def affine(q1, q2,
-#           x_y_bottom_left, x_y_bottom_right, 
-#           x_y_top_right, x_y_top_left,
-#           X_Y_bottom_left, X_Y_bottom_right, 
-#           X_Y_top_right, X_Y_top_left,
-#          ):
 def affine(q1, q2,
-              x_y_bottom_left, x_y_bottom_right, 
-              x_y_top_right, x_y_top_left,
-              x_y_bottom_center, x_y_right_center,
-              x_y_top_center, x_y_left_center,
-              X_Y_bottom_left, X_Y_bottom_right, 
-              X_Y_top_right, X_Y_top_left,
-              X_Y_bottom_center, X_Y_right_center,
-              X_Y_top_center, X_Y_left_center,
+           x_y_bottom_left, x_y_bottom_right, 
+           x_y_top_right, x_y_top_left,
+           X_Y_bottom_left, X_Y_bottom_right, 
+           X_Y_top_right, X_Y_top_left,
           ):
 
     '''
@@ -187,7 +186,10 @@ def affine(q1, q2,
     
     return(x, y)
 
-def get_cartesian_coords(q1, q2):
+def get_cartesian_coords(q1, q2, 
+                         q1_start_local_left=None, 
+                         q2_start_local_bottom=None
+                        ):
 
     q1_midpoint = 0.5*(af.max(q1) + af.min(q1))
     q2_midpoint = 0.5*(af.max(q2) + af.min(q2))
@@ -201,71 +203,90 @@ def get_cartesian_coords(q1, q2):
     dq1 = (q1[0, 0, 1, 0] - q1[0, 0, 0, 0]).scalar()
     dq2 = (q2[0, 0, 0, 1] - q2[0, 0, 0, 0]).scalar()
 
-    q1_start_local = q1[0, 0, 0, 0].scalar()
-    q2_start_local = q2[0, 0, 0, 0].scalar()
+    # TODO : Ghost zones hardcoded. Fix this.
+    q1_start_local = q1[0, 0, 2, 0].scalar()
+    q1_end_local   = q1[0, 0, -3, 0].scalar()
+    q2_start_local = q2[0, 0, 0, 2].scalar()
+    q2_end_local   = q2[0, 0, 0, -3].scalar()
 
-    q1_end_local = q1[0, 0, -1, 0].scalar()
-    q2_end_local = q2[0, 0, 0, -1].scalar()
-
+    N_q1_local = q1.dims()[2]
+    N_q2_local = q2.dims()[3]
+   
     q1_center_local = q1_midpoint
     q2_center_local = q2_midpoint
 
-    print ("coords.py, start : ", q1_start_local, q2_start_local)
-    print ("coords.py, end : ", q1_end_local, q2_end_local)
-    print ("coords.py, center : ", q1_center_local, q2_center_local)
+    # Need dq1 and dq2 in the ref element
+    # End points of ref element are [-1, 1]
+    # If N_q1 = 3, i.e., 3 zones:
+    #  |  |  |  |
+    # -1        1
+    # Therefore, we have:
+    dq1_ref = 2./N_q1_local 
+    dq2_ref = 2./N_q2_local 
+    
+    if (q1_start_local - q1_start_local_left > 0):
+        # q1_start_local is at zone center and so q1 is q1_center
+        # Get zone centers for the reference element
+        q1_ref_start_local = -1. + 0.5*dq1_ref
+        q1_ref_end_local   =  1. - 0.5*dq1_ref
         
-#    X_Y_bottom_left   = [q1_start_local, q2_start_local]
-#    X_Y_bottom_center = [q1_center_local, q2_start_local]
-#    X_Y_bottom_right  = [q1_end_local, q2_start_local]
-#    
-#    X_Y_left_center   = [q1_start_local, q2_center_local]
-#    X_Y_right_center  = [q1_end_local, q2_center_local]
-#    
-#    X_Y_top_left      = [q1_start_local, q2_end_local]
-#    X_Y_top_center    = [q1_center_local, q2_end_local]
-#    X_Y_top_right     = [q1_end_local, q2_end_local] 
+    if (np.abs(q1_start_local - q1_start_local_left) < 1e-10):
+        # q1_start_local is at the left edge and so q1 is q1_left
+        # Get left edges for the reference element
 
-    X_Y_bottom_left   = [-1, -1]
-    X_Y_bottom_center = [0, -1]
-    X_Y_bottom_right  = [1, -1]
-    
-    X_Y_left_center   = [-1, 0]
-    X_Y_right_center  = [1, 0]
-    
-    X_Y_top_left      = [-1, 1]
-    X_Y_top_center    = [0, 1]
-    X_Y_top_right     = [1, 1]
-
-    q1_scale_factor = 2./(q1_end_local - q1_start_local)
-    q2_scale_factor = 2./(q2_end_local - q2_start_local)
-
-    q1_temp = (q1 - q1_midpoint)*q1_scale_factor
-    q2_temp = (q2 - q2_midpoint)*q2_scale_factor
-    
-    # Bottom domain
-    if ((q2_midpoint < -0.66) and (q1_midpoint > -0.66) and (q1_midpoint < 0.33)):
-
-        x_y_bottom_left   = [-radius/np.sqrt(2) - .5*dq1, radius/np.sqrt(2) - .5*dq2]
-        x_y_bottom_center = [0,                           radius                    ]
-        x_y_bottom_right  = [radius/np.sqrt(2) + .5*dq1,  radius/np.sqrt(2) - .5*dq2]
+        q1_ref_start_local = -1.
+        q1_ref_end_local   =  1. - dq1_ref
         
-        x_y_left_center   = [-radius/np.sqrt(2) - .5*dq1, (1+radius/np.sqrt(2))/2]
-        x_y_right_center  = [ radius/np.sqrt(2) + .5*dq1, (1+radius/np.sqrt(2))/2]
+    if (q2_start_local - q2_start_local_bottom > 0):
+        # q2_start_local is at zone center and so q2 is q2_center
+        # Get zone centers for the reference element
+        q2_ref_start_local = -1. + 0.5*dq2_ref
+        q2_ref_end_local   =  1. - 0.5*dq2_ref
         
-        x_y_top_left      = [-radius/np.sqrt(2) - .5*dq1, 1]
-        x_y_top_center    = [0,                           1]
-        x_y_top_right     = [radius/np.sqrt(2)  + .5*dq1, 1]        
+    if (np.abs(q2_start_local - q2_start_local_bottom) < 1e-10):
+        # q2_start_local is at the bottom edge and so q2 is q2_bottom
+        # Get bottom edges for the reference element
+
+        q2_ref_start_local = -1.
+        q2_ref_end_local   =  1. - dq2_ref
+
+    # Now q1_ref = a*q1 + b, and we need to solve for (a, b)
+    # Use the end points:
+    #      q1_ref_start_local = a*q1_start_local + b
+    #      q1_ref_end_local   = a*q1_end_local   + b
     
-#        x_y_bottom_left   = [q1_start_local, q2_start_local]
-#        x_y_bottom_center = [q1_center_local, q2_start_local]
-#        x_y_bottom_right  = [q1_end_local, q2_start_local]
-#        
-#        x_y_left_center  = [-radius/np.sqrt(2) - .0*dq1, (-1-radius/np.sqrt(2))/2]
-#        x_y_right_center = [radius/np.sqrt(2)  + .0*dq1, (-1-radius/np.sqrt(2))/2]
-#        
-#        x_y_top_left     = [-radius/np.sqrt(2) - .0*dq1, -radius/np.sqrt(2) + .0*dq2]
-#        x_y_top_center   = [q1_center_local, -radius]
-#        x_y_top_right    = [radius/np.sqrt(2) + .0*dq1,  -radius/np.sqrt(2) + .0*dq2]
+    a =   (q1_ref_start_local - q1_ref_end_local) \
+        / (q1_start_local     - q1_end_local)
+
+    b = q1_ref_start_local - a*q1_start_local
+    
+    # Similarly, q2_ref = c*q2 + d
+    c =   (q2_ref_start_local - q2_ref_end_local) \
+        / (q2_start_local     - q2_end_local)
+
+    d = q2_ref_start_local - c*q2_start_local
+
+    # Finally,
+    q1_temp = a*q1 + b
+    q2_temp = c*q2 + d
+
+#    print ("coords.py, start : ", q1_start_local, q2_start_local)
+#    print ("coords.py, end : ", q1_end_local, q2_end_local)
+#    print ("coords.py, center : ", q1_center_local, q2_center_local)
+
+    # Bottom-center domain
+    if ((q2_midpoint < -0.33) and (q1_midpoint > -0.33) and (q1_midpoint < 0.33)):
+        x_y_bottom_left   = [-radius/np.sqrt(2), -1]
+        x_y_bottom_center = [0                 , -1]
+        x_y_bottom_right  = [radius/np.sqrt(2) , -1]
+        
+        x_y_left_center  = [-radius/np.sqrt(2), (-1-radius/np.sqrt(2))/2]
+        x_y_right_center = [ radius/np.sqrt(2), (-1-radius/np.sqrt(2))/2]
+        
+        x_y_top_left     = [-radius/np.sqrt(2), -radius/np.sqrt(2)]
+        x_y_top_center   = [0                 , -radius           ]
+        x_y_top_right    = [radius/np.sqrt(2) , -radius/np.sqrt(2)] 
+
         print ('x_y_bottom_left = ', x_y_bottom_left)
         print ('x_y_bottom_center = ', x_y_bottom_center)
         print ('x_y_bottom_right = ', x_y_bottom_right)
@@ -279,113 +300,169 @@ def get_cartesian_coords(q1, q2):
                          x_y_bottom_left, x_y_bottom_right, 
                          x_y_top_right, x_y_top_left,
                          x_y_bottom_center, x_y_right_center,
-                         x_y_top_center, x_y_left_center,
-                         X_Y_bottom_left, X_Y_bottom_right, 
-                         X_Y_top_right, X_Y_top_left,
-                         X_Y_bottom_center, X_Y_right_center,
-                         X_Y_top_center, X_Y_left_center,
+                         x_y_top_center, x_y_left_center
                         )
 
-        x = (x/q1_scale_factor) + q1_midpoint
-        y = (y/q2_scale_factor) + q2_midpoint
+    # Bottom-left domain
+    elif ((q2_midpoint < -0.33) and (q1_midpoint > -1) and (q1_midpoint < -0.33)):
 
-#
-#    # Top domain
-#    elif ((q2_midpoint > 0.33) and (q1_midpoint > -0.66) and (q1_midpoint < 0.33)):
-#        x_y_bottom_left   = [-radius/np.sqrt(2) - .5*dq1, radius/np.sqrt(2) - .5*dq2]
-#        x_y_bottom_center = [0,                           radius                    ]
-#        x_y_bottom_right  = [radius/np.sqrt(2) + .5*dq1,  radius/np.sqrt(2) - .5*dq2]
-#        
-#        x_y_left_center   = [-radius/np.sqrt(2) - .5*dq1, (1+radius/np.sqrt(2))/2]
-#        x_y_right_center  = [ radius/np.sqrt(2) + .5*dq1, (1+radius/np.sqrt(2))/2]
-#        
-#        x_y_top_left      = [-radius/np.sqrt(2) - .5*dq1, 1]
-#        x_y_top_center    = [0,                           1]
-#        x_y_top_right     = [radius/np.sqrt(2)  + .5*dq1, 1]
-#        
-#        x, y = affine(q1, q2,
-#                         x_y_bottom_left, x_y_bottom_right, 
-#                         x_y_top_right, x_y_top_left,
-#                         x_y_bottom_center, x_y_right_center,
-#                         x_y_top_center, x_y_left_center,
-#                         X_Y_bottom_left, X_Y_bottom_right, 
-#                         X_Y_top_right, X_Y_top_left,
-#                         X_Y_bottom_center, X_Y_right_center,
-#                         X_Y_top_center, X_Y_left_center,
-#                        )
-#    
-#    
-#    # Right domain
-#    elif ((q2_midpoint > -0.66) and (q2_midpoint < 0.33) and (q1_midpoint > 0.33)):
-#        x_y_bottom_left   = [radius/np.sqrt(2) - .5*dq1, -radius/np.sqrt(2) - .5*dq2]
-#        x_y_bottom_center = [(1.+radius/np.sqrt(2))/2,    -radius/np.sqrt(2) - .5*dq2]
-#        x_y_bottom_right  = [1.,                          -radius/np.sqrt(2) - .5*dq2]
-#        
-#        x_y_left_center  = [radius, 0.]
-#        x_y_right_center = [1., 0.]
-#        
-#        x_y_top_left     = [radius/np.sqrt(2) - .5*dq1, radius/np.sqrt(2) + .5*dq2]
-#        x_y_top_center   = [(1.+radius/np.sqrt(2))/2,    radius/np.sqrt(2) + .5*dq2]
-#        x_y_top_right    = [1.,                          radius/np.sqrt(2) + .5*dq2]
-#        
-#        x, y = affine(q1, q2,
-#                         x_y_bottom_left, x_y_bottom_right, 
-#                         x_y_top_right, x_y_top_left,
-#                         x_y_bottom_center, x_y_right_center,
-#                         x_y_top_center, x_y_left_center,
-#                         X_Y_bottom_left, X_Y_bottom_right, 
-#                         X_Y_top_right, X_Y_top_left,
-#                         X_Y_bottom_center, X_Y_right_center,
-#                         X_Y_top_center, X_Y_left_center,
-#                        )
-#
-#    # Left domain
-#    elif ((q2_midpoint > -0.66) and (q2_midpoint < 0.33) and (q1_midpoint < -0.66)):
-#        x_y_bottom_left   = [-1.,                          -radius/np.sqrt(2) - .5*dq2]
-#        x_y_bottom_center = [-(1.+radius/np.sqrt(2))/2,    -radius/np.sqrt(2) - .5*dq2]
-#        x_y_bottom_right  = [-radius/np.sqrt(2) + .5*dq1, -radius/np.sqrt(2) - .5*dq2]
-#        
-#        x_y_left_center  = [-1.,  0.]
-#        x_y_right_center = [-radius, 0.]
-#        
-#        x_y_top_left     = [-1.,                          radius/np.sqrt(2) + .5*dq2]
-#        x_y_top_center   = [-(1.+radius/np.sqrt(2))/2,    radius/np.sqrt(2) + .5*dq2]
-#        x_y_top_right    = [-radius/np.sqrt(2) + .5*dq1, radius/np.sqrt(2) + .5*dq2]
-#        
-#        x, y = affine(q1, q2,
-#                         x_y_bottom_left, x_y_bottom_right, 
-#                         x_y_top_right, x_y_top_left,
-#                         x_y_bottom_center, x_y_right_center,
-#                         x_y_top_center, x_y_left_center,
-#                         X_Y_bottom_left, X_Y_bottom_right, 
-#                         X_Y_top_right, X_Y_top_left,
-#                         X_Y_bottom_center, X_Y_right_center,
-#                         X_Y_top_center, X_Y_left_center,
-#                        )
-#
-#    # Center domain
-#    elif ((q2_midpoint > -0.66) and (q2_midpoint < 0.33) and (q1_midpoint > -0.66) and (q1_midpoint < 0.33)):
-#        x_y_bottom_left   = [-radius/np.sqrt(2), -radius/np.sqrt(2)]
-#        x_y_bottom_center = [0.,                  -radius - .5*dq2  ]
-#        x_y_bottom_right  = [radius/np.sqrt(2),  -radius/np.sqrt(2)]
-#        
-#        x_y_left_center  = [-radius - .5*dq1, 0]
-#        x_y_right_center = [ radius + .5*dq1, 0]
-#        
-#        x_y_top_left     = [-radius/np.sqrt(2), radius/np.sqrt(2)]
-#        x_y_top_center   = [0.,                  radius + .5*dq2  ]
-#        x_y_top_right    = [radius/np.sqrt(2),  radius/np.sqrt(2)]
-#        
-#        x, y = affine(q1, q2,
-#                         x_y_bottom_left, x_y_bottom_right, 
-#                         x_y_top_right, x_y_top_left,
-#                         x_y_bottom_center, x_y_right_center,
-#                         x_y_top_center, x_y_left_center,
-#                         X_Y_bottom_left, X_Y_bottom_right, 
-#                         X_Y_top_right, X_Y_top_left,
-#                         X_Y_bottom_center, X_Y_right_center,
-#                         X_Y_top_center, X_Y_left_center,
-#                        )
+        x_y_bottom_left   = [-1, -1]
+        x_y_bottom_center = [q1_center_local, -1]
+        x_y_bottom_right  = [-radius/np.sqrt(2), -1]
+
+        x_y_left_center  = [-1, q2_center_local]
+        x_y_right_center = [-radius/np.sqrt(2), (-1-radius/np.sqrt(2))/2]        
+        
+        x_y_top_left     = [-1, -radius/np.sqrt(2)]
+        x_y_top_center   = [-(1.+radius/np.sqrt(2))/2, -radius/np.sqrt(2)]
+        x_y_top_right    = [-radius/np.sqrt(2), -radius/np.sqrt(2)] 
+
+        x, y = quadratic(q1_temp, q2_temp,
+                         x_y_bottom_left, x_y_bottom_right, 
+                         x_y_top_right, x_y_top_left,
+                         x_y_bottom_center, x_y_right_center,
+                         x_y_top_center, x_y_left_center
+                        )
+
+    # Bottom-right domain
+    elif ((q2_midpoint < -0.33) and (q1_midpoint > 0.33) and (q1_midpoint < 1.)):
+
+        x_y_bottom_left   = [radius/np.sqrt(2), -1]
+        x_y_bottom_center = [q1_center_local, -1]
+        x_y_bottom_right  = [1, -1]
+
+        x_y_left_center   = [ radius/np.sqrt(2), (-1-radius/np.sqrt(2))/2]
+        x_y_right_center  = [1, q2_center_local]
+        
+        x_y_top_left     = [radius/np.sqrt(2), -radius/np.sqrt(2)]
+        x_y_top_center   = [(1.+radius/np.sqrt(2))/2,    -radius/np.sqrt(2)]
+        x_y_top_right    = [1, -radius/np.sqrt(2)] 
+
+        x, y = quadratic(q1_temp, q2_temp,
+                         x_y_bottom_left, x_y_bottom_right, 
+                         x_y_top_right, x_y_top_left,
+                         x_y_bottom_center, x_y_right_center,
+                         x_y_top_center, x_y_left_center
+                        )
+
+    # Top-center domain
+    elif ((q2_midpoint > 0.33) and (q1_midpoint > -0.33) and (q1_midpoint < 0.33)):
+        x_y_bottom_left   = [-radius/np.sqrt(2), radius/np.sqrt(2)]
+        x_y_bottom_center = [0,                           radius                    ]
+        x_y_bottom_right  = [radius/np.sqrt(2),  radius/np.sqrt(2)]
+        
+        x_y_left_center   = [-radius/np.sqrt(2), (1+radius/np.sqrt(2))/2]
+        x_y_right_center  = [ radius/np.sqrt(2), (1+radius/np.sqrt(2))/2]
+        
+        x_y_top_left      = [-radius/np.sqrt(2), 1]
+        x_y_top_center    = [0,                           1]
+        x_y_top_right     = [radius/np.sqrt(2), 1]
+        
+        x, y = quadratic(q1_temp, q2_temp,
+                         x_y_bottom_left, x_y_bottom_right, 
+                         x_y_top_right, x_y_top_left,
+                         x_y_bottom_center, x_y_right_center,
+                         x_y_top_center, x_y_left_center
+                        )
+    # Top-left domain
+    elif ((q2_midpoint > 0.33) and (q1_midpoint > -1) and (q1_midpoint < -0.33)):
+        x_y_bottom_left   = [-1, radius/np.sqrt(2)]
+        x_y_bottom_center = [-(1.+radius/np.sqrt(2))/2,    radius/np.sqrt(2)]
+        x_y_bottom_right  = [-radius/np.sqrt(2),  radius/np.sqrt(2)]
+        
+        x_y_left_center  = [-1, q2_center_local]
+        x_y_right_center = [-radius/np.sqrt(2), (1+radius/np.sqrt(2))/2]
+
+        x_y_top_left      = [-1, 1]
+        x_y_top_center    = [q1_center_local, 1] 
+        x_y_top_right     = [-radius/np.sqrt(2), 1]
+        
+        x, y = quadratic(q1_temp, q2_temp,
+                         x_y_bottom_left, x_y_bottom_right, 
+                         x_y_top_right, x_y_top_left,
+                         x_y_bottom_center, x_y_right_center,
+                         x_y_top_center, x_y_left_center
+                        )
+    
+    # Top-right domain
+    elif ((q2_midpoint > 0.33) and (q1_midpoint > -0.33) and (q1_midpoint < 1)):
+        x_y_bottom_left   = [radius/np.sqrt(2), radius/np.sqrt(2)]
+        x_y_bottom_center = [(1.+radius/np.sqrt(2))/2,    radius/np.sqrt(2)]
+        x_y_bottom_right  = [1,  radius/np.sqrt(2)]
+        
+        x_y_right_center = [1., q2_center_local]
+        x_y_left_center  = [ radius/np.sqrt(2), (1+radius/np.sqrt(2))/2]
+
+        x_y_top_left      = [radius/np.sqrt(2), 1]
+        x_y_top_center    = [q1_center_local, 1]
+        x_y_top_right     = [1, 1]
+        
+        x, y = quadratic(q1_temp, q2_temp,
+                         x_y_bottom_left, x_y_bottom_right, 
+                         x_y_top_right, x_y_top_left,
+                         x_y_bottom_center, x_y_right_center,
+                         x_y_top_center, x_y_left_center
+                        )
+    
+    # Center-Right domain
+    elif ((q2_midpoint > -0.33) and (q2_midpoint < 0.33) and (q1_midpoint > 0.33)):
+        x_y_bottom_left   = [radius/np.sqrt(2), -radius/np.sqrt(2)]
+        x_y_bottom_center = [(1.+radius/np.sqrt(2))/2,    -radius/np.sqrt(2)]
+        x_y_bottom_right  = [1.,                          -radius/np.sqrt(2)]
+        
+        x_y_left_center  = [radius, 0.]
+        x_y_right_center = [1., 0.]
+        
+        x_y_top_left     = [radius/np.sqrt(2), radius/np.sqrt(2)  ]
+        x_y_top_center   = [(1.+radius/np.sqrt(2))/2,    radius/np.sqrt(2) ]
+        x_y_top_right    = [1.,                          radius/np.sqrt(2) ]
+        
+        x, y = quadratic(q1_temp, q2_temp,
+                         x_y_bottom_left, x_y_bottom_right, 
+                         x_y_top_right, x_y_top_left,
+                         x_y_bottom_center, x_y_right_center,
+                         x_y_top_center, x_y_left_center
+                        )
+
+    # Center-Left domain
+    elif ((q2_midpoint > -0.33) and (q2_midpoint < 0.33) and (q1_midpoint < -0.33)):
+        x_y_bottom_left   = [-1.,                          -radius/np.sqrt(2)]
+        x_y_bottom_center = [-(1.+radius/np.sqrt(2))/2,    -radius/np.sqrt(2)]
+        x_y_bottom_right  = [-radius/np.sqrt(2) + 0*dq1, -radius/np.sqrt(2)  ]
+        
+        x_y_left_center  = [-1.,  0.]
+        x_y_right_center = [-radius, 0.]
+        
+        x_y_top_left     = [-1.,                          radius/np.sqrt(2)]
+        x_y_top_center   = [-(1.+radius/np.sqrt(2))/2,    radius/np.sqrt(2)]
+        x_y_top_right    = [-radius/np.sqrt(2) + 0*dq1, radius/np.sqrt(2)  ]
+        
+        x, y = quadratic(q1_temp, q2_temp,
+                         x_y_bottom_left, x_y_bottom_right, 
+                         x_y_top_right, x_y_top_left,
+                         x_y_bottom_center, x_y_right_center,
+                         x_y_top_center, x_y_left_center
+                        )
+
+    # Center domain
+    elif ((q2_midpoint > -0.33) and (q2_midpoint < 0.33) and (q1_midpoint > -0.33) and (q1_midpoint < 0.33)):
+        x_y_bottom_left   = [-radius/np.sqrt(2), -radius/np.sqrt(2)]
+        x_y_bottom_center = [0.,                  -radius]
+        x_y_bottom_right  = [radius/np.sqrt(2),  -radius/np.sqrt(2)]
+        
+        x_y_left_center  = [-radius, 0]
+        x_y_right_center = [ radius, 0]
+        
+        x_y_top_left     = [-radius/np.sqrt(2), radius/np.sqrt(2)]
+        x_y_top_center   = [0.,                  radius]
+        x_y_top_right    = [radius/np.sqrt(2),  radius/np.sqrt(2)]
+        
+        x, y = quadratic(q1_temp, q2_temp,
+                         x_y_bottom_left, x_y_bottom_right, 
+                         x_y_top_right, x_y_top_left,
+                         x_y_bottom_center, x_y_right_center,
+                         x_y_top_center, x_y_left_center
+                        )
 
 
     return(x, y)

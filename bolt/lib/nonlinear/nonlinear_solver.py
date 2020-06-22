@@ -346,6 +346,11 @@ class nonlinear_solver(object):
         self.q1_start_local = self.q1_start + _i_q1_start * self.dq1
         self.q2_start_local = self.q2_start + _i_q2_start * self.dq2
 
+        # TODO : Fix this. Passing into params for use in coords.py
+        self.physical_system.params.q1_start_local_left   = self.q1_start_local
+        self.physical_system.params.q2_start_local_bottom = self.q2_start_local
+        
+
         print("nonlinear.py: rank = ", self._comm.rank,
               "(q1_start_local, q2_start_local) =  (", 
               self.q1_start_local, self.q2_start_local, ")"

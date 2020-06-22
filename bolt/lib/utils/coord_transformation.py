@@ -5,9 +5,11 @@ import domain
 import coords
 
 
-def get_theta(q1, q2, boundary):
+def get_theta(q1, q2, boundary,  q1_start_local_left=None, q2_start_local_bottom=None):
 
-    [[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]] = jacobian_dx_dq(q1, q2)
+    [[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]] = jacobian_dx_dq(q1, q2,
+                                                          q1_start_local_left, 
+                                                          q2_start_local_bottom)
     
     dq1 = (domain.q1_end - domain.q1_start)/domain.N_q1
     dq2 = (domain.q2_end - domain.q2_start)/domain.N_q2
@@ -23,19 +25,19 @@ def get_theta(q1, q2, boundary):
 
     return (af.atan(dy_dx))
 
-def jacobian_dx_dq(q1, q2):
+def jacobian_dx_dq(q1, q2, q1_start_local_left=None, q2_start_local_bottom=None):
     
     eps = 1e-7 # small parameter needed for numerical differentiation. Can't be too small though!
-    x, y                         = coords.get_cartesian_coords(q1,     q2    )
-    x_plus_eps_q1, y_plus_eps_q1 = coords.get_cartesian_coords(q1+eps, q2    )
-    x_plus_eps_q2, y_plus_eps_q2 = coords.get_cartesian_coords(q1,     q2+eps)
+    x, y                         = coords.get_cartesian_coords(q1,     q2    , q1_start_local_left, q2_start_local_bottom)
+    x_plus_eps_q1, y_plus_eps_q1 = coords.get_cartesian_coords(q1+eps, q2    , q1_start_local_left, q2_start_local_bottom)
+    x_plus_eps_q2, y_plus_eps_q2 = coords.get_cartesian_coords(q1,     q2+eps, q1_start_local_left, q2_start_local_bottom)
 
     dx_dq1 = (x_plus_eps_q1 - x)/eps; dy_dq1 = (y_plus_eps_q1 - y)/eps
     dx_dq2 = (x_plus_eps_q2 - x)/eps; dy_dq2 = (y_plus_eps_q2 - y)/eps
 
     return([[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]])
 
-def jacobian_dq_dx(q1, q2):
+def jacobian_dq_dx(q1, q2, q1_start_local_left=None, q2_start_local_bottom=None):
 
     """ Returns dq/dx in a 2x2 array
 
@@ -44,7 +46,7 @@ def jacobian_dq_dx(q1, q2):
 
     """
 
-    A = jacobian_dx_dq(q1, q2)
+    A = jacobian_dx_dq(q1, q2, q1_start_local_left, q2_start_local_bottom)
 
     a = A[0][0]; b = A[0][1]
     c = A[1][0]; d = A[1][1]
@@ -58,9 +60,9 @@ def jacobian_dq_dx(q1, q2):
 
     return(inv_A)
 
-def sqrt_det_g(q1, q2):
+def sqrt_det_g(q1, q2, q1_start_local_left=None, q2_start_local_bottom=None):
 
-    jac = jacobian_dx_dq(q1, q2)
+    jac = jacobian_dx_dq(q1, q2, q1_start_local_left, q2_start_local_bottom)
     
     dx_dq1 = jac[0][0]; dx_dq2 = jac[0][1]
     dy_dq1 = jac[1][0]; dy_dq2 = jac[1][1]
@@ -98,12 +100,17 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
     N_q2_local    = shift_indices.dims()[3]
 
     # Get the angular variation of the left boundary.
-    theta_left = get_theta(q1, q2, "left")[0, 0, left_edge, :]
+    theta_left = get_theta(q1, q2, "left", \
+                           q1_start_local_left=params.q1_start_local_left, \
+                           q2_start_local_bottom=params.q2_start_local_bottom)[0, 0, left_edge, :]
+    print ("coordinate_transformation, theta_left : ", theta_left, " Rank : ", params.rank)
+
     theta_left = af.moddims(theta_left, N_q2_local) # Convert to 1D array
 
     # Calculate the number of shifts of the array along the p_theta axis
     # required for an angular shift of -2*theta_left
     shifts  = -((2*theta_left)/(2*np.pi))*N_theta 
+#    print ("coordinate_transformation, shifts : ", shifts, " Rank : ", params.rank)
 
     # Populate shift_indices 2D array using shifts.
     for index, value in enumerate(shifts):
@@ -118,7 +125,9 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
     shift_indices = (0.*q1*p1)[:, 0, 0, :] # Shape : N_theta x 1 x 1 x N_q2+2*N_g
 
     # Get the angular variation of the right boundary.
-    theta_right = get_theta(q1, q2, "right")[0, 0, right_edge, :]
+    theta_right = get_theta(q1, q2, "right", \
+                            q1_start_local_left=params.q1_start_local_left, \
+                            q2_start_local_bottom=params.q2_start_local_bottom)[0, 0, right_edge, :]
     theta_right = af.moddims(theta_right, N_q2_local) # Convert to 1D array
 
     # Calculate the number of shifts of the array along the p_theta axis
@@ -141,7 +150,9 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
     N_q1_local    = shift_indices.dims()[2]
 
     # Get the angular variation of the bottom boundary.
-    theta_bottom = get_theta(q1, q2, "bottom")[0, 0, :, bottom_edge]
+    theta_bottom = get_theta(q1, q2, "bottom", \
+                             q1_start_local_left=params.q1_start_local_left, \
+                             q2_start_local_bottom=params.q2_start_local_bottom)[0, 0, :, bottom_edge]
     theta_bottom = af.moddims(theta_bottom, N_q1_local) # Convert to 1D array
 
     # Calculate the number of shifts of the array along the p_theta axis
@@ -162,7 +173,9 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
     N_q1_local    = shift_indices.dims()[2]
 
     # Get the angular variation of the bottom boundary.
-    theta_bottom = get_theta(q1, q2, "bottom")[0, 0, :, bottom_edge]
+    theta_bottom = get_theta(q1, q2, "bottom", \
+                             q1_start_local_left=params.q1_start_local_left, \
+                             q2_start_local_bottom=params.q2_start_local_bottom)[0, 0, :, bottom_edge]
     theta_bottom = af.moddims(theta_bottom, N_q1_local) # Convert to 1D array
 
     # Calculate the number of shifts of the array along the p_theta axis
@@ -183,7 +196,9 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
     shift_indices = (0.*q1*p1)[:, 0, :, 0] # Shape : N_theta x 1 x N_q1+2*N_g x 1
     
     # Get the angular variation of the top boundary.
-    theta_top = get_theta(q1, q2, "top")[0, 0, :, top_edge]
+    theta_top = get_theta(q1, q2, "top", \
+                          q1_start_local_left=params.q1_start_local_left, \
+                          q2_start_local_bottom=params.q2_start_local_bottom)[0, 0, :, top_edge]
     theta_top = af.moddims(theta_top, N_q1_local) # Convert to 1D array
  
     # Calculate the number of shifts of the array along the p_theta axis
