@@ -107,10 +107,18 @@ def quadratic(X, Y,
     b6 = b6[0]
     b7 = b7[0]
     
-    x = a0 + a1*X + a2*Y + a3*X*Y + a4*X**2 + a5*Y**2 + a6*X**2*Y + a7*X*Y**2
-    y = b0 + b1*X + b2*Y + b3*X*Y + b4*X**2 + b5*Y**2 + b6*X**2*Y + b7*X*Y**2
-    
-    return(x, y)
+    x     = a0 + a1*X + a2*Y + a3*X*Y + a4*X**2 + a5*Y**2 + a6*X**2*Y + a7*X*Y**2
+    y     = b0 + b1*X + b2*Y + b3*X*Y + b4*X**2 + b5*Y**2 + b6*X**2*Y + b7*X*Y**2
+
+    dx_dX =      a1          + a3*Y   + 2*a4*X            + 2*a6*X*Y  + a7*Y**2
+    dx_dY =             a2   + a3*X             + 2*a5*Y  +   a6*X**2 + 2*a7*X*Y
+
+    dy_dX =      b1          + b3*Y   + 2*b4*X            + 2*b6*X*Y  + b7*Y**2 
+    dy_dY =             b2   + b3*X             + 2*b5*Y  + b6*X**2   + 2*b7*X*Y
+
+    jacobian = [[dx_dX, dx_dY], [dy_dX, dy_dY]]
+
+    return (x, y, jacobian)
 
 
 def affine(q1, q2,
@@ -119,6 +127,7 @@ def affine(q1, q2,
            X_Y_bottom_left, X_Y_bottom_right, 
            X_Y_top_right, X_Y_top_left,
           ):
+    a = [a0, a1, a2, a3, a4, a5, a6, a7]
 
     '''
         Inputs :
@@ -188,7 +197,8 @@ def affine(q1, q2,
 
 def get_cartesian_coords(q1, q2, 
                          q1_start_local_left=None, 
-                         q2_start_local_bottom=None
+                         q2_start_local_bottom=None,
+                         return_jacobian = False
                         ):
 
     q1_midpoint = 0.5*(af.max(q1) + af.min(q1))
@@ -287,16 +297,16 @@ def get_cartesian_coords(q1, q2,
         x_y_top_center   = [0                 , -radius           ]
         x_y_top_right    = [radius/np.sqrt(2) , -radius/np.sqrt(2)] 
 
-        print ('x_y_bottom_left = ', x_y_bottom_left)
-        print ('x_y_bottom_center = ', x_y_bottom_center)
-        print ('x_y_bottom_right = ', x_y_bottom_right)
-        print ('x_y_left_center = ', x_y_left_center)
-        print ('x_y_right_center = ', x_y_right_center)
-        print ('x_y_top_left = ', x_y_top_left)
-        print ('x_y_top_center = ', x_y_top_center)
-        print ('x_y_top_right = ', x_y_top_right)
+#        print ('x_y_bottom_left = ', x_y_bottom_left)
+#        print ('x_y_bottom_center = ', x_y_bottom_center)
+#        print ('x_y_bottom_right = ', x_y_bottom_right)
+#        print ('x_y_left_center = ', x_y_left_center)
+#        print ('x_y_right_center = ', x_y_right_center)
+#        print ('x_y_top_left = ', x_y_top_left)
+#        print ('x_y_top_center = ', x_y_top_center)
+#        print ('x_y_top_right = ', x_y_top_right)
         
-        x, y = quadratic(q1_temp, q2_temp,
+        x, y, jacobian = quadratic(q1_temp, q2_temp,
                          x_y_bottom_left, x_y_bottom_right, 
                          x_y_top_right, x_y_top_left,
                          x_y_bottom_center, x_y_right_center,
@@ -317,7 +327,7 @@ def get_cartesian_coords(q1, q2,
         x_y_top_center   = [-(1.+radius/np.sqrt(2))/2, -radius/np.sqrt(2)]
         x_y_top_right    = [-radius/np.sqrt(2), -radius/np.sqrt(2)] 
 
-        x, y = quadratic(q1_temp, q2_temp,
+        x, y, jacobian = quadratic(q1_temp, q2_temp,
                          x_y_bottom_left, x_y_bottom_right, 
                          x_y_top_right, x_y_top_left,
                          x_y_bottom_center, x_y_right_center,
@@ -338,7 +348,7 @@ def get_cartesian_coords(q1, q2,
         x_y_top_center   = [(1.+radius/np.sqrt(2))/2,    -radius/np.sqrt(2)]
         x_y_top_right    = [1, -radius/np.sqrt(2)] 
 
-        x, y = quadratic(q1_temp, q2_temp,
+        x, y, jacobian = quadratic(q1_temp, q2_temp,
                          x_y_bottom_left, x_y_bottom_right, 
                          x_y_top_right, x_y_top_left,
                          x_y_bottom_center, x_y_right_center,
@@ -358,7 +368,7 @@ def get_cartesian_coords(q1, q2,
         x_y_top_center    = [0,                           1]
         x_y_top_right     = [radius/np.sqrt(2), 1]
         
-        x, y = quadratic(q1_temp, q2_temp,
+        x, y, jacobian = quadratic(q1_temp, q2_temp,
                          x_y_bottom_left, x_y_bottom_right, 
                          x_y_top_right, x_y_top_left,
                          x_y_bottom_center, x_y_right_center,
@@ -377,7 +387,7 @@ def get_cartesian_coords(q1, q2,
         x_y_top_center    = [q1_center_local, 1] 
         x_y_top_right     = [-radius/np.sqrt(2), 1]
         
-        x, y = quadratic(q1_temp, q2_temp,
+        x, y, jacobian = quadratic(q1_temp, q2_temp,
                          x_y_bottom_left, x_y_bottom_right, 
                          x_y_top_right, x_y_top_left,
                          x_y_bottom_center, x_y_right_center,
@@ -397,7 +407,7 @@ def get_cartesian_coords(q1, q2,
         x_y_top_center    = [q1_center_local, 1]
         x_y_top_right     = [1, 1]
         
-        x, y = quadratic(q1_temp, q2_temp,
+        x, y, jacobian = quadratic(q1_temp, q2_temp,
                          x_y_bottom_left, x_y_bottom_right, 
                          x_y_top_right, x_y_top_left,
                          x_y_bottom_center, x_y_right_center,
@@ -417,7 +427,7 @@ def get_cartesian_coords(q1, q2,
         x_y_top_center   = [(1.+radius/np.sqrt(2))/2,    radius/np.sqrt(2) ]
         x_y_top_right    = [1.,                          radius/np.sqrt(2) ]
         
-        x, y = quadratic(q1_temp, q2_temp,
+        x, y, jacobian = quadratic(q1_temp, q2_temp,
                          x_y_bottom_left, x_y_bottom_right, 
                          x_y_top_right, x_y_top_left,
                          x_y_bottom_center, x_y_right_center,
@@ -437,7 +447,7 @@ def get_cartesian_coords(q1, q2,
         x_y_top_center   = [-(1.+radius/np.sqrt(2))/2,    radius/np.sqrt(2)]
         x_y_top_right    = [-radius/np.sqrt(2) + 0*dq1, radius/np.sqrt(2)  ]
         
-        x, y = quadratic(q1_temp, q2_temp,
+        x, y, jacobian = quadratic(q1_temp, q2_temp,
                          x_y_bottom_left, x_y_bottom_right, 
                          x_y_top_right, x_y_top_left,
                          x_y_bottom_center, x_y_right_center,
@@ -457,13 +467,14 @@ def get_cartesian_coords(q1, q2,
         x_y_top_center   = [0.,                  radius]
         x_y_top_right    = [radius/np.sqrt(2),  radius/np.sqrt(2)]
         
-        x, y = quadratic(q1_temp, q2_temp,
+        x, y, jacobian = quadratic(q1_temp, q2_temp,
                          x_y_bottom_left, x_y_bottom_right, 
                          x_y_top_right, x_y_top_left,
                          x_y_bottom_center, x_y_right_center,
                          x_y_top_center, x_y_left_center
                         )
-
+    if (return_jacobian):
+        return (x, y, jacobian)
 
     return(x, y)
 

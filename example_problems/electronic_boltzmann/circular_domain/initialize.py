@@ -43,7 +43,6 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     params.x, params.y = coords.get_cartesian_coords(q1, q2,
                                                      q1_start_local_left=params.q1_start_local_left, 
                                                      q2_start_local_bottom=params.q2_start_local_bottom)
-    print ("initialize : ", params.q1_start_local_left, params.q2_start_local_bottom)
 
     params.q1 = q1; params.q2 = q2
     [[params.dx_dq1, params.dx_dq2], [params.dy_dq1, params.dy_dq2]] = jacobian_dx_dq(q1, q2,
@@ -98,14 +97,28 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     else : 
         raise NotImplementedError('Unsupported coordinate system in p_space')
 
+    # Initialize to zero
+    f = 0*q1*p1
 
+    # Parameters to define a gaussian in space (representing a 2D ball)
+    A        = domain.N_p2 # Amplitude (required for normalization)
+    sigma_x = 0.05 # Standard deviation in x
+    sigma_y = 0.05 # Standard deviation in y
+    x_0     = 0.5 # Center in x
+    y_0     = 0.5 # Center in y
 
-    f = (1./(af.exp( (params.E_band - params.vel_drift_x*params.p_x
-                                    - params.vel_drift_y*params.p_y
-                                    - params.mu
-                    )/(k*params.T) 
-                  ) + 1.
-           ))
+    # TODO: This will work with polar2D p-space only for the moment
+    # Particles lying on the ball need to have the same velocity (direction)
+    #theta_0_index = (5*N_p2/8) - 1 # Direction of initial velocity
+    theta_0_index = int(6*domain.N_p2/8) # Direction of initial velocity
+    
+    print ("Initial angle : ")
+    af.display(p2[theta_0_index])
+
+    f[theta_0_index, :, :]  = A*af.exp(-( (params.x-x_0)**2/(2*sigma_x**2) + \
+                                          (params.y-y_0)**2/(2*sigma_y**2)
+                                        )
+                                      )
 
     af.eval(f)
     return(f)

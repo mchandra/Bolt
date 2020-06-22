@@ -7,7 +7,7 @@ from bolt.src.electronic_boltzmann.utils.unit_vectors import normal_to_hexagon_u
 instantaneous_collisions = False #TODO : Remove from lib
 hybrid_model_enabled     = False #TODO : Remove from lib
 source_enabled           = True
-disable_collision_op     = False
+disable_collision_op     = True
 
 # Manual domain decomposition (for advanced users)
 # The number of sub-domains into which the domain is decomposed
@@ -24,10 +24,10 @@ q2_partition = [40./120, 40./120, 40./120] # List of the fractional ranges of ea
 # For example : if q1_partion = [1./3, 2./3], then N_q1%3 == 0
 
 # Internal mirror boundary
-horizontal_boundaries    = [40, 80] # index of boundary axis along q2
+horizontal_boundaries    = [] # index of boundary axis along q2
 horizontal_boundary_lims = [(-0.6666, 0.3333), (-0.6666, 0.3333)] # boundary lims along q1
 
-vertical_boundaries    = [40, 80] # index of boundary axis along q2
+vertical_boundaries    = [] # index of boundary axis along q2
 vertical_boundary_lims = [(-0.6666, 0.3333), (-0.6666, 0.3333)] # boundary lims along q1
 
 fields_enabled = False
@@ -60,15 +60,15 @@ electrostatic_solver_every_nth_step = 1000000
 
 
 # Time parameters:
-dt      = 0.025/4 # ps
-t_final = 50.     # ps
+dt      = 0.025/16 # ps
+t_final = 10.     # ps
 
 
 # File-writing Parameters:
 dump_steps = 5
 dump_dist_after = 1600
 # Set to zero for no file-writing
-dt_dump_f       = 1000*dt #ps
+dt_dump_f       = 5*dt #ps
 # ALWAYS set dump moments and dump fields at same frequency:
 dt_dump_moments = dt_dump_fields = 5*dt #ps
 
