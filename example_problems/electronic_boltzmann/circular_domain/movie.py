@@ -23,14 +23,14 @@ import initialize
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 12, 7.5
-pl.rcParams['figure.dpi']      = 100
+pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
-pl.rcParams['font.weight']     = 'bold'
-pl.rcParams['font.size']       = 25
+pl.rcParams['font.weight']     = 'normal'
+pl.rcParams['font.size']       = 20
 pl.rcParams['font.sans-serif'] = 'serif'
-pl.rcParams['text.usetex']     = True
+pl.rcParams['text.usetex']     = False
 pl.rcParams['axes.linewidth']  = 1.5
 pl.rcParams['axes.titlesize']  = 'medium'
 pl.rcParams['axes.labelsize']  = 'medium'
@@ -106,13 +106,14 @@ print("theta = ", theta)
 for file_number, dump_file in enumerate(distribution_function_files[:]):
     
     print("file_number = ", file_number, "of", distribution_function_files[:].size)
-    
+#    file_number = -1 
+   
     dist_func_file = distribution_function_files[file_number]
     dist_func = io.readBinaryFile(dist_func_file)
     dist_func = dist_func[0].reshape(N_q2, N_q1, N_s, N_p3, N_p2, N_p1)
     
 
-    plot_grid(x[::1, ::1], y[::1, ::1], alpha=0.5)
+#    plot_grid(x[::1, ::1], y[::1, ::1], alpha=0.5)
 
     dist_func_p_avged = np.mean(dist_func, axis = (2, 3,4,5))
     print (dist_func_p_avged.shape)
@@ -121,10 +122,13 @@ for file_number, dump_file in enumerate(distribution_function_files[:]):
     
     pl.gca().set_aspect('equal')
    
-    pl.title(r'Time = ' + "%.2f"%(time_array[file_number]) + " ps")
+    pl.title(r'Time = ' + "%.3f"%(time_array[file_number]) + " ps")
         
     pl.xlabel(r'$x\;(\mu \mathrm{m})$')
     pl.ylabel(r'$y\;(\mu \mathrm{m})$')
+
+    pl.xlim([-1., 1])
+    pl.ylim([-1., 1])
 
     pl.savefig('images/dump_%06d'%file_number + '.png')
     pl.clf()

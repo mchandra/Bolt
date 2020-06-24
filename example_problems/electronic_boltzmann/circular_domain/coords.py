@@ -219,8 +219,9 @@ def get_cartesian_coords(q1, q2,
     q2_start_local = q2[0, 0, 0, 2].scalar()
     q2_end_local   = q2[0, 0, 0, -3].scalar()
 
-    N_q1_local = q1.dims()[2]
-    N_q2_local = q2.dims()[3]
+    N_q1_local = q1.dims()[2] - 4 # Ng = 2
+    N_q2_local = q2.dims()[3] - 4 # Ng = 2
+   
    
     q1_center_local = q1_midpoint
     q2_center_local = q2_midpoint
@@ -279,6 +280,9 @@ def get_cartesian_coords(q1, q2,
     # Finally,
     q1_temp = a*q1 + b
     q2_temp = c*q2 + d
+
+    dq1_tmp_dq1 = a ; dq1_tmp_dq2 = 0.
+    dq2_tmp_dq1 = 0.; dq2_tmp_dq2 = c
 
 #    print ("coords.py, start : ", q1_start_local, q2_start_local)
 #    print ("coords.py, end : ", q1_end_local, q2_end_local)
@@ -423,7 +427,7 @@ def get_cartesian_coords(q1, q2,
         x_y_left_center  = [radius, 0.]
         x_y_right_center = [1., 0.]
         
-        x_y_top_left     = [radius/np.sqrt(2), radius/np.sqrt(2)  ]
+        x_y_top_left     = [radius/np.sqrt(2),           radius/np.sqrt(2) ]
         x_y_top_center   = [(1.+radius/np.sqrt(2))/2,    radius/np.sqrt(2) ]
         x_y_top_right    = [1.,                          radius/np.sqrt(2) ]
         
@@ -438,14 +442,14 @@ def get_cartesian_coords(q1, q2,
     elif ((q2_midpoint > -0.33) and (q2_midpoint < 0.33) and (q1_midpoint < -0.33)):
         x_y_bottom_left   = [-1.,                          -radius/np.sqrt(2)]
         x_y_bottom_center = [-(1.+radius/np.sqrt(2))/2,    -radius/np.sqrt(2)]
-        x_y_bottom_right  = [-radius/np.sqrt(2) + 0*dq1, -radius/np.sqrt(2)  ]
+        x_y_bottom_right  = [-radius/np.sqrt(2) + 0*dq1,   -radius/np.sqrt(2)  ]
         
         x_y_left_center  = [-1.,  0.]
         x_y_right_center = [-radius, 0.]
         
         x_y_top_left     = [-1.,                          radius/np.sqrt(2)]
         x_y_top_center   = [-(1.+radius/np.sqrt(2))/2,    radius/np.sqrt(2)]
-        x_y_top_right    = [-radius/np.sqrt(2) + 0*dq1, radius/np.sqrt(2)  ]
+        x_y_top_right    = [-radius/np.sqrt(2) + 0*dq1,   radius/np.sqrt(2)  ]
         
         x, y, jacobian = quadratic(q1_temp, q2_temp,
                          x_y_bottom_left, x_y_bottom_right, 
@@ -473,6 +477,18 @@ def get_cartesian_coords(q1, q2,
                          x_y_bottom_center, x_y_right_center,
                          x_y_top_center, x_y_left_center
                         )
+
+    # Calculate dx_dq from dx_dq_temp and dq_temp_q
+    [[dx_dq1_tmp, dx_dq2_tmp], [dy_dq1_tmp, dy_dq2_tmp]] = jacobian
+
+    dx_dq1 = dx_dq1_tmp * dq1_tmp_dq1 + dx_dq2_tmp * dq2_tmp_dq1
+    dx_dq2 = dx_dq1_tmp * dq1_tmp_dq2 + dx_dq2_tmp * dq2_tmp_dq2
+
+    dy_dq1 = dy_dq1_tmp * dq1_tmp_dq1 + dy_dq2_tmp * dq2_tmp_dq1
+    dy_dq2 = dy_dq1_tmp * dq1_tmp_dq2 + dy_dq2_tmp * dq2_tmp_dq2
+
+    jacobian = [[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]]
+
     if (return_jacobian):
         return (x, y, jacobian)
 
