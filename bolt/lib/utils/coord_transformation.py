@@ -1,5 +1,6 @@
 import numpy as np
 import arrayfire as af
+import pylab as pl
 
 import domain
 import coords
@@ -33,7 +34,8 @@ def get_theta(q1, q2, boundary,  q1_start_local_left=None, q2_start_local_bottom
 
 
     dy_dx = dy/dx
-    #print ("Rank = ", params.rank, ", dy_dx : ", dy_dx.dims())
+    if (boundary == "right"):
+        print("rank = ", params.rank, "dy_dx.dims() = ", dy_dx.dims())
 
     return (af.atan(dy_dx))
 
@@ -131,6 +133,9 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
 
     theta_left = af.moddims(theta_left, N_q2_local) # Convert to 1D array
 
+    if (params.enable_manual_mirror):
+        theta_left = 0.*theta_left + params.mirror_angles[3]
+
     # Calculate the number of shifts of the array along the p_theta axis
     # required for an angular shift of -2*theta_left
     shifts  = -((2*theta_left)/(2*np.pi))*N_theta 
@@ -153,6 +158,20 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
                             q1_start_local_left=params.q1_start_local_left, \
                             q2_start_local_bottom=params.q2_start_local_bottom)[0, 0, right_edge, :]
     theta_right = af.moddims(theta_right, N_q2_local) # Convert to 1D array
+
+    if (params.enable_manual_mirror):
+        theta_right = 0.*theta_right + params.mirror_angles[1]
+
+#    if (params.rank == 5):
+#        pl.figure(figsize=(10, 10))
+#        pl.plot(af.moddims(q2[0, 0, -1, :], N_q2_local).to_ndarray()[:int(N_q2_local/2)], theta_right.to_ndarray()[:int(N_q2_local/2)], 'o')
+#        pl.plot(af.moddims(q2[0, 0, -1, :], N_q2_local).to_ndarray()[int(N_q2_local/2):], theta_right.to_ndarray()[int(N_q2_local/2):]+np.pi, 'o')
+        #pl.axhline(np.pi/2, color = 'k', ls = '--')
+#        pl.xlabel('q2 (um)')
+#        pl.ylabel('theta_right')
+#        pl.savefig('/home/mchandra/gitansh/merge_to_master/example_problems/electronic_boltzmann/circular_domain/iv.png')
+#        pl.clf()
+#        print("coordinate_transformation.py, theta_right_shape = ", theta_right.dims())
     print ("Rank = ", params.rank, ", theta_right : ", af.any_true(af.isnan(theta_right)))
 
     # Calculate the number of shifts of the array along the p_theta axis
@@ -179,6 +198,9 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
                              q1_start_local_left=params.q1_start_local_left, \
                              q2_start_local_bottom=params.q2_start_local_bottom)[0, 0, :, bottom_edge]
     theta_bottom = af.moddims(theta_bottom, N_q1_local) # Convert to 1D array
+
+    if (params.enable_manual_mirror):
+        theta_bottom = 0.*theta_bottom + params.mirror_angles[0]
     print ("Rank = ", params.rank, ", theta_bottom : ", af.any_true(af.isnan(theta_bottom)))
 
     # Calculate the number of shifts of the array along the p_theta axis
@@ -203,6 +225,10 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
                           q1_start_local_left=params.q1_start_local_left, \
                           q2_start_local_bottom=params.q2_start_local_bottom)[0, 0, :, top_edge]
     theta_top = af.moddims(theta_top, N_q1_local) # Convert to 1D array
+
+    if (params.enable_manual_mirror):
+        theta_top = 0.*theta_top + params.mirror_angles[3]
+
     print ("Rank = ", params.rank, ", theta_top : ", af.any_true(af.isnan(theta_top)))
  
     # Calculate the number of shifts of the array along the p_theta axis

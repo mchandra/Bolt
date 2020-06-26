@@ -24,11 +24,15 @@ q2_partition = [40./120, 40./120, 40./120] # List of the fractional ranges of ea
 # For example : if q1_partion = [1./3, 2./3], then N_q1%3 == 0
 
 # Internal mirror boundary
-horizontal_boundaries    = [40, 80] # index of boundary axis along q2
+horizontal_boundaries    = [] # index of boundary axis along q2
 horizontal_boundary_lims = [(-0.3334, 0.3334), (-0.3334, 0.3334)] # boundary lims along q1
 
-vertical_boundaries    = [40, 80] # index of boundary axis along q2
+vertical_boundaries    = [] # index of boundary axis along q2
 vertical_boundary_lims = [(-0.3334, 0.3334), (-0.3334, 0.3334)] # boundary lims along q1
+
+# Manually override external mirror angles [bottom, right, top, left]
+enable_manual_mirror = True
+mirror_angles = [0., np.pi/2, 0., np.pi/2]
 
 fields_enabled = False
 # Can be defined as 'electrostatic', 'user-defined'.

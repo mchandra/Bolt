@@ -38,7 +38,10 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     # mirroring operations along boundaries at arbitrary angles.
     params.shift_indices_left, params.shift_indices_right, \
     params.shift_indices_bottom, params.shift_indices_top = \
-            compute_shift_indices(q1, q2, p1, p2, p3, params)   
+            compute_shift_indices(q1, q2, p1, p2, p3, params)
+
+    print ('initialize.py, shift_indices_left shape : ',   params.shift_indices_left.dims()) 
+    print ('initialize.py, shift_indices_bottom shape : ', params.shift_indices_bottom.dims()) 
 
     params.x, params.y = coords.get_cartesian_coords(q1, q2,
                                                      q1_start_local_left=params.q1_start_local_left, 
