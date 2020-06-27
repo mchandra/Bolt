@@ -311,9 +311,6 @@ def get_cartesian_coords(q1, q2,
     radius          = 0.5
     center          = [0, 0]
 
-    q1_center_local = q1_midpoint
-    q2_center_local = q2_midpoint
-
     if (q1_start_local_left != None and q2_start_local_bottom != None):
 
         # Bottom-center domain
@@ -344,10 +341,10 @@ def get_cartesian_coords(q1, q2,
         elif ((q2_midpoint < -0.33) and (q1_midpoint > -1) and (q1_midpoint < -0.33)):
     
             x_y_bottom_left   = [-1,                 -1]
-            x_y_bottom_center = [q1_center_local,    -1]
+            x_y_bottom_center = [(-1-radius/np.sqrt(2))/2,    -1]
             x_y_bottom_right  = [-radius/np.sqrt(2), -1]
     
-            x_y_left_center  = [-1,                 q2_center_local]
+            x_y_left_center  = [-1,                 (-1-radius/np.sqrt(2))/2]
             x_y_right_center = [-radius/np.sqrt(2), (-1-radius/np.sqrt(2))/2]        
             
             x_y_top_left     = [-1,                        -radius/np.sqrt(2)]
@@ -367,12 +364,12 @@ def get_cartesian_coords(q1, q2,
         # Bottom-right domain
         elif ((q2_midpoint < -0.33) and (q1_midpoint > 0.33) and (q1_midpoint < 1.)):
     
-            x_y_bottom_left   = [radius/np.sqrt(2), -1]
-            x_y_bottom_center = [q1_center_local,   -1]
-            x_y_bottom_right  = [1,                 -1]
+            x_y_bottom_left   = [radius/np.sqrt(2),          -1]
+            x_y_bottom_center = [(1+radius/np.sqrt(2))/2,   -1]
+            x_y_bottom_right  = [1,                          -1]
     
             x_y_left_center   = [ radius/np.sqrt(2), (-1-radius/np.sqrt(2))/2]
-            x_y_right_center  = [1,                  q2_center_local]
+            x_y_right_center  = [1,                  (-1-radius/np.sqrt(2))/2]
             
             x_y_top_left     = [radius/np.sqrt(2),         -radius/np.sqrt(2)]
             x_y_top_center   = [(1.+radius/np.sqrt(2))/2,  -radius/np.sqrt(2)]
@@ -419,11 +416,11 @@ def get_cartesian_coords(q1, q2,
             x_y_bottom_center = [-(1.+radius/np.sqrt(2))/2,  radius/np.sqrt(2)]
             x_y_bottom_right  = [-radius/np.sqrt(2),         radius/np.sqrt(2)]
             
-            x_y_left_center  = [-1,                 q2_center_local]
+            x_y_left_center  = [-1,                 (1+radius/np.sqrt(2))/2]
             x_y_right_center = [-radius/np.sqrt(2), (1+radius/np.sqrt(2))/2]
     
-            x_y_top_left      = [-1,                 1]
-            x_y_top_center    = [q1_center_local,    1] 
+            x_y_top_left      = [-1,                          1]
+            x_y_top_center    = [-(1+radius/np.sqrt(2))/2,    1] 
             x_y_top_right     = [-radius/np.sqrt(2), 1]
             
             x, y, jacobian = quadratic(q1, q2,
@@ -437,17 +434,17 @@ def get_cartesian_coords(q1, q2,
 
         
         # Top-right domain
-        elif ((q2_midpoint > 0.33) and (q1_midpoint > -0.33) and (q1_midpoint < 1)):
+        elif ((q2_midpoint > 0.33) and (q1_midpoint > 0.33) and (q1_midpoint < 1)):
 
             x_y_bottom_left   = [radius/np.sqrt(2),         radius/np.sqrt(2)]
             x_y_bottom_center = [(1.+radius/np.sqrt(2))/2,  radius/np.sqrt(2)]
             x_y_bottom_right  = [1,                         radius/np.sqrt(2)]
             
-            x_y_right_center = [1.,                 q2_center_local]
+            x_y_right_center = [1.,                 (1+radius/np.sqrt(2))/2]
             x_y_left_center  = [ radius/np.sqrt(2), (1+radius/np.sqrt(2))/2]
     
             x_y_top_left      = [radius/np.sqrt(2), 1]
-            x_y_top_center    = [q1_center_local,   1]
+            x_y_top_center    = [(1+radius/np.sqrt(2))/2,   1]
             x_y_top_right     = [1,                 1]
             
             x, y, jacobian = quadratic(q1, q2,
@@ -458,7 +455,7 @@ def get_cartesian_coords(q1, q2,
                                        q1_start_local_left,
                                        q2_start_local_bottom,
                                       )
-        
+
 
         # Center-Right domain
         elif ((q2_midpoint > -0.33) and (q2_midpoint < 0.33) and (q1_midpoint > 0.33)):
