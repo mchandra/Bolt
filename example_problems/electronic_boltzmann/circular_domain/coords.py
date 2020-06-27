@@ -315,6 +315,9 @@ def get_cartesian_coords(q1, q2,
 
         # Bottom-center domain
         if ((q2_midpoint < -0.33) and (q1_midpoint > -0.33) and (q1_midpoint < 0.33)):
+
+            # Note : Never specify the x, y coordinates below in terms of q1 and q2 coordinates. Specify only in
+            # physical x, y values.
     
             x_y_bottom_left   = [-radius/np.sqrt(2), -1]
             x_y_bottom_center = [0                 , -1]
