@@ -227,7 +227,7 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
     theta_top = af.moddims(theta_top, N_q1_local) # Convert to 1D array
 
     if (params.enable_manual_mirror):
-        theta_top = 0.*theta_top + params.mirror_angles[3]
+        theta_top = 0.*theta_top + params.mirror_angles[2]
 
     print ("Rank = ", params.rank, ", theta_top : ", af.any_true(af.isnan(theta_top)))
  
