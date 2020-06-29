@@ -65,7 +65,7 @@ electrostatic_solver_every_nth_step = 1000000
 
 # Time parameters:
 dt      = 0.025/8 # ps
-t_final = 10.     # ps
+t_final = 100.     # ps
 
 
 # File-writing Parameters:
@@ -91,7 +91,10 @@ zero_temperature    = (p_dim==1)
 
 
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices = 6
+num_devices       = 2
+manual_device_allocation = True
+device_allocation        = [0, 0, 0, 0, 0, 1, 1, 1, 1] # No. of items in list should match number of mpiprocs
+dont_compute             = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 # Constants:
 mass_particle      = 0.910938356 # x 1e-30 kg
@@ -108,7 +111,7 @@ epsilon_relative      = 3.9 # SiO2
 backgate_potential    = -10 # V
 global_chem_potential = 0.03
 contact_start         = -1 # um
-contact_end           = -0.9 # um
+contact_end           = -0.95 # um
 contact_geometry      = "straight" # Contacts on either side of the device
                                    # For contacts on the same side, use 
                                    # contact_geometry = "turn_around"

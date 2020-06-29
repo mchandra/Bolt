@@ -92,14 +92,17 @@ sensor_2_right_indices = (q2 > sensor_2_right_start) & (q2 < sensor_2_right_end)
 io = PetscBinaryIO.PetscBinaryIO()
 
 filepath = os.getcwd()
-#filepath = '/home/mchandra/gitansh/zero_T/example_problems/electronic_boltzmann/graphene/L_1.0_1.25_tau_ee_inf_tau_eph_inf_DC'
 moment_files 		  = np.sort(glob.glob(filepath+'/dump_moments/*.bin'))
 lagrange_multiplier_files = \
         np.sort(glob.glob(filepath+'/dump_lagrange_multipliers/*.bin'))
 
-#moment_files 		  = np.sort(glob.glob(filepath+'/dumps/moments*.bin'))
-#lagrange_multiplier_files = \
-#        np.sort(glob.glob(filepath+'/dumps/lagrange_multipliers*.bin'))
+
+coords = io.readBinaryFile("coords.bin")
+coords = coords[0].reshape(N_q2, N_q1, 13)
+    
+x = coords[:, :, 0].T
+y = coords[:, :, 1].T
+
 
 dt = params.dt
 
@@ -112,12 +115,11 @@ moments = moments[0].reshape(N_q2, N_q1, 3)
 density_bg = moments[:, :, 0]
 
 
-dx = q1[1] - q1[0]
-dy = q2[1] - q2[0]
+dy_left  = y[0, 1]  - y[0, 0] #Bottom-left domain
+dy_right = y[-1, 1] - y[-1, 0] #Bottom-right domain
 
 emitter_array   = []
 collector_array = []
-base_array      = []
 emitter_voltage_array   = []
 collector_voltage_array = []
 
@@ -128,6 +130,8 @@ for file_number, dump_file in enumerate(moment_files):
     moments = moments[0].reshape(N_q2, N_q1, 3)
     
     density = moments[:, :, 0]
+    j_x     = moments[:, :, 1]
+    j_y     = moments[:, :, 2]
     density = density - density_bg
     
     lagrange_multipliers = \
@@ -137,20 +141,19 @@ for file_number, dump_file in enumerate(moment_files):
     vel_drift_x  = lagrange_multipliers[:, :, 3]
     vel_drift_y  = lagrange_multipliers[:, :, 4]
     
-    emitter_indices   = q2 < 0.5+0*dy
-    collector_indices = q2 < 1.5 + 2*dy
-    base_indices      = q2 > 0.5 - 0*dy
-    
-    emitter   = np.sum(vel_drift_x[emitter_indices,    0])*dy
-    collector = np.sum(vel_drift_x[collector_indices, -1])*dy
-    base      = np.sum(vel_drift_x[base_indices, 0]*dy)
+    emitter_indices   = y[0,  :] < -0.95 + 2*dy_left
+    collector_indices = y[-1, :] < -0.95 + 2*dy_right
 
-    emitter_voltage   = np.sum(density[emitter_indices,   0])*dy
-    collector_voltage = np.sum(density[collector_indices, -1])*dy
+#    print (emitter_indices)
+    
+    emitter   = np.sum(j_x[emitter_indices,    0])*dy_left
+    collector = np.sum(j_x[collector_indices, -1])*dy_right
+
+    emitter_voltage   = np.sum(density[emitter_indices,   0])*dy_left
+    collector_voltage = np.sum(density[collector_indices, -1])*dy_right
 
     emitter_array.append(emitter)
     collector_array.append(collector)
-    base_array.append(base)
 
     emitter_voltage_array.append(emitter_voltage)
     collector_voltage_array.append(collector_voltage)
@@ -158,25 +161,19 @@ for file_number, dump_file in enumerate(moment_files):
 
 emitter_array   = np.array(emitter_array)
 collector_array = np.array(collector_array)
-base_array      = np.array(base_array)
 
 emitter_voltage_array   = np.array(emitter_voltage_array)
 collector_voltage_array = np.array(collector_voltage_array)
 
 time_index = time_array > 0
 
-pl.plot(time_array[time_index], emitter_array[time_index])
-pl.plot(time_array[time_index], collector_array[time_index])
-pl.plot(time_array[time_index], base_array[time_index])
+#pl.plot(time_array[time_index], emitter_array[time_index])
+#pl.plot(time_array[time_index], collector_array[time_index])
 
-#pl.plot(time_array[time_index], (emitter_voltage_array-collector_voltage_array)[time_index])
-#pl.plot(time_array[time_index], collector_voltage_array[time_index])
+pl.plot(time_array[time_index], (emitter_voltage_array-collector_voltage_array)[time_index])
+pl.plot(time_array[time_index], collector_voltage_array[time_index])
 
 pl.axhline(0, color='black', linestyle='--')
-
-print("Amplification factor : collector/base = ", collector_array[time_index][-1]/emitter_array[time_index][-1])
-print("(collector+base)/emitter = ", (collector_array[time_index][-1] + (base_array[time_index][-1]))/emitter_array[time_index][-1])
-print (np.mean(base_array[time_index][-1]))
 
 
 pl.xlabel(r'Time (ps)')

@@ -120,7 +120,7 @@ moments = moments[0].reshape(N_q2, N_q1, 3)
 density_bg = moments[:, :, 0]
 
 
-start_index = 0 # Make movie from just before restart point : 18.75 ps
+start_index = 00 # Make movie from just before restart point : 18.75 ps
 
 for file_number, dump_file in enumerate(moment_files[:]):
 
@@ -156,10 +156,12 @@ for file_number, dump_file in enumerate(moment_files[:]):
     pl.title(r'Time = ' + "%.2f"%(time_array[start_index+file_number]) + " ps")
     
 #    pl.streamplot(x[:, 0], y[0, :], 
-#                  vel_drift_x, vel_drift_y,
+#                  j_x, j_y,
 #                  density=1, color='k',
 #                  linewidth=0.7, arrowsize=1
 #                 )
+#
+#    print (j_x)
 
     
     pl.xlim([q1[0], q1[-1]])
@@ -169,6 +171,6 @@ for file_number, dump_file in enumerate(moment_files[:]):
     pl.xlabel(r'$x\;(\mu \mathrm{m})$')
     pl.ylabel(r'$y\;(\mu \mathrm{m})$')
     #pl.suptitle('$\\tau_\mathrm{mc} = \infty$, $\\tau_\mathrm{mr} = \infty$')
-    pl.savefig('images/dump_' + '%06d'%file_number + '.png')
+    pl.savefig('images/dump_' + '%06d'%(start_index+file_number) + '.png')
     pl.clf()
 

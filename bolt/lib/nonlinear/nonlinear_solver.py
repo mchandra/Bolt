@@ -124,7 +124,12 @@ class nonlinear_solver(object):
         self._comm = self.physical_system.mpi_communicator        
         
         if(self.physical_system.params.num_devices>1):
-            af.set_device(self._comm.rank%self.physical_system.params.num_devices)
+            rank = self._comm.rank
+            if (self.physical_system.params.manual_device_allocation == True):
+                af.set_device(self.physical_system.params.device_allocation[rank])
+            else:
+                af.set_device(rank%self.physical_system.params.num_devices)
+        
 
         # Getting number of species:
         N_s = self.N_species = self.physical_system.N_species

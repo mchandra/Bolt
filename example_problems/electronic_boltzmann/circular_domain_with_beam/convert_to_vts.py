@@ -60,7 +60,7 @@ vector_da.setCoordinates(coords_vec)
 
 filepath = '.'
 
-filename = "t=00000029.187500.bin"
+filename = "t=00000074.765625.bin"
 dump_file = filepath+'/dump_moments/'+filename
 moments = io.readBinaryFile(dump_file)
 moments = moments[0].reshape(N_q2, N_q1, 3)
@@ -70,8 +70,11 @@ lagrange_multipliers = io.readBinaryFile(dump_file)
 lagrange_multipliers = lagrange_multipliers[0].reshape(N_q2, N_q1, 5)
 
 density = moments[:, :, 0]
-vel_drift_x  = lagrange_multipliers[:, :, 3]
-vel_drift_y  = lagrange_multipliers[:, :, 4]
+#vel_drift_x  = lagrange_multipliers[:, :, 3]
+#vel_drift_y  = lagrange_multipliers[:, :, 4]
+
+vel_drift_x  = moments[:, :, 1] # This is j_x
+vel_drift_y  = moments[:, :, 2] # This is j_y
 
 size = N_q1*N_q2
 
@@ -84,7 +87,7 @@ vel_drift_array[::3]  = vel_drift_x.flatten()
 vel_drift_array[1::3] = vel_drift_y.flatten()
 # third component is zero; do nothing
 
-viewer = PETSc.Viewer().createVTK('ballistic_rectifier.vts', 'w')
+viewer = PETSc.Viewer().createVTK('beam_rect_grid.vts', 'w')
 density_vec.view(viewer)
 vel_drift_x_vec.view(viewer)
 vel_drift_y_vec.view(viewer)

@@ -129,7 +129,6 @@ print("rank = ", params.rank, "\n",
       "     max(n)  = ", af.max(density[0, 0, N_g:-N_g, N_g:-N_g]), "\n"
      )
 
-nls.f = af.select(nls.f < 1e-20, 1e-20, nls.f)
 while(time_elapsed < t_final):
 
     # Refine to machine error
@@ -168,22 +167,14 @@ while(time_elapsed < t_final):
 
     PETSc.Sys.Print("Time step =", time_step, ", Time =", time_elapsed)
 
-    nls.strang_timestep(dt)
+    if (params.dont_compute[params.rank]):
+        continue
+    else:
+        nls.strang_timestep(dt)
+
     time_elapsed        = time_elapsed + dt
     time_step           = time_step + 1
     params.time_step    = time_step
     params.current_time = time_elapsed
-
-    # Floors
-    nls.f     = af.select(nls.f < 1e-20, 1e-20, nls.f)
-
-    density = nls.compute_moments('density')
-    print("rank = ", params.rank, "\n",
-          "     <mu>    = ", af.mean(params.mu[0, 0, N_g:-N_g, N_g:-N_g]), "\n",
-          "     max(mu) = ", af.max(params.mu[0, 0, N_g:-N_g, N_g:-N_g]), "\n",
-          "     <n>     = ", af.mean(density[0, 0, N_g:-N_g, N_g:-N_g]), "\n",
-          "     max(n)  = ", af.max(density[0, 0, N_g:-N_g, N_g:-N_g]), "\n"
-         )
-    PETSc.Sys.Print("--------------------\n")
 
 #nls.dump_distribution_function('dump_f/t_laststep')
