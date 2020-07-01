@@ -33,8 +33,8 @@ def f_left(f, t, q1, q2, p1, p2, p3, params):
 #                     )
     # TODO : Testing - set zero everywhere except index N_p2/2 (injection towards right)
     fermi_dirac_in = vel_drift_x_in*p_x
-    fermi_dirac_in[:int(5*domain.N_p2/8)]   = 0.
-    fermi_dirac_in[int(5*domain.N_p2/8)+1:] = 0.
+    fermi_dirac_in[:int(8*domain.N_p2/12)]   = 0.
+    fermi_dirac_in[int(8*domain.N_p2/12)+1:] = 0.
 
     if (params.contact_geometry=="straight"):
         # Contacts on either side of the device

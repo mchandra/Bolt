@@ -91,7 +91,11 @@ zero_temperature    = (p_dim==1)
 
 
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices = 6
+num_devices = 2
+manual_device_allocation = True
+device_allocation        = [0, 0, 0, 0, 0, 1, 1, 1, 1] # No. of items in list should match number of mpiprocs
+dont_compute             = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+
 
 # Constants:
 mass_particle      = 0.910938356 # x 1e-30 kg

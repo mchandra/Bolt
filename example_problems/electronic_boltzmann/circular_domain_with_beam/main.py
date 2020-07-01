@@ -28,16 +28,7 @@ import bolt.src.electronic_boltzmann.moments \
     as moments
 
 
-# Create required folders if they do not exist already
-#if not os.path.isdir("dump_f"):
-#    os.system("mkdir dump_f")
-#if not os.path.isdir("dump_moments"):
-#    os.system("mkdir dump_moments")
-#if not os.path.isdir("dump_lagrange_multipliers"):
-#    os.system("mkdir dump_lagrange_multipliers")
-#if not os.path.isdir("images"):
-#    os.system("mkdir images")
-
+# TODO : Create required folders if they do not exist already
 
 # Defining the physical system to be solved:
 system = physical_system(domain,
