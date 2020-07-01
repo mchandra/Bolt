@@ -108,7 +108,7 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     A        = domain.N_p2 # Amplitude (required for normalization)
     sigma_x = 0.05 # Standard deviation in x
     sigma_y = 0.05 # Standard deviation in y
-    x_0     = 0.75 # Center in x
+    x_0     = -1.25 # Center in x
     y_0     = 0. # Center in y
 
     # TODO: This will work with polar2D p-space only for the moment
@@ -119,19 +119,22 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     print ("Initial angle : ")
     af.display(p2[theta_0_index])
 
-    f[theta_0_index, :, :]  = A*af.exp(-( (params.x-x_0)**2/(2*sigma_x**2) + \
-                                          (params.y-y_0)**2/(2*sigma_y**2)
-                                        )
-                                      ) +  A*af.exp(-( (params.x-x_0)**2/(2*sigma_x**2) + \
-                                          (params.y-(-0.5))**2/(2*sigma_y**2)
-                                        )
-                                      ) + A*af.exp(-( (params.x-x_0)**2/(2*sigma_x**2) + \
-                                          (params.y-0.5)**2/(2*sigma_y**2)
-                                        )
-                                      )
+#    f[theta_0_index, :, :]  = A*af.exp(-( (params.x-x_0)**2/(2*sigma_x**2) + \
+#                                          (params.y-y_0)**2/(2*sigma_y**2)
+#                                        )
+#                                      ) +  A*af.exp(-( (params.x-x_0)**2/(2*sigma_x**2) + \
+#                                          (params.y-(-0.5))**2/(2*sigma_y**2)
+#                                        )
+#                                      ) + A*af.exp(-( (params.x-x_0)**2/(2*sigma_x**2) + \
+#                                          (params.y-0.5)**2/(2*sigma_y**2)
+#                                        )
+#                                      )
 
-    # Initialize to zero
-    f = 0.*f
+    f[theta_0_index, :, :]  = A*af.exp(-( (params.x-x_0)**2/(2*sigma_x**2) 
+                                        ))
+
+#    # Initialize to zero
+#    f = 0.*f
 
     af.eval(f)
     return(f)
