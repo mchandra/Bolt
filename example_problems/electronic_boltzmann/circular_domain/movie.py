@@ -1,29 +1,34 @@
 import arrayfire as af
 import numpy as np
-import os
-#from scipy.signal import correlate
+from scipy.signal import correlate
 import glob
+import os
+import sys
 import h5py
 import matplotlib
 import matplotlib.gridspec as gridspec
 import matplotlib.patches as patches
 from matplotlib.collections import LineCollection
+from matplotlib import transforms, colors
 matplotlib.use('agg')
 import pylab as pl
 #import yt
 #yt.enable_parallelism()
 
+import petsc4py, sys; petsc4py.init(sys.argv)
+from petsc4py import PETSc
 import PetscBinaryIO
 
 import domain
-import boundary_conditions
-import params
-import initialize
+#import boundary_conditions
+#import params
+#import initialize
 #import coords
 
+
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
-pl.rcParams['figure.dpi']      = 300
+pl.rcParams['figure.figsize']  = 15, 7.5
+pl.rcParams['figure.dpi']      = 100
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
@@ -51,7 +56,6 @@ pl.rcParams['ytick.color']      = 'k'
 pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
-
 io = PetscBinaryIO.PetscBinaryIO()
 
 def plot_grid(x,y, ax=None, **kwargs):
@@ -62,11 +66,16 @@ def plot_grid(x,y, ax=None, **kwargs):
     ax.add_collection(LineCollection(segs2, **kwargs))
     ax.autoscale()
 
-N_s = len(params.mass) # Number of species
+class MidpointNormalize (colors.Normalize):
+    def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
+        self.midpoint = midpoint
+        colors.Normalize.__init__(self, vmin, vmax, clip)
 
-N_p1 = domain.N_p1
-N_p2 = domain.N_p2
-N_p3 = domain.N_p3
+    def __call__(self, value, clip=None):
+    # I'm ignoring masked values and all kinds of edge cases to make
+    # a simple example...
+        x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
+        return np.ma.masked_array(np.interp(value, x, y), np.isnan(value))
 
 N_q1 = domain.N_q1
 N_q2 = domain.N_q2
@@ -76,62 +85,103 @@ q2 = domain.q2_start + (0.5 + np.arange(N_q2)) * (domain.q2_end - domain.q2_star
 
 q2_meshgrid, q1_meshgrid = np.meshgrid(q2, q1)
 
-q1_meshgrid = af.from_ndarray(q1_meshgrid)
-q2_meshgrid = af.from_ndarray(q2_meshgrid)
-
-
 coords = io.readBinaryFile("coords.bin")
 coords = coords[0].reshape(N_q2, N_q1, 13)
     
 x = coords[:, :, 0].T
 y = coords[:, :, 1].T
 
-p2_start = domain.p2_start[0]
-p2_end   = domain.p2_end[0]
 
-p2 = p2_start + (0.5 + np.arange(N_p2)) * (p2_end - p2_start)/N_p2
+N_p1 = domain.N_p1
+N_p2 = domain.N_p2
 
-filepath = os.getcwd()
-distribution_function_files = np.sort(glob.glob(filepath+'/dump_f/*.bin'))
+p1 = domain.p1_start[0] + (0.5 + np.arange(N_p1)) * (domain.p1_end[0] - \
+        domain.p1_start[0])/N_p1
+p2 = domain.p2_start[0] + (0.5 + np.arange(N_p2)) * (domain.p2_end[0] - \
+        domain.p2_start[0])/N_p2
 
-time_array = np.loadtxt("dump_time_array.txt")
+print ('Momentum space : ', p1[-1], p2[int(N_p2/2)])
+
+filepath = os.getcwd()# + '/backup'
+moment_files 		  = np.sort(glob.glob(filepath+'/dump_moments/*.bin'))
+lagrange_multiplier_files = \
+        np.sort(glob.glob(filepath+'/dump_lagrange_multipliers/*.bin'))
+
+print ("moment files : ", moment_files.size)
+print ("lagrange multiplier files : ", lagrange_multiplier_files.size)
 
 
-theta_0_index = int(6*N_p2/8) # Direction of initial velocity
-theta = p2[theta_0_index]
+time_array = np.loadtxt(filepath+"/dump_time_array.txt")
 
-print("theta = ", theta)
-
-
-for file_number, dump_file in enumerate(distribution_function_files[:]):
+file_number = 0
+moments = io.readBinaryFile(moment_files[file_number])
+moments = moments[0].reshape(N_q2, N_q1, 3)
     
-    print("file_number = ", file_number, "of", distribution_function_files[:].size)
-#    file_number = -1 
+density_bg = moments[:, :, 0]
+
+
+start_index = 0 # Make movie from just before restart point : 18.75 ps
+
+for file_number, dump_file in enumerate(moment_files[:]):
+
+#    file_number = -1
+    print("file number = ", file_number, "of ", moment_files.size)
+
+    moments = io.readBinaryFile(moment_files[start_index+file_number])
+    moments = moments[0].reshape(N_q2, N_q1, 3)
+    
+    density = moments[:, :, 0]
+    j_x     = moments[:, :, 1]
+    j_y     = moments[:, :, 2]
+
+    lagrange_multipliers = \
+        io.readBinaryFile(lagrange_multiplier_files[start_index+file_number])
+    lagrange_multipliers = lagrange_multipliers[0].reshape(N_q2, N_q1, 5)
+    
+    mu           = lagrange_multipliers[:, :, 0]
+    mu_ee        = lagrange_multipliers[:, :, 1]
+    T_ee         = lagrange_multipliers[:, :, 2]
+    vel_drift_x  = lagrange_multipliers[:, :, 3]
+    vel_drift_y  = lagrange_multipliers[:, :, 4]
+
+#    density = density - density_bg
+    density_min = np.min(density)
+    density_max = np.max(density)
+
+    J = np.sqrt(j_x**2 + j_y**2)
+    j_x_m = np.ma.masked_where(J < 2e-10, j_x)
+    j_y_m = np.ma.masked_where(J < 2e-10, j_y)
+
+    print ("x.shape : ", x.shape)    
+
+    plot_grid(x[::1, ::1], y[::1, ::1], alpha=0.5)
+    pl.contourf(x, y, density.T, 100, norm=MidpointNormalize(midpoint=0, vmin=density_min, vmax=density_max), cmap='bwr')
+#    pl.colorbar()
+    pl.title(r'Time = ' + "%.2f"%(time_array[start_index+file_number]) + " ps")
+    
+#    pl.streamplot(x[:, 0], y[0, :], 
+#                  j_x_m, j_y_m,
+#                  density=5, color='k',
+#                  linewidth=0.7, arrowsize=1
+#                 )
+
+#    print (j_x)
+
+    v_f = -1.
+    x_0 = 1.25
+    x_new = x_0 + v_f*time_array[file_number]
+    x_new = (x_new + 2)%4 - 2
+    #pl.axvline(x_new,  color = 'k', ls = '--')
    
-    dist_func_file = distribution_function_files[file_number]
-    dist_func = io.readBinaryFile(dist_func_file)
-    dist_func = dist_func[0].reshape(N_q2, N_q1, N_s, N_p3, N_p2, N_p1)
+
     
-
-#    plot_grid(x[::1, ::1], y[::1, ::1], alpha=0.5)
-
-    dist_func_p_avged = np.mean(dist_func, axis = (2, 3,4,5))
-    print (dist_func_p_avged.shape)
-    print (x.shape, y.shape)
-    pl.contourf(x, y, dist_func_p_avged.transpose(), 100, cmap='bwr')
+    pl.xlim([q1[0], q1[-1]])
+    pl.ylim([q2[0], q2[-1]])
     
     pl.gca().set_aspect('equal')
-   
-    pl.title(r'Time = ' + "%.3f"%(time_array[file_number]) + " ps")
-        
     pl.xlabel(r'$x\;(\mu \mathrm{m})$')
     pl.ylabel(r'$y\;(\mu \mathrm{m})$')
-
-    pl.xlim([-1., 1])
-    pl.ylim([-1., 1])
-
-    pl.savefig('images/dump_%06d'%file_number + '.png')
+    #pl.suptitle('$\\tau_\mathrm{mc} = \infty$, $\\tau_\mathrm{mr} = \infty$')
+    pl.savefig('images/dump_' + '%06d'%(start_index+file_number) + '.png')
     pl.clf()
-
-
 

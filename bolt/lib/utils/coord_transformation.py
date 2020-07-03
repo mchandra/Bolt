@@ -112,6 +112,12 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
     N_theta       = domain.N_p2  # TODO run this and check
     N_g           = domain.N_ghost
 
+    d_q1          = (q1[0, 0, 1, 0] - q1[0, 0, 0, 0]).scalar()
+    d_q2          = (q2[0, 0, 0, 1] - q2[0, 0, 0, 0]).scalar()
+
+    N_q1_local    = q1.dims()[2]
+    N_q2_local    = q2.dims()[3]
+
     # Define edge indices
     left_edge   = N_g; right_edge = -N_g-1
     bottom_edge = N_g; top_edge   = -N_g-1
@@ -123,7 +129,7 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
 
     # Initialize to zero
     shift_indices = (0.*q1*p1)[:, 0, 0, :]
-    N_q2_local    = shift_indices.dims()[3]
+
 
     # Get the angular variation of the left boundary.
     theta_left = get_theta(q1, q2, "left", \
@@ -132,7 +138,12 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
 
     theta_left = af.moddims(theta_left, N_q2_local) # Convert to 1D array
 
-    if (params.enable_manual_mirror):
+    # Apply manually specified mirror angles only if left boundary of the zone is the left boundary of the device
+    print ('coordinate_transformation.py, rank, q1_start_local_left = ', params.rank, params.q1_start_local_left)
+    is_left_most_domain = abs(params.q1_start_local_left - domain.q1_start) < 1e-13
+
+    if (params.enable_manual_mirror and is_left_most_domain):
+        print ('Rank : ', params.rank, '; Applying manual left bc', is_left_most_domain)
         theta_left = 0.*theta_left + params.mirror_angles[3]
 
     # Calculate the number of shifts of the array along the p_theta axis
@@ -158,7 +169,14 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
                             q2_start_local_bottom=params.q2_start_local_bottom)[0, 0, right_edge, :]
     theta_right = af.moddims(theta_right, N_q2_local) # Convert to 1D array
 
-    if (params.enable_manual_mirror):
+    q1_end_local_right = params.q1_start_local_left + (N_q1_local - 2*N_g)*d_q1
+
+    # Apply manually specified mirror angles only if right boundary of the zone is the right boundary of the device
+    print ('coordinate_transformation.py, rank, q1_start_local_right = ', params.rank, q1_end_local_right)
+    is_right_most_domain = abs(q1_end_local_right - domain.q1_end) < 1e-13
+
+    if (params.enable_manual_mirror and is_right_most_domain):
+        print ('Rank : ', params.rank, '; Applying manual right bc', is_right_most_domain)
         theta_right = 0.*theta_right + params.mirror_angles[1]
 
     # Calculate the number of shifts of the array along the p_theta axis
@@ -178,7 +196,6 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
     
     # Initialize to zero
     shift_indices = (0.*q1*p1)[:, 0, :, 0] # Shape : N_theta x 1 x  N_q1+2*N_g x 1
-    N_q1_local    = shift_indices.dims()[2]
 
     # Get the angular variation of the bottom boundary.
     theta_bottom = get_theta(q1, q2, "bottom", \
@@ -186,7 +203,11 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
                              q2_start_local_bottom=params.q2_start_local_bottom)[0, 0, :, bottom_edge]
     theta_bottom = af.moddims(theta_bottom, N_q1_local) # Convert to 1D array
 
-    if (params.enable_manual_mirror):
+    # Apply manually specified mirror angles only if bottom boundary of the zone is the bottom boundary of the device
+    is_bottom_most_domain = abs(params.q2_start_local_bottom - domain.q2_start) < 1e-13
+
+    if (params.enable_manual_mirror and is_bottom_most_domain):
+        print ('Rank : ', params.rank, '; Applying manual bottom bc', is_bottom_most_domain)
         theta_bottom = 0.*theta_bottom + params.mirror_angles[0]
 
     # Calculate the number of shifts of the array along the p_theta axis
@@ -212,7 +233,14 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
                           q2_start_local_bottom=params.q2_start_local_bottom)[0, 0, :, top_edge]
     theta_top = af.moddims(theta_top, N_q1_local) # Convert to 1D array
 
-    if (params.enable_manual_mirror):
+    q2_end_local_top = params.q2_start_local_bottom + (N_q2_local - 2*N_g)*d_q2
+
+    # Apply manually specified mirror angles only if top boundary of the zone is the top boundary of the device
+    print ('coordinate_transformation.py, rank, q2_start_local_top = ', params.rank, q2_end_local_top)
+    is_top_most_domain = abs((q2_end_local_top - domain.q2_end)) < 1e-13
+
+    if (params.enable_manual_mirror and is_top_most_domain):
+        print ('Rank : ', params.rank, '; Applying manual top bc', is_top_most_domain)
         theta_top = 0.*theta_top + params.mirror_angles[2]
 
     # Calculate the number of shifts of the array along the p_theta axis
