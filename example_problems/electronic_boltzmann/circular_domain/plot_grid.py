@@ -28,7 +28,7 @@ import domain
 
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 15, 7.5
-pl.rcParams['figure.dpi']      = 100
+pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
@@ -91,6 +91,11 @@ coords = coords[0].reshape(N_q2, N_q1, 17)
 x = coords[:, :, 0].T
 y = coords[:, :, 1].T
 
+x_top_center = coords[:, :, 13].T
+y_top_center = coords[:, :, 14].T
+
+x_right_center  = coords[:, :, 15].T
+y_right_center  = coords[:, :, 16].T
 
 N_p1 = domain.N_p1
 N_p2 = domain.N_p2
@@ -122,9 +127,9 @@ density_bg = moments[:, :, 0]
 
 start_index = 0 # Make movie from just before restart point : 18.75 ps
 
-for file_number, dump_file in enumerate(moment_files[:]):
+for file_number, dump_file in enumerate(moment_files[:1]):
 
-#    file_number = -1
+    file_number = -1
     print("file number = ", file_number, "of ", moment_files.size)
 
     moments = io.readBinaryFile(moment_files[start_index+file_number])
@@ -144,7 +149,7 @@ for file_number, dump_file in enumerate(moment_files[:]):
     vel_drift_x  = lagrange_multipliers[:, :, 3]
     vel_drift_y  = lagrange_multipliers[:, :, 4]
 
-#    density = density - density_bg
+    density = density - density_bg
     density_min = np.min(density)
     density_max = np.max(density)
 
@@ -152,11 +157,64 @@ for file_number, dump_file in enumerate(moment_files[:]):
     j_x_m = np.ma.masked_where(J < 2e-10, j_x)
     j_y_m = np.ma.masked_where(J < 2e-10, j_y)
 
-    print ("x.shape : ", x.shape)    
 
-    plot_grid(x[::1, ::1], y[::1, ::1], alpha=0.5)
-    pl.contourf(x, y, density.T, 100, norm=MidpointNormalize(midpoint=0, vmin=density_min, vmax=density_max), cmap='bwr')
-#    pl.colorbar()
+#    plot_grid(x[100:140, 40:80], y[100:140, 40:80], alpha=0.5)
+
+#    plot_grid(x[:, :], y[:, :], alpha=0.5)
+#    plot_grid(x_left[:, :], y_bottom[:, :], alpha=0.5, color = 'C0')
+
+#    pl.plot(x_right_center[39, 40:80], y_right_center[39, 40:80], '-o', markersize = 2, color = 'r', alpha = 0.5) # left
+#    pl.plot(x_right_center[79, 40:80], y_right_center[79, 40:80], '-o', markersize = 2, color = 'r', alpha = 0.5) # right
+
+#    pl.plot(x_top_center[40:80, 39], y_top_center[40:80, 39], '-o', markersize = 2, color = 'r', alpha = 0.5) # Bottom
+#    pl.plot(x_top_center[40:80, 79], y_top_center[40:80, 79], '-o', markersize = 2, color = 'r', alpha = 0.5) # Top
+
+    x_array = x_right_center[39, 40:80]
+    x_array = np.append(x_array, x_top_center[40:80, 79])
+    x_array = np.append(x_array, np.flip(x_right_center[79, 40:80]))
+    x_array = np.append(x_array, np.flip(x_top_center[40:80, 39]))
+
+    y_array = y_right_center[39, 40:80]
+    y_array = np.append(y_array, y_top_center[40:80, 79])
+    y_array = np.append(y_array, np.flip(y_right_center[79, 40:80]))
+    y_array = np.append(y_array, np.flip(y_top_center[40:80, 39]))
+
+    r = np.sqrt(x_array**2 + y_array**2)
+    theta = np.arctan2(y_array, x_array)
+
+#    pl.plot(x_array, y_array, '-o', alpha = 0.5, markersize = 2)
+#
+#    pl.plot(x_array[0], y_array[0], 'o', color = 'k')
+#    pl.plot(x_array[39], y_array[39], 'o', color = 'g')
+#    pl.plot(x_array[40], y_array[40], 'o', color = 'g')
+#    pl.plot(x_array[79], y_array[79], 'o', color = 'b')
+#    pl.plot(x_array[80], y_array[80], 'o', color = 'b')
+#    pl.plot(x_array[119], y_array[119], 'o', color = 'r')
+#    pl.plot(x_array[120], y_array[120], 'o', color = 'r')
+#    pl.plot(x_array[159], y_array[159], 'o', color = 'k')
+
+
+    pl.plot(theta, r, '-o')
+
+    pl.axvline(theta[0], color = 'k', ls = '--', alpha = 0.5)
+    pl.axvline(theta[39], color = 'g', ls = '--', alpha = 0.5)
+    pl.axvline(theta[40], color = 'g', ls = '--', alpha = 0.5)
+    pl.axvline(theta[79], color = 'b', ls = '--', alpha = 0.5)
+    pl.axvline(theta[80], color = 'b', ls = '--', alpha = 0.5)
+    pl.axvline(theta[119], color = 'r', ls = '--', alpha = 0.5)
+    pl.axvline(theta[120], color = 'r', ls = '--', alpha = 0.5)
+    pl.axvline(theta[159], color = 'k', ls = '--', alpha = 0.5)
+
+#    pl.axhline(-1, color = 'k', ls = '--', alpha = 0.5)
+#    pl.axvline(-1, color = 'k', ls = '--', alpha = 0.5)
+
+    radius = 0.5
+    theta = np.arange(0., 2*np.pi, 0.01)
+#    pl.plot(radius*np.cos(theta), radius*np.sin(theta), color = 'k', alpha = 0.3)
+
+
+#    pl.contourf(x, y, density.T, 100, norm=MidpointNormalize(midpoint=0, vmin=density_min, vmax=density_max), cmap='bwr')
+    #pl.colorbar()
     pl.title(r'Time = ' + "%.2f"%(time_array[start_index+file_number]) + " ps")
     
 #    pl.streamplot(x[:, 0], y[0, :], 
@@ -165,22 +223,16 @@ for file_number, dump_file in enumerate(moment_files[:]):
 #                  linewidth=0.7, arrowsize=1
 #                 )
 
-#    print (j_x)
-
-    v_f = -1.
-    x_0 = 1.25
-    x_new = x_0 + v_f*time_array[file_number]
-    x_new = (x_new + 2)%4 - 2
-    #pl.axvline(x_new,  color = 'k', ls = '--')
-   
 
     
-    pl.xlim([q1[0], q1[-1]])
-    pl.ylim([q2[0], q2[-1]])
+    #pl.xlim([q1[0], q1[-1]])
+    #pl.ylim([q2[0], q2[-1]])
     
-    pl.gca().set_aspect('equal')
+#    pl.gca().set_aspect('equal')
     pl.xlabel(r'$x\;(\mu \mathrm{m})$')
     pl.ylabel(r'$y\;(\mu \mathrm{m})$')
+    pl.ylabel(r'$r\;(\mu \mathrm{m})$')
+    pl.xlabel(r'$\theta$')
     #pl.suptitle('$\\tau_\mathrm{mc} = \infty$, $\\tau_\mathrm{mr} = \infty$')
     pl.savefig('images/dump_' + '%06d'%(start_index+file_number) + '.png')
     pl.clf()

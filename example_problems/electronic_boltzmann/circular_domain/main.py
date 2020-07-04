@@ -104,7 +104,11 @@ nls.dump_coordinate_info([params.x,
                  params.dx_dq2,
                  params.dy_dq1,
                  params.dy_dq2,
-                 params.sqrt_det_g],
+                 params.sqrt_det_g,
+                 params.x_top_center,
+                 params.y_top_center,
+                 params.x_right_center,
+                 params.y_right_center],
                  'coords',
                  'coords'
                 )

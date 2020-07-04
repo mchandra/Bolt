@@ -1,6 +1,7 @@
 import numpy as np
 import arrayfire as af
 import domain
+import params
 
 from bolt.lib.utils.coord_transformation import quadratic
 
@@ -24,14 +25,15 @@ def get_cartesian_coords(q1, q2,
     radius          = 0.5
     center          = [0, 0]
 
-    shift_x = 1.*d_q1/2
-    shift_y = 1.*d_q2/2
+    shift_x = 0.*d_q1/2
+    shift_y = 0.*d_q2/2
 
     x_y_circle_top_left     = [-radius/np.sqrt(2) + shift_x, radius/np.sqrt(2)  - shift_y]
     x_y_circle_bottom_left  = [-radius/np.sqrt(2) + shift_x, -radius/np.sqrt(2) + shift_y]
     x_y_circle_top_right    = [radius/np.sqrt(2)  - shift_x, radius/np.sqrt(2)  - shift_y]
     x_y_circle_bottom_right = [radius/np.sqrt(2)  - shift_x, -radius/np.sqrt(2) + shift_y]
 
+    print ('coords.py, q1_start_local_left, q1[0]', params.rank, q1_start_local_left, q1[0, 0, domain.N_ghost, 0].scalar())
 
     if (q1_start_local_left != None and q2_start_local_bottom != None):
 

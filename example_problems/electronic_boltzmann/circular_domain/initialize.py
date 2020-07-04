@@ -48,6 +48,24 @@ def initialize_f(q1, q2, p1, p2, p3, params):
                                                      q1_start_local_left=params.q1_start_local_left, 
                                                      q2_start_local_bottom=params.q2_start_local_bottom)
 
+    # TODO : Testing : Dump left, bottom, right, top faces also
+    d_q1          = (q1[0, 0, 1, 0] - q1[0, 0, 0, 0]).scalar()
+    d_q2          = (q2[0, 0, 0, 1] - q2[0, 0, 0, 0]).scalar()
+
+    q1_left_faces   = q1 - 0.5*d_q1
+    q2_bottom_faces = q2 - 0.5*d_q2
+
+    q1_right_faces   = q1 + 0.5*d_q1
+    q2_top_faces     = q2 + 0.5*d_q2
+
+    params.x_top_center, params.y_top_center = coords.get_cartesian_coords(q1, q2_top_faces,
+                                                     q1_start_local_left=params.q1_start_local_left, 
+                                                     q2_start_local_bottom=params.q2_start_local_bottom)
+
+    params.x_right_center, params.y_right_center   = coords.get_cartesian_coords(q1_right_faces, q2,
+                                                     q1_start_local_left=params.q1_start_local_left, 
+                                                     q2_start_local_bottom=params.q2_start_local_bottom)
+
     params.q1 = q1; params.q2 = q2
     [[params.dx_dq1, params.dx_dq2], [params.dy_dq1, params.dy_dq2]] = jacobian_dx_dq(q1, q2,
                                                                                       q1_start_local_left=params.q1_start_local_left, 
@@ -108,13 +126,13 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     A        = domain.N_p2 # Amplitude (required for normalization)
     sigma_x = 0.05 # Standard deviation in x
     sigma_y = 0.05 # Standard deviation in y
-    x_0     = 0. # Center in x
-    y_0     = 0.75 # Center in y
+    x_0     = -0.7 # Center in x
+    y_0     = 0. # Center in y
 
     # TODO: This will work with polar2D p-space only for the moment
     # Particles lying on the ball need to have the same velocity (direction)
     #theta_0_index = (5*N_p2/8) - 1 # Direction of initial velocity
-    theta_0_index = int(2*domain.N_p2/8) # Direction of initial velocity
+    theta_0_index = int(4*domain.N_p2/8) # Direction of initial velocity
     
     print ("Initial angle : ")
     af.display(p2[theta_0_index])
@@ -130,7 +148,7 @@ def initialize_f(q1, q2, p1, p2, p3, params):
 #                                        )
 #                                      )
 
-    f[theta_0_index, :, :]  = A*af.exp(-( (params.y-y_0)**2/(2*sigma_y**2) 
+    f[theta_0_index, :, :]  = A*af.exp(-( (params.x-x_0)**2/(2*sigma_x**2) 
                                         ))
 
     af.eval(f)
