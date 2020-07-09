@@ -30,6 +30,10 @@ horizontal_boundary_lims = [(-0.3334, 0.3334), (-0.3334, 0.3334)] # boundary lim
 vertical_boundaries    = [] # index of boundary axis along q2
 vertical_boundary_lims = [(-0.3334, 0.3334), (-0.3334, 0.3334)] # boundary lims along q1
 
+# Manually override external mirror angles [bottom, right, top, left]
+enable_manual_mirror = False
+mirror_angles = [0., np.pi/2, 0., np.pi/2]
+
 fields_enabled = False
 # Can be defined as 'electrostatic', 'user-defined'.
 # The initial conditions need to be specified under initialize
@@ -85,9 +89,12 @@ p_space_grid = 'polar2D' # Supports 'cartesian' or 'polar2D' grids
 zero_temperature    = (p_dim==1)
 
 
-
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices = 6
+num_devices              = 2
+manual_device_allocation = False
+device_allocation        = [0] # No. of items in list should match number of mpiprocs
+dont_compute             = [0]
+
 
 # Constants:
 mass_particle      = 0.910938356 # x 1e-30 kg
