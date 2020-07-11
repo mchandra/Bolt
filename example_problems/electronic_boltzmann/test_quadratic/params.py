@@ -65,16 +65,16 @@ electrostatic_solver_every_nth_step = 1000000
 
 # Time parameters:
 dt      = 0.025/16 # ps
-t_final = 10.     # ps
+t_final = 3.*dt     # ps
 
 
 # File-writing Parameters:
 dump_steps = 5
 dump_dist_after = 1600
 # Set to zero for no file-writing
-dt_dump_f       = 5*dt #ps
+dt_dump_f       = 2*dt #ps
 # ALWAYS set dump moments and dump fields at same frequency:
-dt_dump_moments = dt_dump_fields = 5*dt #ps
+dt_dump_moments = dt_dump_fields = 2*dt #ps
 
 
 # Material specific input
@@ -90,8 +90,8 @@ zero_temperature    = (p_dim==1)
 
 
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices              = 2
-manual_device_allocation = False
+num_devices              = 6
+manual_device_allocation = True
 device_allocation        = [0] # No. of items in list should match number of mpiprocs
 dont_compute             = [0]
 

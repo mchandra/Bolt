@@ -1,13 +1,15 @@
 import numpy as np
 import params
 
-q1_start = 3.
-q1_end   = 7.
-N_q1     = 120
+q1_start = -0.33333333333333326
+q1_end   = q1_start+2*0.06666666666666665#0.33333333333333326
+N_q1     = 2
+dq1      = (q1_end - q1_start)/N_q1 
 
-q2_start = -.2
-q2_end   =  0
-N_q2     = 120
+q2_start = 0.33333333333333326
+q2_end   = 1.0
+N_q2     = 10
+dq2      = (q2_end - q2_start)/N_q2 
 
 # If N_p1 > 1, mirror boundary conditions require p1 to be
 # symmetric about zero
