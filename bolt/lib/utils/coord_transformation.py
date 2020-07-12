@@ -7,16 +7,28 @@ import params
 
 
 def get_theta(q1, q2, boundary,  q1_start_local_left=None, q2_start_local_bottom=None):
+ 
+    dq1 = domain.dq1
+    dq2 = domain.dq2
 
-    [[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]] = [[params.dx_dq1, params.dx_dq2], [params.dy_dq1, params.dy_dq2]] 
-    
-    dq1 = (domain.q1_end - domain.q1_start)/domain.N_q1
-    dq2 = (domain.q2_end - domain.q2_start)/domain.N_q2
+    # Assuming q1, q2 are at zone centers. Need to calculate thetas using the face-centers on which the boundary lies
+    if (boundary == "left"):
+        q1  = q1 - 0.5*dq1
+        dq1 = 0        
 
-    if ((boundary == "left") or (boundary == "right")):
+    if (boundary == "right"):
+        q1  = q1 + 0.5*dq1
         dq1 = 0
-    if ((boundary == "top") or (boundary == "bottom")):
+
+    if (boundary == "top"):
+        q2  = q2 + 0.5*dq2
         dq2 = 0
+
+    if (boundary == "bottom"):
+        q2  = q2 - 0.5*dq2
+        dq2 = 0
+
+    [[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]] = jacobian_dx_dq(q1, q2, q1_start_local_left, q2_start_local_bottom)
 
     dy = dy_dq1*dq1 + dy_dq2*dq2
     dx = dx_dq1*dq1 + dx_dq2*dq2
@@ -39,10 +51,8 @@ def jacobian_dx_dq(q1, q2, q1_start_local_left=None, q2_start_local_bottom=None)
         dx_dq1 = (x_plus_eps_q1 - x)/eps; dy_dq1 = (y_plus_eps_q1 - y)/eps
         dx_dq2 = (x_plus_eps_q2 - x)/eps; dy_dq2 = (y_plus_eps_q2 - y)/eps
 
-#    print ("coordinate_transformation.py, dx_dq1 : ", dx_dq1)
-#    print ("coordinate_transformation.py, dy_dq1 : ", dy_dq1)
-#    print ("coordinate_transformation.py, dx_dq2 : ", dx_dq2)
-#    print ("coordinate_transformation.py, dy_dq2 : ", dy_dq2)
+        #pl.plot(af.moddims(dx[0, 0, :, 0], dx.dims()[2]).to_ndarray())
+        #pl.plot(af.moddims(dy[0, 0, :, 0], dy.dims()[2]).to_ndarray())
         
         jacobian = [[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]]
 
@@ -163,7 +173,7 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
     if (params.enable_manual_mirror and is_right_most_domain):
         theta_right = 0.*theta_right + params.mirror_angles[1]
 
-
+    print ("theta_right : ", theta_right)
 
 
     # Calculate the number of shifts of the array along the p_theta axis
@@ -193,10 +203,11 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
     # Apply manually specified mirror angles only if bottom boundary of the zone is the bottom boundary of the device
     is_bottom_most_domain = abs(params.q2_start_local_bottom - domain.q2_start) < 1e-13
 
+    print ("theta_bottom : ", theta_bottom)
+
     if (params.enable_manual_mirror and is_bottom_most_domain):
         theta_bottom = 0.*theta_bottom + params.mirror_angles[0]
-
-
+        print ("Theta has been manually set to zero at bottom edge!")
 
 
     # Calculate the number of shifts of the array along the p_theta axis
@@ -210,9 +221,9 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
     # Convert into a 1D array
     shift_indices_bottom = af.moddims(shift_indices, N_theta*N_q1_local)
 
-#    # TODO : Dumping theta for testing
-#    if (params.rank == 0):
-#        np.savetxt("/home/mchandra/gitansh/merge_to_master/example_problems/electronic_boltzmann/test_quadratic/theta_left.txt", theta_bottom[N_g:-N_g])
+    # TODO : Dumping theta for testing
+    if (params.rank == 0):
+        np.savetxt("/home/mchandra/gitansh/merge_to_master/example_problems/electronic_boltzmann/test_quadratic/theta_left.txt", theta_bottom[N_g:-N_g])
 #
 #    if (params.rank == 1):
 #        np.savetxt("/home/mchandra/gitansh/merge_to_master/example_problems/electronic_boltzmann/test_quadratic/theta_right.txt", theta_bottom[N_g:-N_g])
@@ -628,7 +639,7 @@ def quadratic_test(q1, q2, q1_slice, q2_slice,
     #  |  |  |  |
     # -1        1
     # Therefore, we have:
-    dq1_ref = 2./N_q1_local
+    dq1_ref = 0.*2./N_q1_local
     dq2_ref = 2./N_q2_local
 
     if ((q1_start_local - q1_start_local_left > 0) and (q1_start_local - q1_start_local_left) < dq1):
@@ -636,6 +647,7 @@ def quadratic_test(q1, q2, q1_slice, q2_slice,
         # Get zone centers for the reference element
         q1_ref_start_local = -1. + 0.5*dq1_ref
         q1_ref_end_local   =  1. - 0.5*dq1_ref
+        print ("center = ", q1_start_local_left, q1_start_local, dq1_ref)
 
     if (q1_start_local - q1_start_local_left >= dq1):
         # q1_start_local is at right edge and so q1 is q1_right
@@ -649,6 +661,7 @@ def quadratic_test(q1, q2, q1_slice, q2_slice,
 
         q1_ref_start_local = -1.
         q1_ref_end_local   =  1. - dq1_ref
+
 
     if ((q2_start_local - q2_start_local_bottom > 0) and (q2_start_local - q2_start_local_bottom < dq2)):
         # q2_start_local is at zone center and so q2 is q2_center
@@ -668,6 +681,7 @@ def quadratic_test(q1, q2, q1_slice, q2_slice,
 
         q2_ref_start_local = -1.
         q2_ref_end_local   =  1. - dq2_ref
+
 
     # Now q1_ref = a*q1 + b, and we need to solve for (a, b)
     # Use the end points:
@@ -692,7 +706,6 @@ def quadratic_test(q1, q2, q1_slice, q2_slice,
 
     dq1_tmp_dq1 = a ; dq1_tmp_dq2 = 0.
     dq2_tmp_dq1 = 0.; dq2_tmp_dq2 = c
-
 
 
     #x = a0 + a1*X + a2*Y + a3*X*Y + a4*X**2 + a5*Y**2 + a6*X**2*Y + a7*X*Y**2
@@ -779,6 +792,9 @@ def quadratic_test(q1, q2, q1_slice, q2_slice,
     dy_dq1_tmp = dy_dX; dy_dq2_tmp = dy_dY
 
     dx_dq1 = (dx_dq1_tmp * dq1_tmp_dq1) + (dx_dq2_tmp * dq2_tmp_dq1)
+#    print ("dx_dq1_tmp  = ", dx_dq1_tmp.scalar())
+#    print ("dq1_tmp_dq1 = ", dq1_tmp_dq1)
+    
     dx_dq2 = (dx_dq1_tmp * dq1_tmp_dq2) + (dx_dq2_tmp * dq2_tmp_dq2)
 
     dy_dq1 = (dy_dq1_tmp * dq1_tmp_dq1) + (dy_dq2_tmp * dq2_tmp_dq1)

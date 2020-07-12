@@ -1,5 +1,6 @@
 import numpy as np
 import arrayfire as af
+import pylab as pl
 
 import domain
 import params
@@ -12,6 +13,8 @@ def get_cartesian_coords(q1, q2,
                          return_jacobian = False
                         ):
 
+    print ("get_cartesian_coords() being called!")
+
     q1_midpoint = 0.5*(af.max(q1) + af.min(q1))
     q2_midpoint = 0.5*(af.max(q2) + af.min(q2))
 
@@ -23,6 +26,7 @@ def get_cartesian_coords(q1, q2,
     jacobian = [[1. + 0.*q1,      0.*q1],
                 [     0.*q1, 1. + 0.*q1]
                ]
+    [[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]] = jacobian
 
     # Radius and center of circular region
     radius          = 0.5
@@ -53,7 +57,7 @@ def get_cartesian_coords(q1, q2,
             x_n           = x_0 + np.sqrt(2)*radius*index/N # Bottom-left
             y_n           = np.sqrt(radius**2 - x_n**2)
             
-            print ("x_n, y_n : ", x_n, y_n)
+            #print ("x_n, y_n : ", x_n, y_n)
 
             x_n_plus_1    = x_0 + np.sqrt(2)*radius*(index+1)/N # Bottom-right
             y_n_plus_1    = np.sqrt(radius**2 - x_n_plus_1**2)
@@ -73,25 +77,10 @@ def get_cartesian_coords(q1, q2,
             x_y_top_center    = [x_n_plus_half, 1]
             x_y_top_right     = [x_n_plus_1,    1]
 
-            # TODO : Testing
-            if (i == N_g):
-                save_array = x_y_bottom_left.copy()
-                save_array.extend(x_y_bottom_center)
-                save_array.extend(x_y_bottom_right)
-                save_array.extend(x_y_left_center)
-                save_array.extend(x_y_right_center)
-                save_array.extend(x_y_top_left)
-                save_array.extend(x_y_top_center)
-                save_array.extend(x_y_top_right)
-
-                save_array = np.array(save_array)
-
-                np.savetxt("input_to_quadratic_left_most_slice.txt", save_array)
-
 
             for j in range(N_g, N_q2 + N_g):
 
-                print ("i, j, index : ", i, j, index)
+                #print ("i, j, index : ", i, j, index)
 
                 # Get the transformation (x_i, y_i) for each point (q1_i, q2_i) 
                 q1_i = q1[0, 0, i, j]
@@ -112,9 +101,25 @@ def get_cartesian_coords(q1, q2,
 
                 # TODO : Reconstruct jacobian
                 [[dx_dq1_i, dx_dq2_i], [dy_dq1_i, dy_dq2_i]] = jacobian_i
-                print ("dx_dq1_i : ", dx_dq1_i.dims())
-                #jacobian =  TODO
+                #print ("dx_dq1_i : ", dx_dq1_i)
+                dx_dq1[0, 0, i, j] = dx_dq1_i.scalar()
+                dx_dq2[0, 0, i, j] = dx_dq2_i.scalar()
+                dy_dq1[0, 0, i, j] = dy_dq1_i.scalar()
+                dy_dq2[0, 0, i, j] = dy_dq2_i.scalar()
+#                if (dy_dq1_i != 0.):
+#                    print ("dy_dq1_i = ", dy_dq1_i.scalar())
 
+        #jacobian = [[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]]
+
+#        pl.plot(af.moddims(dx_dq1[0, 0, :, N_g], q1.dims()[2]).to_ndarray(), '-o', color = 'C0', alpha = 0.5, label = "dx_dq1")
+#        pl.plot(af.moddims(dy_dq1[0, 0, :, N_g], q1.dims()[2]).to_ndarray(), '-o', color = 'k', alpha = 0.5, label = "dy_dq1")
+#        pl.plot(af.moddims(dx_dq2[0, 0, :, N_g], q1.dims()[2]).to_ndarray(), '-o', color = 'C2', alpha = 0.5, label = "dx_dq2")
+#        pl.plot(af.moddims(dy_dq2[0, 0, :, N_g], q1.dims()[2]).to_ndarray(), '-o', color = 'C3', alpha = 0.5, label = "dy_dq2")
+#
+#        pl.legend(loc='best')
+#
+#        pl.savefig("/home/mchandra/gitansh/merge_to_master/example_problems/electronic_boltzmann/test_quadratic/iv.png")
+#        pl.clf()
                
         if (return_jacobian):
             return(x, y, jacobian)
