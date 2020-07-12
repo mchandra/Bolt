@@ -1,8 +1,6 @@
 import numpy as np
 import arrayfire as af
 
-from bolt.lib.utils.coord_transformation \
-    import jacobian_dq_dx, jacobian_dx_dq, sqrt_det_g
 
 """
 Here we define the advection terms for the 
@@ -102,10 +100,11 @@ def C_q(t, q1, q2, p1, p2, p3, params):
 #    C_X   = dX_dx*C_x + dX_dy*C_y
 #    C_Y   = dY_dx*C_x + dY_dy*C_y
 
-    jac = jacobian_dq_dx(q1, q2,
-                             q1_start_local_left=params.q1_start_local_left, 
-                             q2_start_local_bottom=params.q2_start_local_bottom)
-    #jac = params.jacobian_dq_dx(q1, q2)
+#    jac = jacobian_dq_dx(q1, q2,
+#                             q1_start_local_left=params.q1_start_local_left, 
+#                             q2_start_local_bottom=params.q2_start_local_bottom)
+    jac = [[params.dx_dq1, params.dx_dq2], [params.dy_dq1, params.dy_dq2]]
+
 
     dq1_dx = jac[0][0]; dq1_dy = jac[0][1]
     dq2_dx = jac[1][0]; dq2_dy = jac[1][1]
@@ -113,10 +112,10 @@ def C_q(t, q1, q2, p1, p2, p3, params):
     C_q1 = C_x*dq1_dx + C_y*dq1_dy
     C_q2 = C_x*dq2_dx + C_y*dq2_dy
 
-    g = sqrt_det_g(q1, q2,
-                       q1_start_local_left=params.q1_start_local_left, 
-                       q2_start_local_bottom=params.q2_start_local_bottom)
-    #g = params.sqrt_det_g(q1, q2)
+#    g = sqrt_det_g(q1, q2,
+#                       q1_start_local_left=params.q1_start_local_left, 
+#                       q2_start_local_bottom=params.q2_start_local_bottom)
+    g = params.sqrt_det_g
 
     return (g*C_q1, g*C_q2)
 

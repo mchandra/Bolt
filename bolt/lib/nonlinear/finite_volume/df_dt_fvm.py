@@ -5,7 +5,7 @@ from .riemann import riemann_solver
 from .reconstruct import reconstruct
 from bolt.lib.utils.broadcasted_primitive_operations import multiply
 from bolt.lib.nonlinear.communicate import communicate_fields
-from bolt.lib.utils.coord_transformation import sqrt_det_g
+#from bolt.lib.utils.coord_transformation import sqrt_det_g
 
 """
 Equation to solve:
@@ -87,10 +87,10 @@ def df_dt_fvm(f, self, term_to_return = 'all'):
         top_flux   = af.shift(bot_flux,  0, 0,  0, -1)
         
         # First get the purely spatial sqrt_get_g
-        g_tmp = sqrt_det_g(self.q1_center, self.q2_center, \
-                           self.physical_system.params.q1_start_local_left, \
-                           self.physical_system.params.q2_start_local_bottom)
-        #g_tmp = self.physical_system.params.sqrt_det_g(self.q1_center, self.q2_center)
+        #g_tmp = sqrt_det_g(self.q1_center, self.q2_center, \
+        #                   self.physical_system.params.q1_start_local_left, \
+        #                   self.physical_system.params.q2_start_local_bottom)
+        g_tmp = self.physical_system.params.sqrt_det_g
         # Now need to make it compatible with the higher dim data structure f      
         g = multiply(g_tmp, self.p1_center**0)
         

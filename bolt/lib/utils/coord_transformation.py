@@ -8,9 +8,7 @@ import params
 
 def get_theta(q1, q2, boundary,  q1_start_local_left=None, q2_start_local_bottom=None):
 
-    [[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]] = jacobian_dx_dq(q1, q2,
-                                                          q1_start_local_left, 
-                                                          q2_start_local_bottom)
+    [[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]] = [[params.dx_dq1, params.dx_dq2], [params.dy_dq1, params.dy_dq2]] 
     
     dq1 = (domain.q1_end - domain.q1_start)/domain.N_q1
     dq2 = (domain.q2_end - domain.q2_start)/domain.N_q2

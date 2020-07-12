@@ -37,12 +37,6 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     # TODO: Injecting get_cartesian_coords into params to avoid circular dependency
     params.get_cartesian_coords = coords.get_cartesian_coords
 
-    # Load shift indices for all 4 boundaries into params. Required to perform
-    # mirroring operations along boundaries at arbitrary angles.
-    params.shift_indices_left, params.shift_indices_right, \
-    params.shift_indices_bottom, params.shift_indices_top = \
-            compute_shift_indices(q1, q2, p1, p2, p3, params)   
-
 
     params.x, params.y = coords.get_cartesian_coords(q1, q2,
                                                      q1_start_local_left=params.q1_start_local_left, 
@@ -72,6 +66,13 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     params.sqrt_det_g = sqrt_det_g(q1, q2,
                                        q1_start_local_left=params.q1_start_local_left, 
                                        q2_start_local_bottom=params.q2_start_local_bottom)
+
+
+    # Load shift indices for all 4 boundaries into params. Required to perform
+    # mirroring operations along boundaries at arbitrary angles.
+    params.shift_indices_left, params.shift_indices_right, \
+    params.shift_indices_bottom, params.shift_indices_top = \
+            compute_shift_indices(q1, q2, p1, p2, p3, params)   
 
     # Calculation of integral measure
     # Evaluating velocity space resolution for each species:
