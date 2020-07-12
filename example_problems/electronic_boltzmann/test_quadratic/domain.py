@@ -2,8 +2,8 @@ import numpy as np
 import params
 
 q1_start = -0.33333333333333326
-q1_end   = q1_start+2*0.06666666666666665#0.33333333333333326
-N_q1     = 2
+q1_end   = 0.33333333333333326
+N_q1     = 10
 dq1      = (q1_end - q1_start)/N_q1 
 
 q2_start = 0.33333333333333326

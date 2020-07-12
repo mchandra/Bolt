@@ -27,14 +27,12 @@ def get_cartesian_coords(q1, q2,
     # Radius and center of circular region
     radius          = 0.5
     center          = [0, 0]
-    print ("dq1 : ", domain.dq1)
-    print ("dq2 : ", domain.dq2)
 
     if (q1_start_local_left != None and q2_start_local_bottom != None):
         
         N_q1     = q1.dims()[2] - 2*N_g # Manually apply quadratic transformation for each zone along q1
         N_q2     = q2.dims()[3] - 2*N_g # Manually apply quadratic transformation for each zone along q1
-        N        = 10#N_q1 
+        N        = N_q1 
         x_0     = -radius/np.sqrt(2)
 
         # Initialize to zero
@@ -45,6 +43,10 @@ def get_cartesian_coords(q1, q2,
         for i in range(N_g, N_q1 + N_g):
 
             index = i - N_g # Index of the vertical slice, left-most being 0
+
+            # q1, q2 grid slices to be passed into quadratic for transformation
+            q1_slice = q1[0, 0, i, N_g:-N_g]
+            q2_slice = q2[0, 0, i, N_g:-N_g]
 
             # Compute the x, y points using which the transformation will be defined
             # x, y nodes remain the same for each point on a vertical slice
@@ -86,6 +88,7 @@ def get_cartesian_coords(q1, q2,
 
                 np.savetxt("input_to_quadratic_left_most_slice.txt", save_array)
 
+
             for j in range(N_g, N_q2 + N_g):
 
                 print ("i, j, index : ", i, j, index)
@@ -94,26 +97,22 @@ def get_cartesian_coords(q1, q2,
                 q1_i = q1[0, 0, i, j]
                 q2_i = q2[0, 0, i, j]
 
-                x_i, y_i, jacobian_i = quadratic_test(q1_i, q2_i,
+                x_i, y_i, jacobian_i = quadratic_test(q1_i, q2_i, q1_slice, q2_slice,
                                    x_y_bottom_left,   x_y_bottom_right,
                                    x_y_top_right,     x_y_top_left,
                                    x_y_bottom_center, x_y_right_center,
                                    x_y_top_center,    x_y_left_center,
-                                   q1_start_local_left,
+                                   q1_start_local_left + index*domain.dq1,
                                    q2_start_local_bottom,
                                   )
-
-                
-                print ("x_i, y_i : ", x_i.scalar(), y_i.scalar())
-
 
                 # Reconstruct the x,y grid from the loop
                 x[0, 0, i, j] = x_i
                 y[0, 0, i, j] = y_i
 
                 # TODO : Reconstruct jacobian
-                #[[dx_dq1_i, dx_dq2_i], [dy_dq1_i, dy_dq2_i]] = jacobian_i
-                #print ("dx_dq1_i : ", dx_dq1_i.dims())
+                [[dx_dq1_i, dx_dq2_i], [dy_dq1_i, dy_dq2_i]] = jacobian_i
+                print ("dx_dq1_i : ", dx_dq1_i.dims())
                 #jacobian =  TODO
 
                

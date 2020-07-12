@@ -556,7 +556,9 @@ def quadratic(q1, q2,
 
     return (x, y, jacobian)
 
-def quadratic_test(q1, q2,
+
+
+def quadratic_test(q1, q2, q1_slice, q2_slice,
               x_y_bottom_left, x_y_bottom_right,
               x_y_top_right, x_y_top_left,
               x_y_bottom_center, x_y_right_center,
@@ -565,6 +567,7 @@ def quadratic_test(q1, q2,
               q2_start_local_bottom,
              ):
     # Here q1, q2 is a point in q-space
+    # q1_slice, q2_slice define the slice in q1, q2 space over which the transformation is to be applied
     # Maps from ref element [-1, 1] x [-1, 1] to physical domain
     # Returns x, y and jacobian at a point after applying transformation
 
@@ -591,6 +594,106 @@ def quadratic_test(q1, q2,
     x5, y5 = x_y_right_center;  X5, Y5 = q1_q2_right_center
     x6, y6 = x_y_top_center;    X6, Y6 = q1_q2_top_center
     x7, y7 = x_y_left_center;   X7, Y7 = q1_q2_left_center
+
+
+
+    # Input (q1, q2) may not be [-1, 1] x [-1, 1].
+    # First we convert (q1, q2) -> (q1_ref, q2_ref), which are indeed [-1, 1] x [-1, 1]
+    dq1 = domain.dq1
+    dq2 = domain.dq2
+
+    N_g = domain.N_ghost
+    q1_start_local = q1_slice[0, 0,  0,  0   ].scalar()
+    q1_end_local   = q1_start_local + dq1                 #q1[0, 0, -N_g-1,   0     ].scalar()
+    q2_start_local = q2_slice[0, 0,  0,  0   ].scalar()
+    q2_end_local   = q2_slice[0, 0,  0,  -1  ].scalar()
+
+    N_q1_local = q1_slice.dims()[2] # Does not include any ghost zones
+    N_q2_local = q2_slice.dims()[3] 
+
+    # All of the code below could be done away with by simply:
+    # q1_ref = a*q1_input + b
+    # q2_ref = c*q2_input + d
+    # where a = 2./(q1_end_local_left   - q1_start_local_left)
+    #       c = 2./(q2_end_local_bottom - q2_start_local_bottom)
+    # (b, d) are irrelevant
+    # Note: q1_end_local_left, q2_end_local_bottom are not currently
+    #       being passed into the args.
+
+    # Longer code below to avoid passing
+    # q1_end_local_left, q2_end_local_bottom into args.
+    # Will take a call on what is more elegant later.
+
+    # Need dq1 and dq2 in the ref element
+    # End points of ref element are [-1, 1]
+    # If N_q1 = 3, i.e., 3 zones:
+    #  |  |  |  |
+    # -1        1
+    # Therefore, we have:
+    dq1_ref = 2./N_q1_local
+    dq2_ref = 2./N_q2_local
+
+    if ((q1_start_local - q1_start_local_left > 0) and (q1_start_local - q1_start_local_left) < dq1):
+        # q1_start_local is at zone center and so q1 is q1_center
+        # Get zone centers for the reference element
+        q1_ref_start_local = -1. + 0.5*dq1_ref
+        q1_ref_end_local   =  1. - 0.5*dq1_ref
+
+    if (q1_start_local - q1_start_local_left >= dq1):
+        # q1_start_local is at right edge and so q1 is q1_right
+        # Get right edges for the reference element
+        q1_ref_start_local = -1. + dq1_ref
+        q1_ref_end_local   =  1.
+
+    if (np.abs(q1_start_local - q1_start_local_left) < 1e-10):
+        # q1_start_local is at the left edge and so q1 is q1_left
+        # Get left edges for the reference element
+
+        q1_ref_start_local = -1.
+        q1_ref_end_local   =  1. - dq1_ref
+
+    if ((q2_start_local - q2_start_local_bottom > 0) and (q2_start_local - q2_start_local_bottom < dq2)):
+        # q2_start_local is at zone center and so q2 is q2_center
+        # Get zone centers for the reference element
+        q2_ref_start_local = -1. + 0.5*dq2_ref
+        q2_ref_end_local   =  1. - 0.5*dq2_ref
+
+    if (q2_start_local - q2_start_local_bottom >= dq2):
+        # q2_start_local is at top edge and so q2 is q2_top
+        # Get top edges for the reference element
+        q2_ref_start_local = -1. + dq2_ref
+        q2_ref_end_local   =  1.
+
+    if (np.abs(q2_start_local - q2_start_local_bottom) < 1e-10):
+        # q2_start_local is at the bottom edge and so q2 is q2_bottom
+        # Get bottom edges for the reference element
+
+        q2_ref_start_local = -1.
+        q2_ref_end_local   =  1. - dq2_ref
+
+    # Now q1_ref = a*q1 + b, and we need to solve for (a, b)
+    # Use the end points:
+    #      q1_ref_start_local = a*q1_start_local + b
+    #      q1_ref_end_local   = a*q1_end_local   + b
+
+    a =   (q1_ref_start_local - q1_ref_end_local) \
+        / (q1_start_local     - q1_end_local)
+
+    b = q1_ref_start_local - a*q1_start_local
+
+    # Similarly, q2_ref = c*q2 + d
+    c =   (q2_ref_start_local - q2_ref_end_local) \
+        / (q2_start_local     - q2_end_local)
+
+    d = q2_ref_start_local - c*q2_start_local
+
+
+    # Finally,
+    q1_tmp = a*q1 + b
+    q2_tmp = c*q2 + d
+
+    dq1_tmp_dq1 = a ; dq1_tmp_dq2 = 0.
+    dq2_tmp_dq1 = 0.; dq2_tmp_dq2 = c
 
 
 
@@ -661,12 +764,11 @@ def quadratic_test(q1, q2,
     b7 = b7[0]
 
 
-    X = q1; Y = q2 # renaming (q1, q2) -> (X, Y) for ease of reading the eqns below
+    X = q1_tmp; Y = q2_tmp # renaming (q1, q2) -> (X, Y) for ease of reading the eqns below
 
     x     = a0 + a1*X + a2*Y + a3*X*Y + a4*X**2 + a5*Y**2 + a6*X**2*Y + a7*X*Y**2
     y     = b0 + b1*X + b2*Y + b3*X*Y + b4*X**2 + b5*Y**2 + b6*X**2*Y + b7*X*Y**2
 
-    print ('coordinate_transformation.py, X, Y, x, y : ', X.scalar(), Y.scalar(), x.scalar(), y.scalar())
 
     dx_dX =      a1          + a3*Y   + 2*a4*X            + 2*a6*X*Y  + a7*Y**2
     dx_dY =             a2   + a3*X             + 2*a5*Y  +   a6*X**2 + 2*a7*X*Y
@@ -674,10 +776,6 @@ def quadratic_test(q1, q2,
     dy_dX =      b1          + b3*Y   + 2*b4*X            + 2*b6*X*Y  + b7*Y**2
     dy_dY =             b2   + b3*X             + 2*b5*Y  + b6*X**2   + 2*b7*X*Y
 
-
-    # TODO : Deal with the Jacobian later
-    dq1_tmp_dq1 = domain.dq1 ; dq1_tmp_dq2 = 0.
-    dq2_tmp_dq1 = 0.; dq2_tmp_dq2 = 1.
 
     dx_dq1_tmp = dx_dX; dx_dq2_tmp = dx_dY
     dy_dq1_tmp = dy_dX; dy_dq2_tmp = dy_dY
