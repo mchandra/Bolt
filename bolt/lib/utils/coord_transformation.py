@@ -173,6 +173,13 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
     if (params.enable_manual_mirror and is_right_most_domain):
         theta_right = 0.*theta_right + params.mirror_angles[1]
 
+    # TODO : Dumping theta for testing
+#    if (params.rank == 0):
+#        np.savetxt("/home/mchandra/gitansh/merge_to_master/example_problems/electronic_boltzmann/test_quadratic_left_center/theta_left.txt", theta_right[N_g:-N_g])
+
+#    if (params.rank == 1):
+#        np.savetxt("/home/mchandra/gitansh/merge_to_master/example_problems/electronic_boltzmann/test_quadratic/theta_right.txt", theta_bottom[N_g:-N_g])
+
 
     # Calculate the number of shifts of the array along the p_theta axis
     # required for an angular shift of -2*theta_right
@@ -198,6 +205,10 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
                              q2_start_local_bottom=params.q2_start_local_bottom)[0, 0, :, bottom_edge]
     theta_bottom = af.moddims(theta_bottom, N_q1_local) # Convert to 1D array
 
+    # TODO : Dumping theta for testing
+#    if (params.rank == 0):
+#        np.savetxt("/home/mchandra/gitansh/merge_to_master/example_problems/electronic_boltzmann/test_quadratic_left_center/theta_top.txt", theta_bottom[N_g:-N_g])
+
     # Apply manually specified mirror angles only if bottom boundary of the zone is the bottom boundary of the device
     is_bottom_most_domain = abs(params.q2_start_local_bottom - domain.q2_start) < 1e-13
 
@@ -217,13 +228,6 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
     # Convert into a 1D array
     shift_indices_bottom = af.moddims(shift_indices, N_theta*N_q1_local)
 
-#    # TODO : Dumping theta for testing
-#    if (params.rank == 0):
-#        np.savetxt("/home/mchandra/gitansh/merge_to_master/example_problems/electronic_boltzmann/test_quadratic/theta_left.txt", theta_bottom[N_g:-N_g])
-#
-#    if (params.rank == 1):
-#        np.savetxt("/home/mchandra/gitansh/merge_to_master/example_problems/electronic_boltzmann/test_quadratic/theta_right.txt", theta_bottom[N_g:-N_g])
-#
     # Top Boundary
 
     # Initialize to zero
@@ -608,11 +612,15 @@ def quadratic_test(q1, q2, q1_slice, q2_slice,
     dq2 = domain.dq2
 
     N_g = domain.N_ghost
-    q1_start_local = q1_slice[0, 0,  0,  0   ].scalar()
-    q2_start_local = q2_slice[0, 0,  0,  0   ].scalar()
+    q1_start_local = q1_slice[0, 0,  0,  0 ].scalar()
+    q2_start_local = q2_slice[0, 0,  0,  0 ].scalar()
+
 
     N_q1_local = q1_slice.dims()[2] # Does not include any ghost zones
-    N_q2_local = q2_slice.dims()[3] 
+    try :
+        N_q2_local = q2_slice.dims()[3] 
+    except(IndexError):
+        N_q2_local = 1
 
     # All of the code below could be done away with by simply:
     # q1_ref = a*q1_input + b
@@ -687,6 +695,7 @@ def quadratic_test(q1, q2, q1_slice, q2_slice,
 
     c = dq2_ref/dq2 # Scaling factor in q2
     d = q2_ref_start_local - c*q2_start_local
+#    print ("Coordinate transformation, a, b, c, d : ", a, b, c, d)
 
 
     # Finally,
@@ -728,6 +737,7 @@ def quadratic_test(q1, q2, q1_slice, q2_slice,
 
     a0, a1, a2, a3, a4, a5, a6, a7 = np.linalg.solve(A, b)
 
+    # Convert to floats for multiplication with arrayfire arrays
     a0 = a0[0]
     a1 = a1[0]
     a2 = a2[0]
@@ -754,6 +764,7 @@ def quadratic_test(q1, q2, q1_slice, q2_slice,
 
     b0, b1, b2, b3, b4, b5, b6, b7 = np.linalg.solve(A, b)
 
+    # Convert to floats for multiplication with arrayfire arrays
     b0 = b0[0]
     b1 = b1[0]
     b2 = b2[0]
@@ -765,6 +776,7 @@ def quadratic_test(q1, q2, q1_slice, q2_slice,
 
 
     X = q1_tmp; Y = q2_tmp # renaming (q1, q2) -> (X, Y) for ease of reading the eqns below
+
 
     x     = a0 + a1*X + a2*Y + a3*X*Y + a4*X**2 + a5*Y**2 + a6*X**2*Y + a7*X*Y**2
     y     = b0 + b1*X + b2*Y + b3*X*Y + b4*X**2 + b5*Y**2 + b6*X**2*Y + b7*X*Y**2
@@ -780,8 +792,7 @@ def quadratic_test(q1, q2, q1_slice, q2_slice,
     dx_dq1_tmp = dx_dX; dx_dq2_tmp = dx_dY
     dy_dq1_tmp = dy_dX; dy_dq2_tmp = dy_dY
 
-    dx_dq1 = (dx_dq1_tmp * dq1_tmp_dq1) + (dx_dq2_tmp * dq2_tmp_dq1)
-    
+    dx_dq1 = (dx_dq1_tmp * dq1_tmp_dq1) + (dx_dq2_tmp * dq2_tmp_dq1)    
     dx_dq2 = (dx_dq1_tmp * dq1_tmp_dq2) + (dx_dq2_tmp * dq2_tmp_dq2)
 
     dy_dq1 = (dy_dq1_tmp * dq1_tmp_dq1) + (dy_dq2_tmp * dq2_tmp_dq1)
