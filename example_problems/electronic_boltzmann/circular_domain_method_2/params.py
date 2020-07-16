@@ -65,16 +65,16 @@ electrostatic_solver_every_nth_step = 1000000
 
 # Time parameters:
 dt      = 0.025/16 # ps
-t_final = 3*dt     # ps
+t_final = 6     # ps
 
 
 # File-writing Parameters:
 dump_steps = 5
 dump_dist_after = 1600
 # Set to zero for no file-writing
-dt_dump_f       = 2*dt #ps
+dt_dump_f       = 1000*dt #ps
 # ALWAYS set dump moments and dump fields at same frequency:
-dt_dump_moments = dt_dump_fields = 2*dt #ps
+dt_dump_moments = dt_dump_fields = 5*dt #ps
 
 
 # Material specific input

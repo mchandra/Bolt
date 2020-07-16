@@ -137,16 +137,8 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     print ("Initial angle : ")
     af.display(p2[theta_0_index])
 
-#    f[theta_0_index, :, :]  = A*af.exp(-( (params.x-x_0)**2/(2*sigma_x**2) + \
-#                                          (params.y-y_0)**2/(2*sigma_y**2)
-#                                        )
-#                                      ) +  A*af.exp(-( (params.x-x_0)**2/(2*sigma_x**2) + \
-#                                          (params.y-(-0.5))**2/(2*sigma_y**2)
-#                                        )
-#                                      ) + A*af.exp(-( (params.x-x_0)**2/(2*sigma_x**2) + \
-#                                          (params.y-0.5)**2/(2*sigma_y**2)
-#                                        )
-#                                      )
+    print ("theta_0_index = ", theta_0_index)
+    print ("f.shape = ", f.dims())
 
     f[theta_0_index, :, :]  = A*af.exp(-( (params.y-y_0)**2/(2*sigma_y**2) 
                                         ))

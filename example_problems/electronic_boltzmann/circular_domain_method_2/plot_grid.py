@@ -165,7 +165,9 @@ for file_number, dump_file in enumerate(moment_files[:1]):
 #    plot_grid(x[100:140, 40:80], y[100:140, 40:80], alpha=0.5)
 
     plot_grid(x[:, :], y[:, :], alpha=0.5)
-#    plot_grid(x_left[:, :], y_bottom[:, :], alpha=0.5, color = 'C0')
+    #plot_grid(x_right_center[:, :], y_right_center[:, :], alpha=0.5, color = 'g')
+    #plot_grid(x_top_center[:, :], y_top_center[:, :], alpha=0.5, color = 'r')
+    #pl.plot(x_right_center[9, :], y_right_center[9, :], 'o', alpha=0.5, color = 'C0')
 
     
     radius = 0.5
