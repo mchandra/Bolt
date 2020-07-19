@@ -622,7 +622,10 @@ def quadratic_test(q1, q2, q1_slice, q2_slice,
     q2_start_local = q2_slice[0, 0,  0,  0 ].scalar()
 
 
-    N_q1_local = q1_slice.dims()[2] # Does not include any ghost zones
+    try :
+        N_q1_local = q1_slice.dims()[2] # Does not include any ghost zones
+    except(IndexError):
+        N_q1_local = 1
     try :
         N_q2_local = q2_slice.dims()[3] 
     except(IndexError):

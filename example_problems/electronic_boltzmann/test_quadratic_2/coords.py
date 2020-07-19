@@ -39,7 +39,7 @@ def get_cartesian_coords(q1, q2,
         N_j      = N_q2
 
         # Bottom-left most point of the transformation
-        x_0      = -0.33333333#-radius/np.sqrt(2)
+        x_0      = -radius/np.sqrt(2)
         y_0      = np.sqrt(radius**2 - x_0**2)
 
         # Initialize to zero
@@ -48,9 +48,11 @@ def get_cartesian_coords(q1, q2,
 
 
         # Loop over each zone in x
-        for i in range(N_g, N_q1 + N_g):
+        #for i in range(N_g, N_q1 + N_g):
+        for i in range(0, N_q1 + 2*N_g):
 
-            for j in range(N_g, N_q2 + N_g):
+            #for j in range(N_g, N_q2 + N_g):
+            for j in range(0, N_q2 + 2*N_g):
                 index_i = i - N_g # Index of the vertical slice, left-most being 0
                 index_j = j - N_g # Index of the horizontal slice, bottom-most being 0
     
