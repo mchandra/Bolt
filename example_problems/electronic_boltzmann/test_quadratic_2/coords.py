@@ -35,8 +35,12 @@ def get_cartesian_coords(q1, q2,
 
         N_q1     = q1.dims()[2] - 2*N_g # Manually apply quadratic transformation for each zone along q1
         N_q2     = q2.dims()[3] - 2*N_g # Manually apply quadratic transformation for each zone along q1
-        N        = N_q1
-        x_0     = -0.33333333#-radius/np.sqrt(2)
+        N_i      = N_q1
+        N_j      = N_q2
+
+        # Bottom-left most point of the transformation
+        x_0      = -0.33333333#-radius/np.sqrt(2)
+        y_0      = np.sqrt(radius**2 - x_0**2)
 
         # Initialize to zero
         x = 0*q1
@@ -46,38 +50,38 @@ def get_cartesian_coords(q1, q2,
         # Loop over each zone in x
         for i in range(N_g, N_q1 + N_g):
 
-            index = i - N_g # Index of the vertical slice, left-most being 0
-
-            # q1, q2 grid slices to be passed into quadratic for transformation
-            q1_slice = q1[0, 0, i, N_g:-N_g]
-            q2_slice = q2[0, 0, i, N_g:-N_g]
-
-            # Compute the x, y points using which the transformation will be defined
-            # x, y nodes remain the same for each point on a vertical slice
-            x_n           = x_0 + 0.66666666*index/N # Bottom-left
-            y_n           = np.sqrt(radius**2 - x_n**2)
-
-
-            x_n_plus_1    = x_0 + 0.66666666*(index+1)/N # Bottom-right
-            y_n_plus_1    = np.sqrt(radius**2 - x_n_plus_1**2)
-
-            x_n_plus_half = x_0 + 0.66666666*(index+0.5)/N # Bottom-center
-            y_n_plus_half = np.sqrt(radius**2 - x_n_plus_half**2)
-
-
-            x_y_bottom_left   = [x_n,           y_n]
-            x_y_bottom_center = [x_n_plus_half, y_n_plus_half]
-            x_y_bottom_right  = [x_n_plus_1,    y_n_plus_1]
-
-            x_y_left_center   = [x_n,        (1.+2*y_n)/2]
-            x_y_right_center  = [x_n_plus_1, (1.+2*y_n_plus_1)/2]
-
-            x_y_top_left      = [x_n,           1.+y_n]
-            x_y_top_center    = [x_n_plus_half, 1.+y_n_plus_half]
-            x_y_top_right     = [x_n_plus_1,    1.+y_n_plus_1]
-
-
             for j in range(N_g, N_q2 + N_g):
+                index_i = i - N_g # Index of the vertical slice, left-most being 0
+                index_j = j - N_g # Index of the horizontal slice, bottom-most being 0
+    
+                # q1, q2 grid slices to be passed into quadratic for transformation
+                q1_slice = q1[0, 0, i, j]
+                q2_slice = q2[0, 0, i, j]
+
+                x_step = 0.66666666/N_i
+                y_step = 1./N_j
+    
+                # Compute the x, y points using which the transformation will be defined
+                # x, y nodes remain the same for each point on a vertical slice
+ 
+#                y_n           = y_0 + y_step*index_j   # Bottom
+#                y_n_plus_half = y_0 + y_step*(index_j+0.5) # y-center
+#                y_n_plus_1    = y_0 + y_step*(index_j+1) # Top
+
+                x_n           = x_0 + x_step*index_i       #+ x_step*(np.abs(index_j - N_j/2.))# Left
+                x_n_plus_half = x_0 + x_step*(index_i+0.5) #+ x_step*(np.abs(index_j - N_j/2.))# x-center
+                x_n_plus_1    = x_0 + x_step*(index_i+1)   #+ x_step*(np.abs(index_j - N_j/2.))# Right
+
+                x_y_bottom_left   = [x_n,           np.sqrt(np.abs(radius**2 - x_n**2))           + index_j*y_step]
+                x_y_bottom_center = [x_n_plus_half, np.sqrt(np.abs(radius**2 - x_n_plus_half**2)) + index_j*y_step]
+                x_y_bottom_right  = [x_n_plus_1,    np.sqrt(np.abs(radius**2 - x_n_plus_1**2))    + index_j*y_step]
+    
+                x_y_left_center   = [x_n,           np.sqrt(np.abs(radius**2 - x_n**2))        + (index_j+0.5)*y_step]
+                x_y_right_center  = [x_n_plus_1,    np.sqrt(np.abs(radius**2 - x_n_plus_1**2)) + (index_j+0.5)*y_step]
+    
+                x_y_top_left      = [x_n,           np.sqrt(np.abs(radius**2 - x_n**2))           + (index_j+1)*y_step]
+                x_y_top_center    = [x_n_plus_half, np.sqrt(np.abs(radius**2 - x_n_plus_half**2)) + (index_j+1)*y_step]
+                x_y_top_right     = [x_n_plus_1,    np.sqrt(np.abs(radius**2 - x_n_plus_1**2))    + (index_j+1)*y_step]
 
                 # Get the transformation (x_i, y_i) for each point (q1_i, q2_i)
                 q1_i = q1[0, 0, i, j]
@@ -88,8 +92,8 @@ def get_cartesian_coords(q1, q2,
                                    x_y_top_right,     x_y_top_left,
                                    x_y_bottom_center, x_y_right_center,
                                    x_y_top_center,    x_y_left_center,
-                                   q1_start_local_left + index*domain.dq1,
-                                   q2_start_local_bottom,
+                                   q1_start_local_left + index_i*domain.dq1,
+                                   q2_start_local_bottom + index_j*domain.dq2
                                   )
 
                 # Reconstruct the x,y grid from the loop
