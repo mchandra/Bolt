@@ -26,9 +26,13 @@ import domain
 #import coords
 
 
+def line(x, m, c):
+    return (m*x+c)
+
+
 # Optimized plot parameters to make beautiful plots:
 pl.rcParams['figure.figsize']  = 15, 7.5
-pl.rcParams['figure.dpi']      = 100
+pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
@@ -86,11 +90,16 @@ q2 = domain.q2_start + (0.5 + np.arange(N_q2)) * (domain.q2_end - domain.q2_star
 q2_meshgrid, q1_meshgrid = np.meshgrid(q2, q1)
 
 coords = io.readBinaryFile("coords.bin")
-coords = coords[0].reshape(N_q2, N_q1, 17)
+coords = coords[0].reshape(N_q2, N_q1, 15)
     
 x = coords[:, :, 0].T
 y = coords[:, :, 1].T
 
+x_bottom_center = coords[:, :, 13].T
+y_bottom_center = coords[:, :, 14].T
+
+#x_right_center  = coords[:, :, 15].T
+#y_right_center  = coords[:, :, 16].T
 
 N_p1 = domain.N_p1
 N_p2 = domain.N_p2
@@ -111,7 +120,7 @@ print ("moment files : ", moment_files.size)
 print ("lagrange multiplier files : ", lagrange_multiplier_files.size)
 
 
-time_array = np.loadtxt(filepath+"/dump_time_array.txt")
+#time_array = np.loadtxt(filepath+"/dump_time_array.txt")
 
 file_number = 0
 moments = io.readBinaryFile(moment_files[file_number])
@@ -122,9 +131,9 @@ density_bg = moments[:, :, 0]
 
 start_index = 0 # Make movie from just before restart point : 18.75 ps
 
-for file_number, dump_file in enumerate(moment_files[:]):
+for file_number, dump_file in enumerate(moment_files[:1]):
 
-#    file_number = -1
+    file_number = -1
     print("file number = ", file_number, "of ", moment_files.size)
 
     moments = io.readBinaryFile(moment_files[start_index+file_number])
@@ -144,7 +153,7 @@ for file_number, dump_file in enumerate(moment_files[:]):
     vel_drift_x  = lagrange_multipliers[:, :, 3]
     vel_drift_y  = lagrange_multipliers[:, :, 4]
 
-#    density = density - density_bg
+    density = density - density_bg
     density_min = np.min(density)
     density_max = np.max(density)
 
@@ -152,12 +161,24 @@ for file_number, dump_file in enumerate(moment_files[:]):
     j_x_m = np.ma.masked_where(J < 2e-10, j_x)
     j_y_m = np.ma.masked_where(J < 2e-10, j_y)
 
-    print ("x.shape : ", x.shape)    
 
-    plot_grid(x[::1, ::1], y[::1, ::1], alpha=0.5)
-    pl.contourf(x, y, density.T, 100, norm=MidpointNormalize(midpoint=0, vmin=density_min, vmax=density_max), cmap='bwr')
-#    pl.colorbar()
-    pl.title(r'Time = ' + "%.2f"%(time_array[start_index+file_number]) + " ps")
+#    plot_grid(x[100:140, 40:80], y[100:140, 40:80], alpha=0.5)
+
+    plot_grid(x[:, :], y[:, :], alpha=0.5)
+    #plot_grid(x_right_center[:, :], y_right_center[:, :], alpha=0.5, color = 'g')
+    plot_grid(x_bottom_center[:, :], y_bottom_center[:, :], alpha=0.5, color = 'r')
+    #pl.plot(x_right_center[9, :], y_right_center[9, :], 'o', alpha=0.5, color = 'C0')
+
+    
+    radius = 0.5
+    theta = np.arange(0., np.pi, 0.01)
+    pl.plot(radius*np.cos(theta), radius*np.sin(theta), color = 'k', alpha = 0.3)
+
+    pl.ylim([np.min(y)-0.05, np.max(y)+0.05])
+
+#    pl.contourf(x, y, density.T, 100, norm=MidpointNormalize(midpoint=0, vmin=density_min, vmax=density_max), cmap='bwr')
+    #pl.colorbar()
+#    pl.title(r'Time = ' + "%.2f"%(time_array[start_index+file_number]) + " ps")
     
 #    pl.streamplot(x[:, 0], y[0, :], 
 #                  j_x_m, j_y_m,
@@ -165,22 +186,20 @@ for file_number, dump_file in enumerate(moment_files[:]):
 #                  linewidth=0.7, arrowsize=1
 #                 )
 
-#    print (j_x)
-
-    v_f = -1.
-    x_0 = 0.7
-    x_new = x_0 + v_f*time_array[file_number]
-    x_new = (x_new + 2)%4 - 2
-    #pl.axvline(x_new,  color = 'k', ls = '--')
-   
 
     
-    pl.xlim([q1[0], q1[-1]])
-    pl.ylim([q2[0], q2[-1]])
+    #pl.xlim([q1[0], q1[-1]])
+    #pl.ylim([q2[0], q2[-1]])
     
     pl.gca().set_aspect('equal')
     pl.xlabel(r'$x\;(\mu \mathrm{m})$')
     pl.ylabel(r'$y\;(\mu \mathrm{m})$')
+#    pl.ylabel(r'$r\;(\mu \mathrm{m})$')
+#    pl.ylabel(r'$\theta$')
+
+#    pl.subplot(212)
+#    pl.plot(np.arange(theta.size), (theta-line(np.arange(theta.size), popt[0], popt[1])), '-o')
+
     #pl.suptitle('$\\tau_\mathrm{mc} = \infty$, $\\tau_\mathrm{mr} = \infty$')
     pl.savefig('images/dump_' + '%06d'%(start_index+file_number) + '.png')
     pl.clf()

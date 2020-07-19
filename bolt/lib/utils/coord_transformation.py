@@ -11,24 +11,27 @@ def get_theta(q1, q2, boundary,  q1_start_local_left=None, q2_start_local_bottom
     dq1 = domain.dq1
     dq2 = domain.dq2
 
+    q1_tmp = q1.copy()
+    q2_tmp = q2.copy()
+
     # Assuming q1, q2 are at zone centers. Need to calculate thetas using the face-centers on which the boundary lies
     if (boundary == "left"):
-        q1  = q1 - 0.5*dq1
+        q1_tmp  = q1_tmp - 0.5*dq1
         dq1 = 0        
 
     if (boundary == "right"):
-        q1  = q1 + 0.5*dq1
+        q1_tmp  = q1_tmp + 0.5*dq1
         dq1 = 0
 
     if (boundary == "top"):
-        q2  = q2 + 0.5*dq2
+        q2_tmp  = q2_tmp + 0.5*dq2
         dq2 = 0
 
     if (boundary == "bottom"):
-        q2  = q2 - 0.5*dq2
+        q2_tmp  = q2_tmp - 0.5*dq2
         dq2 = 0
 
-    [[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]] = jacobian_dx_dq(q1, q2, q1_start_local_left, q2_start_local_bottom)
+    [[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]] = jacobian_dx_dq(q1_tmp, q2_tmp, q1_start_local_left, q2_start_local_bottom)
 
     dy = dy_dq1*dq1 + dy_dq2*dq2
     dx = dx_dq1*dq1 + dx_dq2*dq2
@@ -347,6 +350,8 @@ def quadratic(q1, q2,
              ):
     # Maps from ref element [-1, 1] x [-1, 1] to physical domain
 
+    print("Using quadratic()")
+
     # Nodes on the reference element
     q1_q2_bottom_left   = [-1, -1]
     q1_q2_bottom_center = [ 0, -1]
@@ -580,6 +585,7 @@ def quadratic_test(q1, q2, q1_slice, q2_slice,
     # Maps from ref element [-1, 1] x [-1, 1] to physical domain
     # Returns x, y and jacobian at a point after applying transformation
 
+    print("Using quadratic_test()")
 
     # Define the reference element
     q1_q2_bottom_left   = [-1, -1]
@@ -695,7 +701,6 @@ def quadratic_test(q1, q2, q1_slice, q2_slice,
 
     c = dq2_ref/dq2 # Scaling factor in q2
     d = q2_ref_start_local - c*q2_start_local
-#    print ("Coordinate transformation, a, b, c, d : ", a, b, c, d)
 
 
     # Finally,

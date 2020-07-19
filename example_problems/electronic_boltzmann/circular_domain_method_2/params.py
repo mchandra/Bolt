@@ -91,9 +91,9 @@ zero_temperature    = (p_dim==1)
 
 
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices = 6
+num_devices = 2
 manual_device_allocation = True
-device_allocation        = [0, 0, 1, 1, 2, 2, 3, 4, 5] # No. of items in list should match number of mpiprocs
+device_allocation        = [0, 0, 0, 0, 0, 1, 1, 1, 1] # No. of items in list should match number of mpiprocs
 dont_compute             = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 

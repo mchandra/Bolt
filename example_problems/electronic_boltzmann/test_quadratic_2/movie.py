@@ -86,7 +86,7 @@ q2 = domain.q2_start + (0.5 + np.arange(N_q2)) * (domain.q2_end - domain.q2_star
 q2_meshgrid, q1_meshgrid = np.meshgrid(q2, q1)
 
 coords = io.readBinaryFile("coords.bin")
-coords = coords[0].reshape(N_q2, N_q1, 17)
+coords = coords[0].reshape(N_q2, N_q1, 15)
     
 x = coords[:, :, 0].T
 y = coords[:, :, 1].T
@@ -167,16 +167,20 @@ for file_number, dump_file in enumerate(moment_files[:]):
 
 #    print (j_x)
 
-    v_f = -1.
+    q2_range = (domain.q2_end-domain.q2_start)
+    v_f = 1.
     x_0 = 0.7
     x_new = x_0 + v_f*time_array[file_number]
-    x_new = (x_new + 2)%4 - 2
-    #pl.axvline(x_new,  color = 'k', ls = '--')
+    #x_new = (x_new + 0.33333333)%(0.66666666) - 0.33333333
+    x_new = (x_new-0.3333)%1 + 0.3333
+    pl.axhline(x_new,  color = 'k', ls = '--')
    
 
     
-    pl.xlim([q1[0], q1[-1]])
-    pl.ylim([q2[0], q2[-1]])
+#    pl.xlim([q1[0], q1[-1]])
+#    pl.ylim([q2[0], q2[-1]])
+#    pl.xlim([0.3333, 1.3333])
+    pl.ylim([np.min(y), np.max(y)])
     
     pl.gca().set_aspect('equal')
     pl.xlabel(r'$x\;(\mu \mathrm{m})$')
