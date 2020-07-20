@@ -101,40 +101,13 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     else : 
         raise NotImplementedError('Unsupported coordinate system in p_space')
 
-    # Initialize to zero
-    f = 0*q1*p1
-
-    # Parameters to define a gaussian in space (representing a 2D ball)
-    A        = domain.N_p2 # Amplitude (required for normalization)
-    sigma_x = 0.05 # Standard deviation in x
-    sigma_y = 0.05 # Standard deviation in y
-    x_0     = -1.25 # Center in x
-    y_0     = 0. # Center in y
-
-    # TODO: This will work with polar2D p-space only for the moment
-    # Particles lying on the ball need to have the same velocity (direction)
-    #theta_0_index = (5*N_p2/8) - 1 # Direction of initial velocity
-    theta_0_index = int(4*domain.N_p2/8) # Direction of initial velocity
-    
-    print ("Initial angle : ")
-    af.display(p2[theta_0_index])
-
-#    f[theta_0_index, :, :]  = A*af.exp(-( (params.x-x_0)**2/(2*sigma_x**2) + \
-#                                          (params.y-y_0)**2/(2*sigma_y**2)
-#                                        )
-#                                      ) +  A*af.exp(-( (params.x-x_0)**2/(2*sigma_x**2) + \
-#                                          (params.y-(-0.5))**2/(2*sigma_y**2)
-#                                        )
-#                                      ) + A*af.exp(-( (params.x-x_0)**2/(2*sigma_x**2) + \
-#                                          (params.y-0.5)**2/(2*sigma_y**2)
-#                                        )
-#                                      )
-
-    f[theta_0_index, :, :]  = A*af.exp(-( (params.x-x_0)**2/(2*sigma_x**2) 
-                                        ))
-
-#    # Initialize to zero
-#    f = 0.*f
+    f = (1./(af.exp( (params.E_band - params.vel_drift_x*params.p_x
+                                    - params.vel_drift_y*params.p_y
+                                    - params.mu
+                    )/(k*params.T) 
+                  ) + 1.
+           ))
+    f = 0.*f
 
     af.eval(f)
     return(f)
