@@ -2,10 +2,10 @@ import numpy as np
 import arrayfire as af
 import domain
 
-in_q1_left   = 'mirror+dirichlet'
-in_q1_right  = 'mirror+dirichlet'
-in_q2_bottom = 'mirror'
-in_q2_top    = 'mirror'
+in_q1_left   = 'periodic'
+in_q1_right  = 'periodic'
+in_q2_bottom = 'periodic'
+in_q2_top    = 'periodic'
 
 @af.broadcast
 def f_left(f, t, q1, q2, p1, p2, p3, params):
@@ -29,12 +29,8 @@ def f_left(f, t, q1, q2, p1, p2, p3, params):
         raise NotImplementedError('Unsupported coordinate system in p_space')
 
 
-#    fermi_dirac_in = (1./(af.exp( (E_upper - vel_drift_x_in*p_x - mu)/(k*T) ) + 1.)
-#                     )
-    # TODO : Testing - set zero everywhere except index N_p2/2 (injection towards right)
-    fermi_dirac_in = vel_drift_x_in*p_x
-    fermi_dirac_in[:int(6*domain.N_p2/12)]   = 0.
-    fermi_dirac_in[int(6*domain.N_p2/12)+1:] = 0.
+    fermi_dirac_in = (1./(af.exp( (E_upper - vel_drift_x_in*p_x - mu)/(k*T) ) + 1.)
+                     )
 
     if (params.contact_geometry=="straight"):
         # Contacts on either side of the device
@@ -87,10 +83,9 @@ def f_right(f, t, q1, q2, p1, p2, p3, params):
     else:
         raise NotImplementedError('Unsupported coordinate system in p_space')
 
-    #fermi_dirac_out = (1./(af.exp( (E_upper - vel_drift_x_out*p_x - mu)/(k*T) ) + 1.)
-    #                  )
-    fermi_dirac_out = 0.
-
+    fermi_dirac_out = (1./(af.exp( (E_upper - vel_drift_x_out*p_x - mu)/(k*T) ) + 1.)
+                      )
+    
     if (params.contact_geometry=="straight"):
         # Contacts on either side of the device
 

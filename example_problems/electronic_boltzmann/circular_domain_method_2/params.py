@@ -24,10 +24,10 @@ q2_partition = [40./120, 40./120, 40./120] # List of the fractional ranges of ea
 # For example : if q1_partion = [1./3, 2./3], then N_q1%3 == 0
 
 # Internal mirror boundary
-horizontal_boundaries    = [] # index of boundary axis along q2
+horizontal_boundaries    = [40, 80] # index of boundary axis along q2
 horizontal_boundary_lims = [(-0.3334, 0.3334), (-0.3334, 0.3334)] # boundary lims along q1
 
-vertical_boundaries    = [] # index of boundary axis along q2
+vertical_boundaries    = [40, 80] # index of boundary axis along q2
 vertical_boundary_lims = [(-0.3334, 0.3334), (-0.3334, 0.3334)] # boundary lims along q1
 
 # Manually override external mirror angles [bottom, right, top, left]
@@ -65,7 +65,7 @@ electrostatic_solver_every_nth_step = 1000000
 
 # Time parameters:
 dt      = 0.025/16 # ps
-t_final = 6     # ps
+t_final = 3     # ps
 
 
 # File-writing Parameters:

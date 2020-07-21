@@ -90,7 +90,7 @@ q2 = domain.q2_start + (0.5 + np.arange(N_q2)) * (domain.q2_end - domain.q2_star
 q2_meshgrid, q1_meshgrid = np.meshgrid(q2, q1)
 
 coords = io.readBinaryFile("coords.bin")
-coords = coords[0].reshape(N_q2, N_q1, 17)
+coords = coords[0].reshape(N_q2, N_q1, 21)
     
 x = coords[:, :, 0].T
 y = coords[:, :, 1].T
@@ -100,6 +100,12 @@ y_top_center = coords[:, :, 14].T
 
 x_right_center  = coords[:, :, 15].T
 y_right_center  = coords[:, :, 16].T
+
+x_bottom_center = coords[:, :, 17].T
+y_bottom_center = coords[:, :, 18].T
+
+x_left_center  = coords[:, :, 19].T
+y_left_center  = coords[:, :, 20].T
 
 N_p1 = domain.N_p1
 N_p2 = domain.N_p2
@@ -165,9 +171,12 @@ for file_number, dump_file in enumerate(moment_files[:1]):
 #    plot_grid(x[100:140, 40:80], y[100:140, 40:80], alpha=0.5)
 
     plot_grid(x[:, :], y[:, :], alpha=0.5)
-    #plot_grid(x_right_center[:, :], y_right_center[:, :], alpha=0.5, color = 'g')
-    #plot_grid(x_top_center[:, :], y_top_center[:, :], alpha=0.5, color = 'r')
-    #pl.plot(x_right_center[9, :], y_right_center[9, :], 'o', alpha=0.5, color = 'C0')
+#    plot_grid(x_right_center[:, :], y_right_center[:, :], alpha=0.5, color = 'g')
+#    plot_grid(x_top_center[:, :], y_top_center[:, :], alpha=0.5, color = 'r')
+    pl.plot(x_right_center[39, 40:80], y_right_center[39, 40:80], 'o', alpha=0.5, color = 'C0')
+    pl.plot(x_bottom_center[40:80, 80], y_bottom_center[40:80, 80], 'o', alpha=0.5, color = 'C1')
+    pl.plot(x_left_center[80, 40:80], y_left_center[80, 40:80], 'o', alpha=0.5, color = 'C2')
+    pl.plot(x_top_center[40:80, 39], y_top_center[40:80, 39], 'o', alpha=0.5, color = 'C3')
 
     
     radius = 0.5

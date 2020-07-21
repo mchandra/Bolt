@@ -66,6 +66,14 @@ def initialize_f(q1, q2, p1, p2, p3, params):
                                                      q1_start_local_left=params.q1_start_local_left, 
                                                      q2_start_local_bottom=params.q2_start_local_bottom)
 
+    params.x_bottom_center, params.y_bottom_center = coords.get_cartesian_coords(q1, q2_bottom_faces,
+                                                     q1_start_local_left=params.q1_start_local_left, 
+                                                     q2_start_local_bottom=params.q2_start_local_bottom)
+
+    params.x_left_center, params.y_left_center   = coords.get_cartesian_coords(q1_left_faces, q2,
+                                                     q1_start_local_left=params.q1_start_local_left, 
+                                                     q2_start_local_bottom=params.q2_start_local_bottom)
+
     params.q1 = q1; params.q2 = q2
     [[params.dx_dq1, params.dx_dq2], [params.dy_dq1, params.dy_dq2]] = jacobian_dx_dq(q1, q2,
                                                                                       q1_start_local_left=params.q1_start_local_left, 

@@ -62,15 +62,15 @@ pl.rcParams['ytick.labelsize']  = 'medium'
 pl.rcParams['ytick.direction']  = 'in'
 
 # High res theta
-theta_left   = np.loadtxt('theta_left_out.txt')
-theta_right  = np.loadtxt('theta_right_out.txt')
-theta_bottom = np.loadtxt('theta_bottom_out.txt')
-theta_top    = np.loadtxt('theta_top_out.txt')
+theta_left   = np.loadtxt('theta_left.txt')
+theta_right  = np.loadtxt('theta_right.txt')
+theta_bottom = np.loadtxt('theta_bottom.txt')
+theta_top    = np.loadtxt('theta_top.txt')
 
 x = np.arange(theta_left.size + theta_top.size + theta_right.size + theta_bottom.size)
 
-theta_left[:40] = theta_left[:40] + np.pi
-theta_right[:40] = theta_right[:40] - np.pi
+theta_left[:20] = theta_left[:20] + np.pi
+theta_right[:20] = theta_right[:20] - np.pi
 theta_bottom = theta_bottom - np.pi
 
 theta = theta_left
@@ -113,56 +113,12 @@ ax2 = pl.gca()
 pl.plot(np.arange(theta.size), (theta-line(np.arange(theta.size), popt[0], popt[1])), '-o')
 
 
-
-
-# Low res theta
-theta_left   = np.loadtxt('theta_left_2.txt')
-theta_right  = np.loadtxt('theta_right_2.txt')
-theta_bottom = np.loadtxt('theta_bottom_2.txt')
-theta_top    = np.loadtxt('theta_top_2.txt')
-
-x = np.arange(theta_left.size + theta_top.size + theta_right.size + theta_bottom.size)
-
-theta_left[:20] = theta_left[:20] + np.pi
-theta_right[:20] = theta_right[:20] - np.pi
-theta_bottom = theta_bottom - np.pi
-
-theta = theta_left
-theta = np.append(theta, theta_top)
-theta = np.append(theta, np.flip(theta_right))
-theta = np.append(theta, np.flip(theta_bottom))
-
-
-ax1.plot(x[:theta_left.size]*2, theta_left, '-o')
-ax1.plot(x[theta_left.size:theta_left.size+theta_top.size]*2, theta_top, '-o')
-ax1.plot(x[theta_left.size+theta_top.size:theta_left.size+theta_top.size+theta_right.size]*2, np.flip(theta_right), '-o')
-ax1.plot(x[theta_left.size+theta_top.size+theta_right.size:]*2, np.flip(theta_bottom), '-o')
-
-#pl.axvline(x[21], color = 'k', alpha = 0.5)
-#pl.axvline(x[109], color = 'k', alpha = 0.5)
-
-#pl.axhline(np.pi, color = 'k', ls = '--')
-#pl.axhline(-np.pi, color = 'k', ls = '--')
-ax1.axhline(np.pi/2, color = 'k', ls = '--')
-ax1.axhline(-np.pi/2, color = 'k', ls = '--')
-ax1.axhline(0, color = 'k', ls = '--')
-
-popt, pcov = curve_fit(line, np.arange(theta.size), theta)
-best_fit = line(np.arange(theta.size), popt[0], popt[1])
-
 #pl.plot(np.arange(theta.size), best_fit, color = 'k', ls = '--')
 
 #np.savetxt('theta_left_new.txt', best_fit[:40])
 #np.savetxt('theta_top_new.txt', best_fit[40:80])
 #np.savetxt('theta_right_new.txt', np.flip(best_fit[80:120]))
 #np.savetxt('theta_bottom_new.txt', np.flip(best_fit[120:160]))
-
-    
-ax2.plot(np.arange(theta.size)*2, (theta-line(np.arange(theta.size), popt[0], popt[1])), '-o', color = 'C1')
-
-
-
-
 
 
 #pl.suptitle('$\\tau_\mathrm{mc} = \infty$, $\\tau_\mathrm{mr} = \infty$')

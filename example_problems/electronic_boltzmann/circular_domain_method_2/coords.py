@@ -59,7 +59,7 @@ def get_cartesian_coords(q1, q2,
     
     
             # Loop over each zone in x
-            for i in range(N_g, N_q1 + N_g):
+            for i in range(0, N_q1 + 2*N_g):
     
                 index = i - N_g # Index of the vertical slice, left-most being 0
     
@@ -92,7 +92,7 @@ def get_cartesian_coords(q1, q2,
                 x_y_top_right     = [x_n_plus_1,    y_n_plus_1]
     
     
-                for j in range(N_g, N_q2 + N_g):
+                for j in range(0, N_q2 + 2*N_g):
     
                     # Get the transformation (x_i, y_i) for each point (q1_i, q2_i) 
                     q1_i = q1[0, 0, i, j]
@@ -133,7 +133,7 @@ def get_cartesian_coords(q1, q2,
     
     
             # Loop over each zone in x
-            for i in range(N_g, N_q1 + N_g):
+            for i in range(0, N_q1 + 2*N_g):
     
                 index = i - N_g # Index of the vertical slice, left-most being 0
     
@@ -166,7 +166,7 @@ def get_cartesian_coords(q1, q2,
                 x_y_top_right     = [x_n_plus_1,    y_n_plus_1]
     
     
-                for j in range(N_g, N_q2 + N_g):
+                for j in range(0, N_q2 + 2*N_g):
     
                     # Get the transformation (x_i, y_i) for each point (q1_i, q2_i) 
                     q1_i = q1[0, 0, i, j]
@@ -206,7 +206,7 @@ def get_cartesian_coords(q1, q2,
     
     
             # Loop over each zone in x
-            for i in range(N_g, N_q1 + N_g):
+            for i in range(0, N_q1 + 2*N_g):
     
                 index = i - N_g # Index of the vertical slice, left-most being 0
     
@@ -239,7 +239,7 @@ def get_cartesian_coords(q1, q2,
                 x_y_top_right     = [x_n_plus_1,    y_n_plus_1]
     
     
-                for j in range(N_g, N_q2 + N_g):
+                for j in range(0, N_q2 + 2*N_g):
     
                     # Get the transformation (x_i, y_i) for each point (q1_i, q2_i) 
                     q1_i = q1[0, 0, i, j]
@@ -280,7 +280,7 @@ def get_cartesian_coords(q1, q2,
     
     
             # Loop over each zone in x
-            for i in range(N_g, N_q1 + N_g):
+            for i in range(0, N_q1 + 2*N_g):
     
                 index = i - N_g # Index of the vertical slice, left-most being 0
     
@@ -314,7 +314,7 @@ def get_cartesian_coords(q1, q2,
                 x_y_top_right     = [x_n_plus_1,    1]
     
     
-                for j in range(N_g, N_q2 + N_g):
+                for j in range(0, N_q2 + 2*N_g):
     
                     # Get the transformation (x_i, y_i) for each point (q1_i, q2_i) 
                     q1_i = q1[0, 0, i, j]
@@ -355,7 +355,7 @@ def get_cartesian_coords(q1, q2,
     
     
             # Loop over each zone in x
-            for i in range(N_g, N_q1 + N_g):
+            for i in range(0, N_q1 + 2*N_g):
     
                 index = i - N_g # Index of the vertical slice, left-most being 0
     
@@ -389,7 +389,7 @@ def get_cartesian_coords(q1, q2,
                 x_y_top_right     = [x_n_plus_1,    1]
     
     
-                for j in range(N_g, N_q2 + N_g):
+                for j in range(0, N_q2 + 2*N_g):
     
                     # Get the transformation (x_i, y_i) for each point (q1_i, q2_i) 
                     q1_i = q1[0, 0, i, j]
@@ -430,7 +430,7 @@ def get_cartesian_coords(q1, q2,
     
     
             # Loop over each zone in x
-            for i in range(N_g, N_q1 + N_g):
+            for i in range(0, N_q1 + 2*N_g):
     
                 index = i - N_g # Index of the vertical slice, left-most being 0
     
@@ -464,7 +464,7 @@ def get_cartesian_coords(q1, q2,
                 x_y_top_right     = [x_n_plus_1,    1]
     
     
-                for j in range(N_g, N_q2 + N_g):
+                for j in range(0, N_q2 + 2*N_g):
     
                     # Get the transformation (x_i, y_i) for each point (q1_i, q2_i) 
                     q1_i = q1[0, 0, i, j]
@@ -505,7 +505,7 @@ def get_cartesian_coords(q1, q2,
     
     
             # Loop over each zone in y
-            for j in range(N_g, N_q2 + N_g):
+            for j in range(0, N_q2 + 2*N_g):
                 print (j)
                 index = j - N_g # Index of the vertical slice, left-most being 0
     
@@ -538,7 +538,7 @@ def get_cartesian_coords(q1, q2,
                 x_y_top_right     = [1,                  y_n_plus_1]
     
     
-                for i in range(N_g, N_q1 + N_g):
+                for i in range(0, N_q1 + 2*N_g):
     
                     # Get the transformation (x_i, y_i) for each point (q1_i, q2_i) 
                     q1_i = q1[0, 0, i, j]
@@ -581,7 +581,7 @@ def get_cartesian_coords(q1, q2,
     
     
             # Loop over each zone in y
-            for j in range(N_g, N_q2 + N_g):
+            for j in range(0, N_q2 + 2*N_g):
                 print (j)
                 index = j - N_g # Index of the vertical slice, left-most being 0
     
@@ -614,7 +614,7 @@ def get_cartesian_coords(q1, q2,
                 x_y_top_right     = [x_n_plus_1,          y_n_plus_1]
     
     
-                for i in range(N_g, N_q1 + N_g):
+                for i in range(0, N_q1 + 2*N_g):
     
                     # Get the transformation (x_i, y_i) for each point (q1_i, q2_i) 
                     q1_i = q1[0, 0, i, j]
