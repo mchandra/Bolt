@@ -144,6 +144,9 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
         theta_left = 0.*theta_left + params.mirror_angles[3]
 
 
+    # TODO : Dumping theta for testing
+#    if (params.rank == 5):
+#        np.savetxt("/home/quazartech/bolt/example_problems/electronic_boltzmann/circular_domain_method_2/theta_right.txt", theta_left[N_g:-N_g])
 
 
     # Calculate the number of shifts of the array along the p_theta axis
@@ -177,8 +180,8 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
         theta_right = 0.*theta_right + params.mirror_angles[1]
 
     # TODO : Dumping theta for testing
-#    if (params.rank == 0):
-#        np.savetxt("/home/mchandra/gitansh/merge_to_master/example_problems/electronic_boltzmann/test_quadratic_left_center/theta_left.txt", theta_right[N_g:-N_g])
+#    if (params.rank == 3):
+#        np.savetxt("/home/quazartech/bolt/example_problems/electronic_boltzmann/circular_domain_method_2/theta_left.txt", theta_right[N_g:-N_g])
 
 #    if (params.rank == 1):
 #        np.savetxt("/home/mchandra/gitansh/merge_to_master/example_problems/electronic_boltzmann/test_quadratic/theta_right.txt", theta_bottom[N_g:-N_g])
@@ -209,8 +212,8 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
     theta_bottom = af.moddims(theta_bottom, N_q1_local) # Convert to 1D array
 
     # TODO : Dumping theta for testing
-#    if (params.rank == 0):
-#        np.savetxt("/home/mchandra/gitansh/merge_to_master/example_problems/electronic_boltzmann/test_quadratic_left_center/theta_top.txt", theta_bottom[N_g:-N_g])
+#    if (params.rank == 7):
+#        np.savetxt("/home/quazartech/bolt/example_problems/electronic_boltzmann/circular_domain_method_2/theta_top.txt", theta_bottom[N_g:-N_g])
 
     # Apply manually specified mirror angles only if bottom boundary of the zone is the bottom boundary of the device
     is_bottom_most_domain = abs(params.q2_start_local_bottom - domain.q2_start) < 1e-13
@@ -250,6 +253,9 @@ def compute_shift_indices(q1, q2, p1, p2, p3, params):
     if (params.enable_manual_mirror and is_top_most_domain):
         theta_top = 0.*theta_top + params.mirror_angles[2]
 
+    # TODO : Dumping theta for testing
+#    if (params.rank == 1):
+#        np.savetxt("/home/quazartech/bolt/example_problems/electronic_boltzmann/circular_domain_method_2/theta_bottom.txt", theta_top[N_g:-N_g])
 
 
     # Calculate the number of shifts of the array along the p_theta axis
