@@ -81,8 +81,13 @@ def RTA(f, t, q1, q2, p1, p2, p3, moments, params, flag = False):
 
     # When (f - f0) is NaN. Dividing by np.inf doesn't give 0
     # TODO: WORKAROUND
- 
 
+    # TODO : Injecting currents into params for the delta_f cases
+    multiply = lambda a, b:a*b
+
+    params.j_x = af.sum(af.broadcast(multiply, f, p_x), 0)
+    params.j_y = af.sum(af.broadcast(multiply, f, p_y), 0)
+ 
     af.eval(C_f)
     return(C_f)
 

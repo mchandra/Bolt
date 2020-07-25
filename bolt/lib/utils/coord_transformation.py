@@ -356,7 +356,6 @@ def quadratic(q1, q2,
              ):
     # Maps from ref element [-1, 1] x [-1, 1] to physical domain
 
-    print("Using quadratic()")
 
     # Nodes on the reference element
     q1_q2_bottom_left   = [-1, -1]
@@ -419,38 +418,40 @@ def quadratic(q1, q2,
     dq1_ref = 2./N_q1_local
     dq2_ref = 2./N_q2_local
 
-    if ((q1_start_local - q1_start_local_left > 0) and (q1_start_local - q1_start_local_left) < dq1):
+    epsilon = 1e-10 # Book keeping parameter
+
+    if (np.abs(q1_start_local - q1_start_local_left - 0.5*dq1) < epsilon):
         # q1_start_local is at zone center and so q1 is q1_center
         # Get zone centers for the reference element
         q1_ref_start_local = -1. + 0.5*dq1_ref
         q1_ref_end_local   =  1. - 0.5*dq1_ref
 
-    if (q1_start_local - q1_start_local_left >= dq1):
+    if (np.abs(q1_start_local - q1_start_local_left - dq1) < epsilon):
         # q1_start_local is at right edge and so q1 is q1_right
         # Get right edges for the reference element
         q1_ref_start_local = -1. + dq1_ref
         q1_ref_end_local   =  1.
 
-    if (np.abs(q1_start_local - q1_start_local_left) < 1e-10):
+    if (np.abs(q1_start_local - q1_start_local_left) < epsilon):
         # q1_start_local is at the left edge and so q1 is q1_left
         # Get left edges for the reference element
-
         q1_ref_start_local = -1.
         q1_ref_end_local   =  1. - dq1_ref
 
-    if ((q2_start_local - q2_start_local_bottom > 0) and (q2_start_local - q2_start_local_bottom < dq2)):
+
+    if (np.abs(q2_start_local - q2_start_local_bottom - 0.5*dq2) < epsilon):
         # q2_start_local is at zone center and so q2 is q2_center
         # Get zone centers for the reference element
         q2_ref_start_local = -1. + 0.5*dq2_ref
         q2_ref_end_local   =  1. - 0.5*dq2_ref
 
-    if (q2_start_local - q2_start_local_bottom >= dq2):
+    if (np.abs(q2_start_local - q2_start_local_bottom - dq2) < epsilon):
         # q2_start_local is at top edge and so q2 is q2_top
         # Get top edges for the reference element
         q2_ref_start_local = -1. + dq2_ref
         q2_ref_end_local   =  1.
 
-    if (np.abs(q2_start_local - q2_start_local_bottom) < 1e-10):
+    if (np.abs(q2_start_local - q2_start_local_bottom) <= epsilon):
         # q2_start_local is at the bottom edge and so q2 is q2_bottom
         # Get bottom edges for the reference element
 
@@ -591,7 +592,6 @@ def quadratic_test(q1, q2, q1_slice, q2_slice,
     # Maps from ref element [-1, 1] x [-1, 1] to physical domain
     # Returns x, y and jacobian at a point after applying transformation
 
-    print("Using quadratic_test()")
 
     # Define the reference element
     q1_q2_bottom_left   = [-1, -1]
@@ -659,38 +659,41 @@ def quadratic_test(q1, q2, q1_slice, q2_slice,
     dq1_ref = 2./N_q1_local
     dq2_ref = 2./N_q2_local
 
-    if ((q1_start_local - q1_start_local_left > 0) and (q1_start_local - q1_start_local_left) < dq1):
+
+    epsilon = 1e-10 # Book keeping parameter
+
+    if (np.abs(q1_start_local - q1_start_local_left - 0.5*dq1) < epsilon):
         # q1_start_local is at zone center and so q1 is q1_center
         # Get zone centers for the reference element
         q1_ref_start_local = -1. + 0.5*dq1_ref
         q1_ref_end_local   =  1. - 0.5*dq1_ref
 
-    if (q1_start_local - q1_start_local_left >= dq1):
+    if (np.abs(q1_start_local - q1_start_local_left - dq1) < epsilon):
         # q1_start_local is at right edge and so q1 is q1_right
         # Get right edges for the reference element
         q1_ref_start_local = -1. + dq1_ref
         q1_ref_end_local   =  1.
 
-    if (np.abs(q1_start_local - q1_start_local_left) < 1e-10):
+    if (np.abs(q1_start_local - q1_start_local_left) < epsilon):
         # q1_start_local is at the left edge and so q1 is q1_left
         # Get left edges for the reference element
         q1_ref_start_local = -1.
         q1_ref_end_local   =  1. - dq1_ref
 
 
-    if ((q2_start_local - q2_start_local_bottom > 0) and (q2_start_local - q2_start_local_bottom < dq2)):
+    if (np.abs(q2_start_local - q2_start_local_bottom - 0.5*dq2) < epsilon):
         # q2_start_local is at zone center and so q2 is q2_center
         # Get zone centers for the reference element
         q2_ref_start_local = -1. + 0.5*dq2_ref
         q2_ref_end_local   =  1. - 0.5*dq2_ref
 
-    if (q2_start_local - q2_start_local_bottom >= dq2):
+    if (np.abs(q2_start_local - q2_start_local_bottom - dq2) < epsilon):
         # q2_start_local is at top edge and so q2 is q2_top
         # Get top edges for the reference element
         q2_ref_start_local = -1. + dq2_ref
         q2_ref_end_local   =  1.
 
-    if (np.abs(q2_start_local - q2_start_local_bottom) < 1e-10):
+    if (np.abs(q2_start_local - q2_start_local_bottom) <= epsilon):
         # q2_start_local is at the bottom edge and so q2 is q2_bottom
         # Get bottom edges for the reference element
 

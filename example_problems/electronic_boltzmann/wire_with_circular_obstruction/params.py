@@ -24,10 +24,10 @@ q2_partition = [40./120, 40./120, 40./120] # List of the fractional ranges of ea
 # For example : if q1_partion = [1./3, 2./3], then N_q1%3 == 0
 
 # Internal mirror boundary
-horizontal_boundaries    = [80, 160] # index of boundary axis along q2
+horizontal_boundaries    = [40, 80] # index of boundary axis along q2
 horizontal_boundary_lims = [(-0.3334, 0.3334), (-0.3334, 0.3334)] # boundary lims along q1
 
-vertical_boundaries    = [160, 240] # index of boundary axis along q2
+vertical_boundaries    = [80, 120] # index of boundary axis along q2
 vertical_boundary_lims = [(-0.3334, 0.3334), (-0.3334, 0.3334)] # boundary lims along q1
 
 # Manually override external mirror angles [bottom, right, top, left]
@@ -65,7 +65,7 @@ electrostatic_solver_every_nth_step = 1000000
 
 # Time parameters:
 dt      = 0.025/16 # ps
-t_final = 12.     # ps
+t_final = 6*dt     # ps
 
 
 # File-writing Parameters:
@@ -74,7 +74,7 @@ dump_dist_after = 1600
 # Set to zero for no file-writing
 dt_dump_f       = 1000*dt #ps
 # ALWAYS set dump moments and dump fields at same frequency:
-dt_dump_moments = dt_dump_fields = 5*dt #ps
+dt_dump_moments = dt_dump_fields = 10*dt #ps
 
 
 # Material specific input
@@ -111,8 +111,8 @@ epsilon0           = 8.854187817 # x [aC^2 / (aJ um) ]
 epsilon_relative      = 3.9 # SiO2
 backgate_potential    = -10 # V
 global_chem_potential = 0.03
-contact_start         = -0.3 # um
-contact_end           = -0.2 # um
+contact_start         = -1.0 # um
+contact_end           = 1.0 # um
 contact_geometry      = "straight" # Contacts on either side of the device
                                    # For contacts on the same side, use 
                                    # contact_geometry = "turn_around"
@@ -134,6 +134,8 @@ vel_drift_x = None
 vel_drift_y = None
 p_x         = None
 p_y         = None
+j_x         = None
+j_y         = None
 phi         = None # Electric potential in the plane of graphene sheet
 
 # Index arrays used to perform shifting for mirror bcs

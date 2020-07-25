@@ -122,7 +122,7 @@ def get_cartesian_coords(q1, q2,
             
     
         # Bottom-left domain
-        elif ((q2_midpoint < -0.33) and (q1_midpoint > -1) and (q1_midpoint < -0.33)):
+        elif ((q2_midpoint < -0.33) and (q1_midpoint > -1.66) and (q1_midpoint < -0.33)):
 
             N        = N_q1 
             x_0      = -2
@@ -195,7 +195,7 @@ def get_cartesian_coords(q1, q2,
             jacobian = [[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]]
     
         # Bottom-right domain
-        elif ((q2_midpoint < -0.33) and (q1_midpoint > 0.33) and (q1_midpoint < 1.)):
+        elif ((q2_midpoint < -0.33) and (q1_midpoint > 0.33) and (q1_midpoint < 1.66)):
     
             N        = N_q1 
             x_0     = radius/np.sqrt(2)
@@ -344,7 +344,7 @@ def get_cartesian_coords(q1, q2,
 
 
         # Top-left domain
-        elif ((q2_midpoint > 0.33) and (q1_midpoint > -1) and (q1_midpoint < -0.33)):
+        elif ((q2_midpoint > 0.33) and (q1_midpoint > -1.66) and (q1_midpoint < -0.33)):
 
             N        = N_q1 
             x_0      = -2#-radius/np.sqrt(2)
@@ -419,7 +419,7 @@ def get_cartesian_coords(q1, q2,
 
         
         # Top-right domain
-        elif ((q2_midpoint > 0.33) and (q1_midpoint > 0.33) and (q1_midpoint < 1)):
+        elif ((q2_midpoint > 0.33) and (q1_midpoint > 0.33) and (q1_midpoint < 1.66)):
 
             N        = N_q1 
             x_0     = radius/np.sqrt(2)
@@ -506,7 +506,7 @@ def get_cartesian_coords(q1, q2,
     
             # Loop over each zone in y
             for j in range(0, N_q2 + 2*N_g):
-                print (j)
+                #print (j)
                 index = j - N_g # Index of the vertical slice, left-most being 0
     
                 # q1, q2 grid slices to be passed into quadratic for transformation
@@ -582,7 +582,7 @@ def get_cartesian_coords(q1, q2,
     
             # Loop over each zone in y
             for j in range(0, N_q2 + 2*N_g):
-                print (j)
+                #print (j)
                 index = j - N_g # Index of the vertical slice, left-most being 0
     
                 # q1, q2 grid slices to be passed into quadratic for transformation
@@ -666,6 +666,31 @@ def get_cartesian_coords(q1, q2,
                                       )
 
         if (return_jacobian):
+#            #TODO : Testing - Set Jacobian in ghost zones equal to the Jacobian at the corresponding edge
+#            [[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]] = jacobian
+#            for i in range(N_g):
+#                dx_dq1[0, 0, i, :]      = dx_dq1[0, 0, N_g, :]    # Left edge
+#                dx_dq1[0, 0, -N_g+i, :] = dx_dq1[0, 0, -N_g-1, :] # Right edge
+#                dx_dq1[0, 0, :, i]      = dx_dq1[0, 0, :, N_g]    # Bottom edge
+#                dx_dq1[0, 0, :, -N_g+i] = dx_dq1[0, 0, :, -N_g-1] # Top edge
+#
+#                dx_dq2[0, 0, i, :]      = dx_dq2[0, 0, N_g, :]    # Left edge
+#                dx_dq2[0, 0, -N_g+i, :] = dx_dq2[0, 0, -N_g-1, :] # Right edge
+#                dx_dq2[0, 0, :, i]      = dx_dq2[0, 0, :, N_g]    # Bottom edge
+#                dx_dq2[0, 0, :, -N_g+i] = dx_dq2[0, 0, :, -N_g-1] # Top edge
+#
+#                dy_dq1[0, 0, i, :]      = dy_dq1[0, 0, N_g, :]    # Left edge
+#                dy_dq1[0, 0, -N_g+i, :] = dy_dq1[0, 0, -N_g-1, :] # Right edge
+#                dy_dq1[0, 0, :, i]      = dy_dq1[0, 0, :, N_g]    # Bottom edge
+#                dy_dq1[0, 0, :, -N_g+i] = dy_dq1[0, 0, :, -N_g-1] # Top edge
+#
+#                dy_dq2[0, 0, i, :]      = dy_dq2[0, 0, N_g, :]    # Left edge
+#                dy_dq2[0, 0, -N_g+i, :] = dy_dq2[0, 0, -N_g-1, :] # Right edge
+#                dy_dq2[0, 0, :, i]      = dy_dq2[0, 0, :, N_g]    # Bottom edge
+#                dy_dq2[0, 0, :, -N_g+i] = dy_dq2[0, 0, :, -N_g-1] # Top edge
+#            
+#                jacobian = [[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]]
+
             return (x, y, jacobian)
         else: 
             return(x, y)
