@@ -65,7 +65,7 @@ electrostatic_solver_every_nth_step = 1000000
 
 # Time parameters:
 dt      = 0.025/4 # ps
-t_final = 3     # ps
+t_final = 5     # ps
 
 
 # File-writing Parameters:
@@ -89,12 +89,20 @@ p_space_grid = 'polar2D' # Supports 'cartesian' or 'polar2D' grids
 zero_temperature    = (p_dim==1)
 
 
+# Indices in q1 where functions defined in boundary_conditions.py will be applied
+left_dirichlet_boundary_index   = 20  # Default value is 0
+right_dirichlet_boundary_index  = 39  # Default value is N_q1-1  
+
+# Indices in q2 where functions defined in boundary_conditions.py will be applied
+bottom_dirichlet_boundary_index = 0  # Default value is 0
+top_dirichlet_boundary_index    = 39 # Default value is N_q2-1
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 2
 manual_device_allocation = True
 device_allocation        = [0, 1] # No. of items in list should match number of mpiprocs
 dont_compute             = [0, 0]
+blocked_domains          = [0]
 
 
 # Constants:
