@@ -647,8 +647,9 @@ def apply_bcs_f(self):
     # Obtaining the end coordinates for the local zone
     (i_q1_end, i_q2_end) = (i_q1_start + N_q1_local - 1, i_q2_start + N_q2_local - 1)
 
+    # TODO : Hack! Setting the domain over which to apply the bc function
     # If local zone includes the left physical boundary:
-    if(i_q1_start == self.physical_system.params.left_dirichlet_boundary_index):
+    if(i_q1_start == self.physical_system.params.left_dirichlet_boundary_index) and (self.physical_system.params.rank == 1):
 
         if(self.boundary_conditions.in_q1_left == 'dirichlet'):
             apply_dirichlet_bcs_f(self, 'left')
@@ -788,23 +789,38 @@ def apply_bcs_f(self):
         else:
             raise NotImplementedError('Unavailable/Invalid boundary condition')
 
-    # Handle blocked domains - completely walled off patches
-    blocked_domains = self.physical_system.params.blocked_domains
-    if self.physical_system.params.rank in blocked_domains:
-        # Block all 4 boundaries for this patch
+    # Handle blocked boundaries in specified domains
+    if self.physical_system.params.rank in self.physical_system.params.blocked_left_bc:
         if (self.physical_system.params.p_space_grid == 'cartesian'):
             apply_mirror_bcs_f_cartesian(self, 'left')            
-            apply_mirror_bcs_f_cartesian(self, 'right')            
-            apply_mirror_bcs_f_cartesian(self, 'top')            
-            apply_mirror_bcs_f_cartesian(self, 'bottom')            
         elif (self.physical_system.params.p_space_grid == 'polar2D'):
             apply_mirror_bcs_f_polar2D(self, 'left')
+        else :
+            raise NotImplementedError('Unsupported coordinate system in p_space')
+
+    if self.physical_system.params.rank in self.physical_system.params.blocked_right_bc:
+        if (self.physical_system.params.p_space_grid == 'cartesian'):
+            apply_mirror_bcs_f_cartesian(self, 'right')            
+        elif (self.physical_system.params.p_space_grid == 'polar2D'):
             apply_mirror_bcs_f_polar2D(self, 'right')
-            apply_mirror_bcs_f_polar2D(self, 'top')
+        else :
+            raise NotImplementedError('Unsupported coordinate system in p_space')
+
+    if self.physical_system.params.rank in self.physical_system.params.blocked_bottom_bc:
+        if (self.physical_system.params.p_space_grid == 'cartesian'):
+            apply_mirror_bcs_f_cartesian(self, 'bottom')            
+        elif (self.physical_system.params.p_space_grid == 'polar2D'):
             apply_mirror_bcs_f_polar2D(self, 'bottom')
         else :
             raise NotImplementedError('Unsupported coordinate system in p_space')
 
+    if self.physical_system.params.rank in self.physical_system.params.blocked_top_bc:
+        if (self.physical_system.params.p_space_grid == 'cartesian'):
+            apply_mirror_bcs_f_cartesian(self, 'top')            
+        elif (self.physical_system.params.p_space_grid == 'polar2D'):
+            apply_mirror_bcs_f_polar2D(self, 'top')
+        else :
+            raise NotImplementedError('Unsupported coordinate system in p_space')
 
     horizontal_boundaries    = self.physical_system.params.horizontal_boundaries
     horizontal_boundary_lims = self.physical_system.params.horizontal_boundary_lims
