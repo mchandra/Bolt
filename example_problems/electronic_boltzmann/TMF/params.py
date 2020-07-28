@@ -7,30 +7,29 @@ from bolt.src.electronic_boltzmann.utils.unit_vectors import normal_to_hexagon_u
 instantaneous_collisions = False #TODO : Remove from lib
 hybrid_model_enabled     = False #TODO : Remove from lib
 source_enabled           = True
-disable_collision_op     = True
+disable_collision_op     = False
 
 # Manual domain decomposition (for advanced users)
 # The number of sub-domains into which the domain is decomposed
 # should be equal to the number of mpiprocesses (set in the jobscript)
 
 enable_manual_domain_decomposition = True
-q1_partition = [360.0/711, 17./711, 108./711, 226./711 ] # List of the fractional ranges of each subdomain in q1
-#q1_partition = [180.0/355, 9./355, 53./355, 113./355 ] # List of the fractional ranges of each subdomain in q1
+q1_partition = [360.0/711, 17./711, 111./711, 223./711 ] # List of the fractional ranges of each subdomain in q1
+#q1_partition = [180.0/355, 9./355, 55./355, 112./355 ] # List of the fractional ranges of each subdomain in q1
 # The above indices correspond to  x = [-4.5700, -0.0075, 26.286, 29.5287, 33.010, 50]
 # TODO : Automate the indices using coords
-q2_partition = [26./224, 22./224, 176./224] # List of the fractional ranges of each subdomain in q2
-#q2_partition = [28./224, 20./224, 176./224] # List of the fractional ranges of each subdomain in q2
+q2_partition = [28./224, 20./224, 176./224] # List of the fractional ranges of each subdomain in q2
 
 # Note : The N_q1/N_q2 should be exactly divisible by the denominator of the
 # corresponding fractional ranges specified above.
 # For example : if q1_partion = [1./3, 2./3], then N_q1%3 == 0
 
 # Internal mirror boundary
-horizontal_boundaries    = [] # index of boundary axis along q2
-horizontal_boundary_lims = [(-0.3334, 0.3334), (-0.3334, 0.3334)] # boundary lims along q1
+horizontal_boundaries    = [28, 48, 48] # index of boundary axis along q2
+horizontal_boundary_lims = [(-16.65, -14.6), (-59.85, -14.6), (0.9, 25.47)] # boundary lims along q1
 
-vertical_boundaries    = [] # index of boundary axis along q2
-vertical_boundary_lims = [(-0.3334, 0.3334), (-0.3334, 0.3334)] # boundary lims along q1
+vertical_boundaries    = [360, 377, 488] # index of boundary axis along q2
+vertical_boundary_lims = [(-14.0, -12.55), (-12.55, -9.85), (-15.65, -9.85)] # boundary lims along q1
 
 # Manually override external mirror angles [bottom, right, top, left]
 enable_manual_mirror = False

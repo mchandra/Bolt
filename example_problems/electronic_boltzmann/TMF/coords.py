@@ -26,14 +26,14 @@ def get_cartesian_coords(q1, q2,
     if (q1_start_local_left != None and q2_start_local_bottom != None):
 
         # Patch-0
-        if ((q2_midpoint < -12.55) and (q1_midpoint > -59.85) and (q1_midpoint < -16.65)):
-            X_Y_top_right    = [-16.65,   -12.55]
-            X_Y_top_left     = [-59.85,   -12.55]
+        if ((q2_midpoint < -12.25) and (q1_midpoint > -59.85) and (q1_midpoint < -16.65)):
+            X_Y_top_right    = [-16.65,   -12.25]
+            X_Y_top_left     = [-59.85,   -12.25]
             X_Y_bottom_left  = [-59.85,   -15.65]
             X_Y_bottom_right = [-16.65,   -15.65]
     
-            x_y_top_right    = [-16.65,   -12.55]  
-            x_y_top_left     = [-59.85,   -12.55]
+            x_y_top_right    = [-16.65,   -12.25]  
+            x_y_top_left     = [-59.85,   -12.25]
             x_y_bottom_left  = [-59.85,   -14.00]
             x_y_bottom_right = [-16.65,   -14.00]
             
@@ -45,14 +45,14 @@ def get_cartesian_coords(q1, q2,
                           )
 
         # Patch-1
-        elif ((q2_midpoint < -12.55) and (q1_midpoint > -16.65) and (q1_midpoint < -14.6)):
-            X_Y_top_right    = [-14.6,    -12.55]
-            X_Y_top_left     = [-16.65,   -12.55]
+        elif ((q2_midpoint < -12.25) and (q1_midpoint > -16.65) and (q1_midpoint < -14.6)):
+            X_Y_top_right    = [-14.6,    -12.25]
+            X_Y_top_left     = [-16.65,   -12.25]
             X_Y_bottom_left  = [-16.65,   -15.65]
             X_Y_bottom_right = [-14.6,    -15.65]
     
-            x_y_top_right    = [-14.6,    -12.55]  
-            x_y_top_left     = [-16.65,   -12.55]
+            x_y_top_right    = [-14.6,    -12.25]  
+            x_y_top_left     = [-16.65,   -12.25]
             x_y_bottom_left  = [-16.65,   -14.00]
             x_y_bottom_right = [-14.6,    -15.65]
             
@@ -65,14 +65,14 @@ def get_cartesian_coords(q1, q2,
         
 
         # Patch-2
-        elif ((q2_midpoint < -12.55) and (q1_midpoint > -14.6) and (q1_midpoint < -1.7)):
-            X_Y_top_right    = [-1.7,   -12.55]
-            X_Y_top_left     = [-14.6,   -12.55]
+        elif ((q2_midpoint < -12.25) and (q1_midpoint > -14.6) and (q1_midpoint < -1.25)):
+            X_Y_top_right    = [-1.25,   -12.25]
+            X_Y_top_left     = [-14.6,   -12.25]
             X_Y_bottom_left  = [-14.6,   -15.65]
-            X_Y_bottom_right = [-1.7,   -15.65]
+            X_Y_bottom_right = [-1.25,   -15.65]
     
-            x_y_top_right    = [-1.7,   -12.55]  
-            x_y_top_left     = [-14.6,   -12.55]
+            x_y_top_right    = [-1.25,   -12.25]  
+            x_y_top_left     = [-14.6,   -12.25]
             x_y_bottom_left  = [-14.6,   -15.65]
             x_y_bottom_right = [-4.3,   -15.65]
             
@@ -84,14 +84,14 @@ def get_cartesian_coords(q1, q2,
                           )
 
         # Patch-3
-        elif ((q2_midpoint < -12.55) and (q1_midpoint > -1.7) and (q1_midpoint < 25.47)):
-            X_Y_top_right    = [25.47,   -12.55]
-            X_Y_top_left     = [-1.7,     -12.55]
-            X_Y_bottom_left  = [-1.7,     -15.65]
+        elif ((q2_midpoint < -12.25) and (q1_midpoint > -1.25) and (q1_midpoint < 25.47)):
+            X_Y_top_right    = [25.47,   -12.25]
+            X_Y_top_left     = [-1.25,     -12.25]
+            X_Y_bottom_left  = [-1.25,     -15.65]
             X_Y_bottom_right = [25.47,   -15.65]
     
-            x_y_top_right    = [25.47,   -12.55]  
-            x_y_top_left     = [-1.7,     -12.55]
+            x_y_top_right    = [25.47,   -12.25]  
+            x_y_top_left     = [-1.25,     -12.25]
             x_y_bottom_left  = [-4.3,     -15.65]
             x_y_bottom_right = [25.47,   -15.65]
             
@@ -103,16 +103,16 @@ def get_cartesian_coords(q1, q2,
                           )
         
         # Patch-4
-        elif ((q2_midpoint > -12.55) and (q2_midpoint < -9.85) and (q1_midpoint > -59.85) and (q1_midpoint < -16.65)):
+        elif ((q2_midpoint > -12.25) and (q2_midpoint < -9.85) and (q1_midpoint > -59.85) and (q1_midpoint < -16.65)):
             X_Y_top_right    = [-16.65,   -9.85]
             X_Y_top_left     = [-59.85,   -9.85]
-            X_Y_bottom_left  = [-59.85,   -12.55]
-            X_Y_bottom_right = [-16.65,   -12.55]
+            X_Y_bottom_left  = [-59.85,   -12.25]
+            X_Y_bottom_right = [-16.65,   -12.25]
     
             x_y_top_right    = [-16.65,   -9.85]  
             x_y_top_left     = [-59.85,   -9.85]
-            x_y_bottom_left  = [-59.85,   -12.55]
-            x_y_bottom_right = [-16.65,   -12.55]
+            x_y_bottom_left  = [-59.85,   -12.25]
+            x_y_bottom_right = [-16.65,   -12.25]
             
             x, y =  affine(q1, q2,
                            x_y_bottom_left, x_y_bottom_right, 
@@ -122,16 +122,16 @@ def get_cartesian_coords(q1, q2,
                           )
         
         # Patch-5
-        elif ((q2_midpoint > -12.55) and (q2_midpoint < -9.85) and (q1_midpoint > -16.65) and (q1_midpoint < -14.6)):
+        elif ((q2_midpoint > -12.25) and (q2_midpoint < -9.85) and (q1_midpoint > -16.65) and (q1_midpoint < -14.6)):
             X_Y_top_right    = [-14.6,    -9.85]
             X_Y_top_left     = [-16.65,   -9.85]
-            X_Y_bottom_left  = [-16.65,   -12.55]
-            X_Y_bottom_right = [-14.6,    -12.55]
+            X_Y_bottom_left  = [-16.65,   -12.25]
+            X_Y_bottom_right = [-14.6,    -12.25]
     
             x_y_top_right    = [-14.6,    -9.85]  
             x_y_top_left     = [-16.65,   -9.85]
-            x_y_bottom_left  = [-16.65,   -12.55]
-            x_y_bottom_right = [-14.6,    -12.55]
+            x_y_bottom_left  = [-16.65,   -12.25]
+            x_y_bottom_right = [-14.6,    -12.25]
             
             x, y =  affine(q1, q2,
                            x_y_bottom_left, x_y_bottom_right, 
@@ -142,16 +142,16 @@ def get_cartesian_coords(q1, q2,
         
 
         # Patch-6
-        elif ((q2_midpoint > -12.55) and (q2_midpoint < -9.85) and (q1_midpoint > -14.6) and (q1_midpoint < -1.7)):
-            X_Y_top_right    = [-1.7,   -9.85]
+        elif ((q2_midpoint > -12.25) and (q2_midpoint < -9.85) and (q1_midpoint > -14.6) and (q1_midpoint < -1.25)):
+            X_Y_top_right    = [-1.25,   -9.85]
             X_Y_top_left     = [-14.6,   -9.85]
-            X_Y_bottom_left  = [-14.6,   -12.55]
-            X_Y_bottom_right = [-1.7,   -12.55]
+            X_Y_bottom_left  = [-14.6,   -12.25]
+            X_Y_bottom_right = [-1.25,   -12.25]
     
             x_y_top_right    = [0.9 ,   -9.85]  
             x_y_top_left     = [-14.6,   -9.85]
-            x_y_bottom_left  = [-14.6,   -12.55]
-            x_y_bottom_right = [-1.7,   -12.55]
+            x_y_bottom_left  = [-14.6,   -12.25]
+            x_y_bottom_right = [-1.25,   -12.25]
             
             x, y =  affine(q1, q2,
                            x_y_bottom_left, x_y_bottom_right, 
@@ -161,16 +161,16 @@ def get_cartesian_coords(q1, q2,
                           )
 
         # Patch-7
-        elif ((q2_midpoint > -12.55) and (q2_midpoint < -9.85) and (q1_midpoint > -1.7) and (q1_midpoint < 25.47)):
+        elif ((q2_midpoint > -12.25) and (q2_midpoint < -9.85) and (q1_midpoint > -1.25) and (q1_midpoint < 25.47)):
             X_Y_top_right    = [25.47,   -9.85]
-            X_Y_top_left     = [-1.7,    -9.85]
-            X_Y_bottom_left  = [-1.7,    -12.55]
-            X_Y_bottom_right = [25.47,   -12.55]
+            X_Y_top_left     = [-1.25,    -9.85]
+            X_Y_bottom_left  = [-1.25,    -12.25]
+            X_Y_bottom_right = [25.47,   -12.25]
     
             x_y_top_right    = [25.47,   -9.85]  
             x_y_top_left     = [0.9,     -9.85]
-            x_y_bottom_left  = [-1.7,    -12.55]
-            x_y_bottom_right = [25.47,   -12.55]
+            x_y_bottom_left  = [-1.25,    -12.25]
+            x_y_bottom_right = [25.47,   -12.25]
             
             x, y =  affine(q1, q2,
                            x_y_bottom_left, x_y_bottom_right, 
@@ -219,11 +219,11 @@ def get_cartesian_coords(q1, q2,
         
 
         # Patch-10
-        elif ((q2_midpoint > -9.85) and (q2_midpoint < 11.25) and (q1_midpoint > -14.6) and (q1_midpoint < -1.7)):
-            X_Y_top_right    = [-1.7,   11.25]
+        elif ((q2_midpoint > -9.85) and (q2_midpoint < 11.25) and (q1_midpoint > -14.6) and (q1_midpoint < -1.25)):
+            X_Y_top_right    = [-1.25,   11.25]
             X_Y_top_left     = [-14.6,   11.25]
             X_Y_bottom_left  = [-14.6,   -9.85]
-            X_Y_bottom_right = [-1.7,   -9.85]
+            X_Y_bottom_right = [-1.25,   -9.85]
     
             x_y_top_right    = [0.9,   11.25]  
             x_y_top_left     = [-14.6,   11.25]
@@ -238,10 +238,10 @@ def get_cartesian_coords(q1, q2,
                           )
 
         # Patch-11
-        elif ((q2_midpoint > -9.85) and (q2_midpoint < 11.25) and (q1_midpoint > -1.7) and (q1_midpoint < 25.47)):
+        elif ((q2_midpoint > -9.85) and (q2_midpoint < 11.25) and (q1_midpoint > -1.25) and (q1_midpoint < 25.47)):
             X_Y_top_right    = [25.47,   11.25]
-            X_Y_top_left     = [-1.7,    11.25]
-            X_Y_bottom_left  = [-1.7,    -9.85]
+            X_Y_top_left     = [-1.25,    11.25]
+            X_Y_bottom_left  = [-1.25,    -9.85]
             X_Y_bottom_right = [25.47,   -9.85]
     
             x_y_top_right    = [25.47,   11.25]  

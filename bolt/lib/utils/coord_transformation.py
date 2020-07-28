@@ -278,7 +278,7 @@ def affine(q1, q2,
            X_Y_bottom_left, X_Y_bottom_right, 
            X_Y_top_right, X_Y_top_left,
           ):
-    a = [a0, a1, a2, a3, a4, a5, a6, a7]
+#    a = [a0, a1, a2, a3, a4, a5, a6, a7]
 
     '''
         Inputs :
