@@ -3,7 +3,7 @@ import params
 
 q1_start = -59.85
 q1_end   = 25.47
-dq1      = 0.06*2
+dq1      = 0.06*4
 N_q1     = int((q1_end - q1_start)/dq1)
 
 q2_start = -15.65
@@ -43,7 +43,7 @@ p1_end   = [1.5*params.initial_mu/params.fermi_velocity]
 
 # If N_p2 > 1, mirror boundary conditions require p2 to be
 # symmetric about zero
-N_p2     =  1024
+N_p2     =  512
 
 # In the cartesian representation of momentum space,
 # p2 = p_y (magnitude of momentum)

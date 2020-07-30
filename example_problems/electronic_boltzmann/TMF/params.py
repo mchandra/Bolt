@@ -14,8 +14,8 @@ disable_collision_op     = False
 # should be equal to the number of mpiprocesses (set in the jobscript)
 
 enable_manual_domain_decomposition = True
-q1_partition = [360.0/711, 17./711, 111./711, 223./711 ] # List of the fractional ranges of each subdomain in q1
-#q1_partition = [180.0/355, 9./355, 55./355, 112./355 ] # List of the fractional ranges of each subdomain in q1
+#q1_partition = [360.0/711, 17./711, 111./711, 223./711 ] # List of the fractional ranges of each subdomain in q1
+q1_partition = [180.0/355, 9./355, 55./355, 112./355 ] # List of the fractional ranges of each subdomain in q1
 # The above indices correspond to  x = [-4.5700, -0.0075, 26.286, 29.5287, 33.010, 50]
 # TODO : Automate the indices using coords
 q2_partition = [28./224, 20./224, 176./224] # List of the fractional ranges of each subdomain in q2
@@ -24,11 +24,20 @@ q2_partition = [28./224, 20./224, 176./224] # List of the fractional ranges of e
 # corresponding fractional ranges specified above.
 # For example : if q1_partion = [1./3, 2./3], then N_q1%3 == 0
 
+# Indices in q1 where functions defined in boundary_conditions.py will be applied
+left_dirichlet_boundary_index   = 0  # Default value is 0
+right_dirichlet_boundary_index  = 354  # Default value is N_q1-1  
+
+# Indices in q2 where functions defined in boundary_conditions.py will be applied
+bottom_dirichlet_boundary_index = 24  # Default value is 0
+top_dirichlet_boundary_index    = 111 # Default value is N_q2-1
+
+
 # Internal mirror boundary
-horizontal_boundaries    = [28, 48, 48] # index of boundary axis along q2
+horizontal_boundaries    = [] # index of boundary axis along q2
 horizontal_boundary_lims = [(-16.65, -14.6), (-59.85, -14.6), (0.9, 25.47)] # boundary lims along q1
 
-vertical_boundaries    = [360, 377, 488] # index of boundary axis along q2
+vertical_boundaries    = [] # index of boundary axis along q2
 vertical_boundary_lims = [(-14.0, -12.55), (-12.55, -9.85), (-15.65, -9.85)] # boundary lims along q1
 
 # Manually override external mirror angles [bottom, right, top, left]
@@ -66,7 +75,7 @@ electrostatic_solver_every_nth_step = 1000000
 
 # Time parameters:
 dt      = 0.025/4 # ps
-t_final = 6*dt     # ps
+t_final = 100.     # ps
 
 
 # File-writing Parameters:
@@ -97,6 +106,10 @@ manual_device_allocation = True
 device_allocation        = [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1] # No. of items in list should match number of mpiprocs
 dont_compute             = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
+blocked_left_bc          = [0, 1,    3, 4, 5, 6, 7]
+blocked_right_bc         = [0,    2, 3, 4, 5, 6, 7]
+blocked_bottom_bc        = [0, 1, 2, 3, 4, 5,    7]
+blocked_top_bc           = [0, 1,    3, 4, 5,    7]
 
 # Constants:
 mass_particle      = 0.910938356 # x 1e-30 kg
@@ -120,9 +133,10 @@ contact_geometry      = "straight" # Contacts on either side of the device
 
 initial_temperature = 12e-4
 initial_mu          = 0.015
-vel_drift_x_in      = 1e-4*fermi_velocity
-vel_drift_x_out     = 1e-4*fermi_velocity
+vel_drift_y_in      = 1e-4*fermi_velocity
+vel_drift_y_out     = 1e-4*fermi_velocity
 AC_freq             = 1./100 # ps^-1
+source_type         = 'DC'
 
 B3_mean = 1. # T
 
