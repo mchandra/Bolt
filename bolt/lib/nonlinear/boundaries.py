@@ -647,9 +647,8 @@ def apply_bcs_f(self):
     # Obtaining the end coordinates for the local zone
     (i_q1_end, i_q2_end) = (i_q1_start + N_q1_local - 1, i_q2_start + N_q2_local - 1)
 
-    # TODO : Hack! Setting the domain over which to apply the bc function
     # If local zone includes the left physical boundary:
-    if(i_q1_start == self.physical_system.params.left_dirichlet_boundary_index) and (self.physical_system.params.rank == 1):
+    if(i_q1_start == self.physical_system.params.left_dirichlet_boundary_index):
 
         if(self.boundary_conditions.in_q1_left == 'dirichlet'):
             apply_dirichlet_bcs_f(self, 'left')
@@ -719,8 +718,9 @@ def apply_bcs_f(self):
         else:
             raise NotImplementedError('Unavailable/Invalid boundary condition')
 
+    # TODO : Hack! Setting the domain over which to apply the bc function
     # If local zone includes the bottom physical boundary:
-    if(i_q2_start == self.physical_system.params.bottom_dirichlet_boundary_index):
+    if(i_q2_start == self.physical_system.params.bottom_dirichlet_boundary_index) and (self.physical_system.params.rank != 10):
 
         if(self.boundary_conditions.in_q2_bottom == 'dirichlet'):
             apply_dirichlet_bcs_f(self, 'bottom')
