@@ -194,14 +194,26 @@ def C_p(t, q1, q2, p1, p2, p3,
     params: The parameters file/object that is originally declared by the user.
             This can be used to inject other functions/attributes into the function
     """
-    e = params.charge_electron
+    # Coefficient of df/dtheta term in the Boltzmann equation, C = e B v_F/p_F
+    # Writing p_F = m v_F, we get C = e B/m
+    # We call omega_c = e B/m
+    # Using tau_c = 1/omega_c and l_c = v_F*tau_c,
+    # we get C = 1/tau_c = v_F/l_c
+    # Writing the Boltzmann equation : 
+    # (1/v_F) df/dt + \hat{p}.df/dx - (e B v_F/p_F) df/dtheta = [-(f-f0^MR)/l_mr] + [-(f - f0^MC)/l_mc]
+    # The Boltzmann equation then becomes : 
+    # (1/v_F) df/dt + \hat{p}.df/dx - (v_F/l_c)     df/dtheta = [-(f-f0^MR)/l_mr] + [-(f - f0^MC)/l_mc]
+    
+    # TODO : What happens in case of multple species?
+    e = params.charge[0]
     c = params.speed_of_light
     B3_mean = params.B3_mean
 
     v1, v2 = params.vel_band
 
     dp1_dt = e*(E1 + v2*B3_mean/c) # p1 = hcross * k1
-    dp2_dt = e*(E2 - v1*B3_mean/c) # p2 = hcross * k2
-    dp3_dt = 0.*p1
+    #dp2_dt = e*(E2 - v1*B3_mean/c) # p2 = hcross * k2
+    dp2_dt = params.fermi_velocity/params.l_c + 0.*q1*p1 # p2 = hcross * k2
+    dp3_dt = 0.*p1*q1
 
     return (dp1_dt, dp2_dt, dp3_dt)

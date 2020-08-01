@@ -250,6 +250,13 @@ def df_dt_fvm(f, self, term_to_return = 'all'):
 
                 self.fields_solver.compute_electrostatic_fields(rho)
 
+        #TODO : This is a hack. Fix.
+        E1 = 0.*self.fields_solver.cell_centered_EM_fields[0]
+        E2 = 0.*self.fields_solver.cell_centered_EM_fields[1]
+        E3 = 0.*self.fields_solver.cell_centered_EM_fields[2]
+        B1 = 0.*self.fields_solver.cell_centered_EM_fields[3]
+        B2 = 0.*self.fields_solver.cell_centered_EM_fields[4]
+        B3 = 0.*self.fields_solver.cell_centered_EM_fields[5]
 
         # Fields solver object is passed to C_p where the get_fields method
         # is used to get the electromagnetic fields. The fields returned are
@@ -259,20 +266,20 @@ def df_dt_fvm(f, self, term_to_return = 'all'):
         # On the (n+1/2)-th step it returns (E1^{n+1/2}, E2^{n+1/2}, E3^{n+1/2}, B1^{n+1/2}, B2^{n+1/2}, B3^{n+1/2})
         self._C_p1 = af.broadcast(self._C_p, self.time_elapsed,
                                   self.q1_center, self.q2_center,
-                                  self.p1_left, self.p2_left, self.p3_left,
-                                  self.fields_solver, self.physical_system.params
+                                  self.p1_left, self.p2_left, self.p3_left, E1, E2, E3, B1, B2, B3,
+                                  self.physical_system.params
                                  )[0]
 
         self._C_p2 = af.broadcast(self._C_p, self.time_elapsed,
                                   self.q1_center, self.q2_center,
-                                  self.p1_bottom, self.p2_bottom, self.p3_bottom,
-                                  self.fields_solver, self.physical_system.params
+                                  self.p1_bottom, self.p2_bottom, self.p3_bottom, E1, E2, E3, B1, B2, B3,
+                                  self.physical_system.params
                                  )[1]
 
         self._C_p3 = af.broadcast(self._C_p, self.time_elapsed,
                                   self.q1_center, self.q2_center,
-                                  self.p1_back, self.p2_back, self.p3_back,
-                                  self.fields_solver, self.physical_system.params
+                                  self.p1_back, self.p2_back, self.p3_back, E1, E2, E3, B1, B2, B3,
+                                  self.physical_system.params
                                  )[2]
 
         self._C_p1 = self._convert_to_p_expanded(self._C_p1)
