@@ -3,12 +3,13 @@ import params
 
 q1_start = -22.64
 q1_end   = 50.
-dq1_tmp  = .06*2
-N_q1     = int((q1_end - q1_start)/dq1_tmp)
+dq1      = .06*2
+N_q1     = int((q1_end - q1_start)/dq1)
 
 q2_start = 0
 q2_end   = 24
-N_q2     = int((q2_end - q2_start)/dq1_tmp)
+dq2      = dq1
+N_q2     = int((q2_end - q2_start)/dq2)
 
 
 # If N_p1 > 1, mirror boundary conditions require p1 to be

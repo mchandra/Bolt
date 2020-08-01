@@ -24,11 +24,12 @@ def f_left(f, t, q1, q2, p1, p2, p3, params):
     q2_start = af.Array([domain.q2_start])
     q2_end   = af.Array([domain.q2_end])
 
-    x_start, y_start = coords.get_cartesian_coords(q1_start, q2_start)
-    x_start, y_end   = coords.get_cartesian_coords(q1_start, q2_end)
-    
-    contact_width = y_end.scalar() - y_start.scalar()#19.486
-    print ("boundary_conditions.py : ", contact_width)
+    #x_start, y_start = coords.get_cartesian_coords(q1_start, q2_start)
+    #x_start, y_end   = coords.get_cartesian_coords(q1_start, q2_end)
+    y_start = -24.
+    y_end   = -4.6
+
+    contact_width = y_end - y_start#19.486
 
     if (params.source_type == 'AC'):
         vel_drift_x_out  = -params.vel_drift_y_in/contact_width  * np.sin(omega*t)
@@ -49,6 +50,8 @@ def f_left(f, t, q1, q2, p1, p2, p3, params):
 
     fermi_dirac_out = (1./(af.exp( (E_upper - vel_drift_x_out*p_x - mu)/(k*T) ) + 1.)
                      )
+    if params.zero_temperature:
+        fermi_dirac_out = fermi_dirac_out - 0.5
 
     f_left = fermi_dirac_out
 
@@ -88,6 +91,8 @@ def f_bottom(f, t, q1, q2, p1, p2, p3, params):
 
     fermi_dirac_in = (1./(af.exp( (E_upper - vel_drift_y_in*p_y - mu)/(k*T) ) + 1.)
                      )
+    if params.zero_temperature:
+        fermi_dirac_in = fermi_dirac_in - 0.5
     
 
     x_contact_start = contact_start#params.contact_start

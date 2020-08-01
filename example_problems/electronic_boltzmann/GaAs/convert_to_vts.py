@@ -45,7 +45,7 @@ io = PetscBinaryIO.PetscBinaryIO()
 
 dump_file = 'coords.bin'
 coords = io.readBinaryFile(dump_file)
-coords = coords[0].reshape(N_q2, N_q1, 13)
+coords = coords[0].reshape(N_q2, N_q1, 17)
 
 x = coords[:, :, 0]; y = coords[:, :, 1]
 
@@ -58,14 +58,14 @@ coords_array[1::2] = y.flatten()
 scalar_da.setCoordinates(coords_vec)
 vector_da.setCoordinates(coords_vec)
 
-filename = "t=00000179.250000.bin"
+filename = "t=00000083.000000.bin"
 dump_file = 'dump_moments/'+filename
 moments = io.readBinaryFile(dump_file)
 moments = moments[0].reshape(N_q2, N_q1, 3)
 
 dump_file = 'dump_lagrange_multipliers/'+filename
 lagrange_multipliers = io.readBinaryFile(dump_file)
-lagrange_multipliers = lagrange_multipliers[0].reshape(N_q2, N_q1, 7)
+lagrange_multipliers = lagrange_multipliers[0].reshape(N_q2, N_q1, 5)
 
 density = moments[:, :, 0]
 vel_drift_x  = lagrange_multipliers[:, :, 3]

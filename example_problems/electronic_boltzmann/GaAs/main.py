@@ -28,16 +28,6 @@ import bolt.src.electronic_boltzmann.moments \
     as moment_defs
 
 
-# Create required folders if they do not exist already
-#if not os.path.isdir("dump_f"):
-#    os.system("mkdir dump_f")
-#if not os.path.isdir("dump_moments"):
-#    os.system("mkdir dump_moments")
-#if not os.path.isdir("dump_lagrange_multipliers"):
-#    os.system("mkdir dump_lagrange_multipliers")
-#if not os.path.isdir("images"):
-#    os.system("mkdir images")
-
 
 # Defining the physical system to be solved:
 system = physical_system(domain,
@@ -81,7 +71,6 @@ if using_latest_restart == False:
         nls.dump_aux_arrays([params.mu,
                              params.mu_ee,
                              params.T_ee,
-                             params.vel_drift_x, params.vel_drift_y,
                              params.j_x, params.j_y],
                              'lagrange_multipliers',
                              'dump_lagrange_multipliers/t=' + formatted_time
@@ -95,9 +84,9 @@ if using_latest_restart == False:
         nls.load_distribution_function('dump_f/t=' + formatted_time)
 
 # Checking that the file writing intervals are greater than dt:
-assert(params.dt_dump_f > dt)
-assert(params.dt_dump_moments > dt)
-assert(params.dt_dump_fields > dt)
+assert(params.dt_dump_f >= dt)
+assert(params.dt_dump_moments >= dt)
+assert(params.dt_dump_fields >= dt)
 
 # Dump information about the spatial coordinate transformation
 nls.dump_coordinate_info([params.x,
@@ -112,7 +101,11 @@ nls.dump_coordinate_info([params.x,
                  params.dx_dq2,
                  params.dy_dq1,
                  params.dy_dq2,
-                 params.sqrt_det_g],
+                 params.sqrt_det_g,
+                 params.x_top_center,
+                 params.y_top_center,
+                 params.x_right_center,
+                 params.y_right_center],
                  'coords',
                  'coords'
                 )
@@ -124,11 +117,11 @@ density = nls.compute_moments('density')
 print("rank = ", params.rank, "\n",
       "     <mu>    = ", af.mean(params.mu[0, 0, N_g:-N_g, N_g:-N_g]), "\n",
       "     max(mu) = ", af.max(params.mu[0, 0, N_g:-N_g, N_g:-N_g]), "\n",
-      "     <n>     = ", af.mean(density[0, 0, N_g:-N_g, N_g:-N_g]), "\n",
+      "     <n>     = ", af.mean(density[0, 0, N_g:-N_g, N_g:-N_g]), "i\n",
       "     max(n)  = ", af.max(density[0, 0, N_g:-N_g, N_g:-N_g]), "\n"
      )
 
-nls.f = af.select(nls.f < 1e-20, 1e-20, nls.f)
+
 while(time_elapsed < t_final):
 
     if (time_elapsed + dt > t_final):
@@ -153,7 +146,6 @@ while(time_elapsed < t_final):
             nls.dump_aux_arrays([params.mu,
                              params.mu_ee,
                              params.T_ee,
-                             params.vel_drift_x, params.vel_drift_y,
                              params.j_x, params.j_y],
                              'lagrange_multipliers',
                              'dump_lagrange_multipliers/t=' + formatted_time
@@ -169,24 +161,15 @@ while(time_elapsed < t_final):
         nls.dump_distribution_function('dump_f/f_restart')        
 
     PETSc.Sys.Print("Time step =", time_step, ", Time =", time_elapsed)
+    
+    if (params.dont_compute[params.rank]):
+        continue
+    else:
+        nls.strang_timestep(dt)
 
-    nls.strang_timestep(dt)
     time_elapsed        = time_elapsed + dt
     time_step           = time_step + 1
     params.time_step    = time_step
     params.current_time = time_elapsed
 
-    # Floors
-    nls.f     = af.select(nls.f < 1e-20, 1e-20, nls.f)
-
-    density = nls.compute_moments('density')
-    print("rank = ", params.rank, "\n",
-          "     <mu>    = ", af.mean(params.mu[0, 0, N_g:-N_g, N_g:-N_g]), "\n",
-          "     max(mu) = ", af.max(params.mu[0, 0, N_g:-N_g, N_g:-N_g]), "\n",
-          "     <n>     = ", af.mean(density[0, 0, N_g:-N_g, N_g:-N_g]), "\n",
-          "     max(n)  = ", af.max(density[0, 0, N_g:-N_g, N_g:-N_g]), "\n"
-         )
-    PETSc.Sys.Print("--------------------\n")
-
-PETSc.Sys.Print("Time step =", time_step, ", Time =", time_elapsed, "Final time = ", t_final, "Delta_t = ", t_final - time_elapsed)
 nls.dump_distribution_function('dump_f/f_laststep')

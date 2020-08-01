@@ -23,12 +23,30 @@ q2_partition = [1./2, 1./2] # List of the fractional ranges of each subdomain in
 # corresponding fractional ranges specified above.
 # For example : if q1_partion = [1./3, 2./3], then N_q1%3 == 0
 
+# Indices in q1 where functions defined in boundary_conditions.py will be applied
+left_dirichlet_boundary_index   = 0  # Default value is 0
+right_dirichlet_boundary_index  = 604  # Default value is N_q1-1  
+
+# Indices in q2 where functions defined in boundary_conditions.py will be applied
+bottom_dirichlet_boundary_index = 0  # Default value is 0
+top_dirichlet_boundary_index    = 199 # Default value is N_q2-1
+
+# Specify patches over which boundary condition functions are not applied
+dont_apply_left_bc   = []
+dont_apply_right_bc  = []
+dont_apply_bottom_bc = []
+dont_apply_top_bc    = []
+
 # Internal mirror boundary
 horizontal_boundaries    = [] # index of boundary axis along q2
 horizontal_boundary_lims = [] # boundary lims along q1
 
 vertical_boundaries    = [] # index of boundary axis along q2
 vertical_boundary_lims = [] # boundary lims along q1
+
+# Manually override external mirror angles [bottom, right, top, left]
+enable_manual_mirror = False
+mirror_angles = [0., np.pi/2, 0., np.pi/2]
 
 fields_enabled = False
 # Can be defined as 'electrostatic', 'user-defined'.
@@ -75,10 +93,19 @@ fermi_surface_shape = 'circle' # Supports 'circle' or 'hexagon'
 p_dim = 1
 p_space_grid = 'polar2D' # Supports 'cartesian' or 'polar2D' grids
 # Set p-space start and end points accordingly in domain.py
-zero_temperature = (p_dim==1)
+#TODO : Use only polar2D for PdCoO2
+zero_temperature    = (p_dim==1)
 
 # Number of devices(GPUs/Accelerators) on each node:
-num_devices = 6
+num_devices = 2
+manual_device_allocation = True
+device_allocation        = [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1] # No. of items in list should match number of mpiprocs
+dont_compute             = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+blocked_left_bc          = []
+blocked_right_bc         = []
+blocked_bottom_bc        = []
+blocked_top_bc           = []
 
 # Constants:
 mass_particle      = 0.910938356 # x 1e-30 kg
@@ -112,6 +139,8 @@ vel_drift_x = None
 vel_drift_y = None
 p_x         = None
 p_y         = None
+j_x         = None
+j_y         = None
 phi         = None # Electric potential in the plane of graphene sheet
 
 # Index arrays used to perform shifting for mirror bcs
@@ -159,6 +188,7 @@ def band_energy(p1, p2):
         p_x = p1
         p_y = p2
     elif (p_space_grid == 'polar2D'):
+    	# In polar2D coordinates, p1 = radius and p2 = theta
         r = p1
         theta = p2
         p_x = r * af.cos(theta)

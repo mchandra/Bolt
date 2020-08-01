@@ -27,15 +27,15 @@ import domain
 
 
 # Optimized plot parameters to make beautiful plots:
-pl.rcParams['figure.figsize']  = 12, 7.5
-pl.rcParams['figure.dpi']      = 100
+pl.rcParams['figure.figsize']  = 30, 15
+pl.rcParams['figure.dpi']      = 300
 pl.rcParams['image.cmap']      = 'jet'
 pl.rcParams['lines.linewidth'] = 1.5
 pl.rcParams['font.family']     = 'serif'
-pl.rcParams['font.weight']     = 'bold'
-pl.rcParams['font.size']       = 25
+pl.rcParams['font.weight']     = 'normal'
+pl.rcParams['font.size']       = 20
 pl.rcParams['font.sans-serif'] = 'serif'
-pl.rcParams['text.usetex']     = True
+pl.rcParams['text.usetex']     = False
 pl.rcParams['axes.linewidth']  = 1.5
 pl.rcParams['axes.titlesize']  = 'medium'
 pl.rcParams['axes.labelsize']  = 'medium'
@@ -66,6 +66,17 @@ def plot_grid(x,y, ax=None, **kwargs):
     ax.add_collection(LineCollection(segs2, **kwargs))
     ax.autoscale()
 
+class MidpointNormalize (colors.Normalize):
+    def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
+        self.midpoint = midpoint
+        colors.Normalize.__init__(self, vmin, vmax, clip)
+
+    def __call__(self, value, clip=None):
+    # I'm ignoring masked values and all kinds of edge cases to make
+    # a simple example...
+        x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
+        return np.ma.masked_array(np.interp(value, x, y), np.isnan(value))
+
 N_q1 = domain.N_q1
 N_q2 = domain.N_q2
 
@@ -75,7 +86,7 @@ q2 = domain.q2_start + (0.5 + np.arange(N_q2)) * (domain.q2_end - domain.q2_star
 q2_meshgrid, q1_meshgrid = np.meshgrid(q2, q1)
 
 coords = io.readBinaryFile("coords.bin")
-coords = coords[0].reshape(N_q2, N_q1, 13)
+coords = coords[0].reshape(N_q2, N_q1, 17)
     
 x = coords[:, :, 0].T
 y = coords[:, :, 1].T
@@ -102,13 +113,21 @@ print ("lagrange multiplier files : ", lagrange_multiplier_files.size)
 
 time_array = np.loadtxt(filepath+"/dump_time_array.txt")
 
+file_number = 0
+moments = io.readBinaryFile(moment_files[file_number])
+moments = moments[0].reshape(N_q2, N_q1, 3)
+    
+density_bg = moments[:, :, 0]
 
-for file_number, dump_file in enumerate(moment_files[:]):
+
+start_index = 0 # Make movie from just before restart point : 18.75 ps
+
+for file_number, dump_file in enumerate(moment_files[:1]):
 
     file_number = -1
     print("file number = ", file_number, "of ", moment_files.size)
 
-    moments = io.readBinaryFile(moment_files[file_number])
+    moments = io.readBinaryFile(moment_files[start_index+file_number])
     moments = moments[0].reshape(N_q2, N_q1, 3)
     
     density = moments[:, :, 0]
@@ -116,8 +135,8 @@ for file_number, dump_file in enumerate(moment_files[:]):
     j_y     = moments[:, :, 2]
 
     lagrange_multipliers = \
-        io.readBinaryFile(lagrange_multiplier_files[file_number])
-    lagrange_multipliers = lagrange_multipliers[0].reshape(N_q2, N_q1, 7)
+        io.readBinaryFile(lagrange_multiplier_files[start_index+file_number])
+    lagrange_multipliers = lagrange_multipliers[0].reshape(N_q2, N_q1, 5)
     
     mu           = lagrange_multipliers[:, :, 0]
     mu_ee        = lagrange_multipliers[:, :, 1]
@@ -125,71 +144,41 @@ for file_number, dump_file in enumerate(moment_files[:]):
     vel_drift_x  = lagrange_multipliers[:, :, 3]
     vel_drift_y  = lagrange_multipliers[:, :, 4]
 
+    density = density - density_bg
+    density_min = np.min(density)
+    density_max = np.max(density)
+
+    J = np.sqrt(j_x**2 + j_y**2)
+    j_x_m = np.ma.masked_where(J < 2e-10, j_x)
+    j_y_m = np.ma.masked_where(J < 2e-10, j_y)
+
     print ("x.shape : ", x.shape)    
 
-    plot_grid(x[::5, ::5], y[::5, ::5], alpha=0.5)
-    pl.contourf(x, y, density.T, 100, cmap='bwr')
-    pl.title(r'Time = ' + "%.2f"%(time_array[file_number]) + " ps")
-    #pl.colorbar()
+    #plot_grid(x[::2, ::2], y[::2, ::2], alpha=0.5)
+    pl.contourf(x, y, density.T, 500, norm=MidpointNormalize(midpoint=0, vmin=density_min, vmax=density_max), cmap='bwr')
+    #pl.contourf(x, y, density.T, 200,
+    #    norm=colors.SymLogNorm(linthresh=density.max()/20), cmap='bwr')
+    
+    pl.colorbar()
+    pl.title(r'Time = ' + "%.2f"%(time_array[start_index+file_number]) + " ps")
+    
+#    pl.streamplot(x[:, 0], y[0, :], 
+#                  j_x_m, j_y_m,
+#                  density=5, color='k',
+#                  linewidth=0.7, arrowsize=1
+#                 )
+
+#    print (j_x)
+
+    
+    pl.xlim([q1[0], q1[-1]])
+    pl.ylim([q2[0], q2[-1]])
     
 
-    # Plot streamlines for domains 3 and 9
-    i_start = 188
-    i_end   = 605-142-29-27
-    d = 5*(i_end - i_start)/N_q1
-    print (d)
-    pl.streamplot(x[i_start:i_end, 0], y[i_start, :], 
-                  vel_drift_x[:, i_start:i_end], vel_drift_y[:, i_start:i_end],
-                  density=d, color='k',
-                  linewidth=0.7, arrowsize=1
-                 )
-
-    # Plot streamlines for domains 1 and 7
-    i_start = 0
-    i_end   = 150
-    d = 5*(i_end - i_start)/N_q1
-    print (d)
-    pl.streamplot(x[i_start:i_end, 0], y[i_start, :], 
-                  vel_drift_x[:, i_start:i_end], vel_drift_y[:, i_start:i_end],
-                  density=d, color='k',
-                  linewidth=0.7, arrowsize=1
-                 )
-
-    # Plot streamlines for domains 6 and 12
-    i_start = 605-142
-    i_end   = 605
-    d = 5*(i_end - i_start)/N_q1
-    print (d)
-    pl.streamplot(x[i_start:i_end, 0], y[i_start, :100], 
-                  vel_drift_x[:100, i_start:i_end], vel_drift_y[:100, i_start:i_end],
-                  density=0.58*d, color='k',
-                  linewidth=0.7, arrowsize=1
-                 )
-    pl.streamplot(x[i_start:i_end, 0], y[i_start, 100:], 
-                  vel_drift_x[100:, i_start:i_end], vel_drift_y[100:, i_start:i_end],
-                  density=0.4*d, color='k',
-                  linewidth=0.7, arrowsize=1
-                 )
-
-
-    # Plot streamlines for domain 4
-    i_start = 605-142-29-27
-    i_end   = 605-142-29
-    d = 2*5*(i_end - i_start)/N_q1
-    print (d)
-    pl.streamplot(x[i_start:i_end, 0], y[i_start, :100], 
-                  vel_drift_x[:100, i_start:i_end], vel_drift_y[:100, i_start:i_end],
-                  density=d, color='k',
-                  linewidth=0.7, arrowsize=1
-                 )
-    
-    #pl.xlim([-1, 27])
-    #pl.ylim([q2[0], q2[-1]])
-    
     pl.gca().set_aspect('equal')
     pl.xlabel(r'$x\;(\mu \mathrm{m})$')
     pl.ylabel(r'$y\;(\mu \mathrm{m})$')
-    pl.suptitle('$\\tau_\mathrm{mc} = \infty$, $\\tau_\mathrm{mr} = \infty$')
-    pl.savefig('images/dump_' + '%06d'%file_number + '.png')
+    #pl.suptitle('$\\tau_\mathrm{mc} = \infty$, $\\tau_\mathrm{mr} = \infty$')
+    pl.savefig('images/dump_' + '%06d'%(start_index+file_number) + '.png')
     pl.clf()
 
