@@ -128,6 +128,8 @@ def initialize_f(q1, q2, p1, p2, p3, params):
                     )/(k*params.T) 
                   ) + 1.
            ))
+    if (params.zero_temperature) :
+        f = f - 0.5
 
     af.eval(f)
     return(f)

@@ -9,6 +9,7 @@ hybrid_model_enabled     = False #TODO : Remove from lib
 source_enabled           = True
 disable_collision_op     = False
 
+
 # Manual domain decomposition (for advanced users)
 # The number of sub-domains into which the domain is decomposed
 # should be equal to the number of mpiprocesses (set in the jobscript)
@@ -32,6 +33,11 @@ right_dirichlet_boundary_index  = 354  # Default value is N_q1-1
 bottom_dirichlet_boundary_index = 24  # Default value is 0
 top_dirichlet_boundary_index    = 111 # Default value is N_q2-1
 
+# Specify patches over which boundary condition functions are not applied
+dont_apply_left_bc   = []
+dont_apply_right_bc  = []
+dont_apply_bottom_bc = [10]
+dont_apply_top_bc    = []
 
 # Internal mirror boundary
 horizontal_boundaries    = [] # index of boundary axis along q2
