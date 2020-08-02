@@ -41,10 +41,10 @@ dont_apply_top_bc    = []
 
 # Internal mirror boundary
 horizontal_boundaries    = [] # index of boundary axis along q2
-horizontal_boundary_lims = [(-16.65, -14.6), (-59.85, -14.6), (0.9, 25.47)] # boundary lims along q1
+horizontal_boundary_lims = [] # boundary lims along q1
 
 vertical_boundaries    = [] # index of boundary axis along q2
-vertical_boundary_lims = [(-14.0, -12.55), (-12.55, -9.85), (-15.65, -9.85)] # boundary lims along q1
+vertical_boundary_lims = [] # boundary lims along q1
 
 # Manually override external mirror angles [bottom, right, top, left]
 enable_manual_mirror = False
@@ -84,9 +84,6 @@ dt      = 0.025/4 # ps
 t_final = 100.     # ps
 
 
-# File-writing Parameters:
-dump_steps = 5
-dump_dist_after = 1600
 # Set to zero for no file-writing
 dt_dump_f       = 1000*dt #ps
 # ALWAYS set dump moments and dump fields at same frequency:
@@ -103,7 +100,6 @@ p_space_grid = 'polar2D' # Supports 'cartesian' or 'polar2D' grids
 # Set p-space start and end points accordingly in domain.py
 #TODO : Use only polar2D for PdCoO2
 zero_temperature    = (p_dim==1)
-
 
 
 # Number of devices(GPUs/Accelerators) on each node:
@@ -137,12 +133,12 @@ contact_geometry      = "straight" # Contacts on either side of the device
                                    # For contacts on the same side, use 
                                    # contact_geometry = "turn_around"
 
-initial_temperature = 12e-4
+initial_temperature = 12e-5
 initial_mu          = 0.015
 vel_drift_y_in      = 1e-4*fermi_velocity
 vel_drift_y_out     = 1e-4*fermi_velocity
 AC_freq             = 1./100 # ps^-1
-source_type         = 'DC'
+source_type         = 'DC' # Select 'AC' or 'DC'
 
 B3_mean = 1. # T
 
@@ -155,6 +151,8 @@ vel_drift_x = None
 vel_drift_y = None
 p_x         = None
 p_y         = None
+j_x         = None
+j_y         = None
 phi         = None # Electric potential in the plane of graphene sheet
 
 # Index arrays used to perform shifting for mirror bcs

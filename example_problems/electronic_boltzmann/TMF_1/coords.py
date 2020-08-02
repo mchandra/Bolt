@@ -3,7 +3,7 @@ import arrayfire as af
 import domain
 import params
 
-from bolt.lib.utils.coord_transformation import affine, jacobian_dx_dq
+from bolt.lib.utils.coord_transformation import affine
 
 def get_cartesian_coords(q1, q2, 
                          q1_start_local_left=None, 

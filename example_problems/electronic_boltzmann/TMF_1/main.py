@@ -73,8 +73,7 @@ if using_latest_restart == False:
         nls.dump_aux_arrays([params.mu,
                              params.mu_ee,
                              params.T_ee,
-                             params.vel_drift_x, params.vel_drift_y
-                            ],
+                             params.j_x, params.j_y],
                              'lagrange_multipliers',
                              'dump_lagrange_multipliers/t=' + formatted_time
                             )
@@ -132,8 +131,6 @@ while(time_elapsed < t_final):
     else:
         params.collision_nonlinear_iters = params.collision_operator_nonlinear_iters
 
-    dump_steps = params.dump_steps
-
     if(params.dt_dump_moments != 0):
         # We step by delta_dt to get the values at dt_dump
         delta_dt =   (1 - math.modf(time_elapsed/params.dt_dump_moments)[0]) \
@@ -147,8 +144,7 @@ while(time_elapsed < t_final):
             nls.dump_aux_arrays([params.mu,
                              params.mu_ee,
                              params.T_ee,
-                             params.vel_drift_x, params.vel_drift_y
-                                ],
+                             params.j_x, params.j_y],
                              'lagrange_multipliers',
                              'dump_lagrange_multipliers/t=' + formatted_time
                             )
@@ -172,4 +168,4 @@ while(time_elapsed < t_final):
     params.time_step    = time_step
     params.current_time = time_elapsed
 
-#nls.dump_distribution_function('dump_f/t_laststep')
+nls.dump_distribution_function('dump_f/f_laststep')
