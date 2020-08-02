@@ -129,7 +129,6 @@ print("rank = ", params.rank, "\n",
       "     max(n)  = ", af.max(density[0, 0, N_g:-N_g, N_g:-N_g]), "\n"
      )
 
-nls.f = af.select(nls.f < 1e-20, 1e-20, nls.f)
 while(time_elapsed < t_final):
 
     # Refine to machine error
@@ -173,9 +172,6 @@ while(time_elapsed < t_final):
     time_step           = time_step + 1
     params.time_step    = time_step
     params.current_time = time_elapsed
-
-    # Floors
-    nls.f     = af.select(nls.f < 1e-20, 1e-20, nls.f)
 
     density = nls.compute_moments('density')
     print("rank = ", params.rank, "\n",
