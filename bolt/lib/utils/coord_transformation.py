@@ -1,6 +1,5 @@
 import numpy as np
 import arrayfire as af
-import pylab as pl
 
 import domain
 import params
