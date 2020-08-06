@@ -142,7 +142,7 @@ vel_drift_x_in      = 1e-4*fermi_velocity
 vel_drift_x_out     = 1e-4*fermi_velocity
 AC_freq             = 1./100 # ps^-1
 
-l_c     = np.inf # um
+l_c     = 0.5 # um
 B3_mean = 0.  # T
 
 # Spatial quantities (will be initialized to shape = [q1, q2] in initalize.py)
