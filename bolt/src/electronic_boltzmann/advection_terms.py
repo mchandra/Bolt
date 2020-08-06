@@ -194,26 +194,74 @@ def C_p(t, q1, q2, p1, p2, p3,
     params: The parameters file/object that is originally declared by the user.
             This can be used to inject other functions/attributes into the function
     """
-    # Coefficient of df/dtheta term in the Boltzmann equation, C = e B v_F/p_F
-    # Writing p_F = m v_F, we get C = e B/m
-    # We call omega_c = e B/m
-    # Using tau_c = 1/omega_c and l_c = v_F*tau_c,
-    # we get C = 1/tau_c = v_F/l_c
-    # Writing the Boltzmann equation : 
-    # (1/v_F) df/dt + \hat{p}.df/dx - (e B v_F/p_F) df/dtheta = [-(f-f0^MR)/l_mr] + [-(f - f0^MC)/l_mc]
-    # The Boltzmann equation then becomes : 
-    # (1/v_F) df/dt + \hat{p}.df/dx - (v_F/l_c)     df/dtheta = [-(f-f0^MR)/l_mr] + [-(f - f0^MC)/l_mc]
     
     # TODO : What happens in case of multple species?
     e = params.charge[0]
     c = params.speed_of_light
+    m = params.effective_mass(p1, p2)
     B3_mean = params.B3_mean
 
-    v1, v2 = params.vel_band
+    #v1, v2 = params.vel_band
+    [v_x, v_y] = params.band_velocity(p1, p2)
+    p_F        = params.initial_mu/params.fermi_velocity
 
-    dp1_dt = e*(E1 + v2*B3_mean/c) # p1 = hcross * k1
-    #dp2_dt = e*(E2 - v1*B3_mean/c) # p2 = hcross * k2
-    dp2_dt = params.fermi_velocity/params.l_c + 0.*q1*p1 # p2 = hcross * k2
-    dp3_dt = 0.*p1*q1
+    if (params.p_space_grid == 'polar2D' and params.p_dim == 1):
+        # Coefficient of df/dtheta term in the Boltzmann equation, C = e B v_F/p_F
+        # Writing p_F = m v_F, we get C = e B/m
+        # We call omega_c = e B/m
+        # Using tau_c = 1/omega_c and l_c = v_F*tau_c,
+        # we get C = 1/tau_c = v_F/l_c
+        # Writing the Boltzmann equation : 
+        # (1/v_F) df/dt + \hat{p}.df/dx - (e B v_F/p_F) df/dtheta = [-(f-f0^MR)/l_mr] + [-(f - f0^MC)/l_mc]
+        # The Boltzmann equation then becomes : 
+        # (1/v_F) df/dt + \hat{p}.df/dx - (v_F/l_c)     df/dtheta = [-(f-f0^MR)/l_mr] + [-(f - f0^MC)/l_mc]
+        dp1_dt = 0.*p1*q1
+        dp2_dt = params.fermi_velocity/params.l_c + 0.*q1*p1
+        dp3_dt = 0.*p1*q1
+    
+    elif (params.p_space_grid == 'polar2D' and params.p_dim == 2):
+
+        # The equation being solved is 
+        # df/dt + v_x df/dx + v_y df/dy + F_p_r df/dp_r + (1/p_r)*F_p_theta df/dp_theta + F_z df/dp_z = C[f]
+        
+        # Considering an external magnetic field in the z-place : B = B_z
+        # F_p_r     = -e v_p_theta B_z
+        # F_p_theta =  e v_p_r B_z
+        # F_z       =  0
+        
+        # Substituting e B_z/m = omega_c, and using the relation omega_c = 1/tau_c = v_F/l_c, we get
+        # F_p_r     = -omega_c m v_p_theta = -v_F m v_p_theta/l_c = -p_F v_p_theta/l_c (Using p_F = m v_F)
+        # F_p_theta =  omega_c m v_p_r     =  v_F m v_p_r/l_c     =  p_F v_p_r/l_c
+        
+        # Thus the equation being solved can be written as : 
+        # df/dt + v_x df/dx + v_y df/dy - (p_F v_p_theta/l_c) df/dp_r + (1/p_r)*(p_F v_p_r/l_c) df/dp_theta = C[f] 
+
+        # TODO : Remains to be implemented
+        dp1_dt = -0.*p_F*v_y/params.l_c + 0.*q1*p1 # p1 = hcross * k1
+        dp2_dt =  0.*p_F*v_x/params.l_c + 0.*q1*p1 # p2 = hcross * k2
+        dp3_dt =  0.*p1*q1
+
+    elif (params.p_space_grid == 'cartesian'):
+
+        # The equation being solved is 
+        # df/dt + v_x df/dx + v_y df/dy + F_x df/dp_x + F_y df/dp_y + F_z df/dp_z = C[f]
+        
+        # Considering an external magnetic field in the z-place : B = B_z
+        # F_x = -e v_y B_z
+        # F_y =  e v_x B_z
+        # F_z = 0
+        
+        # Substituting e B_z/m = omega_c, and using the relation omega_c = 1/tau_c = v_F/l_c, we get
+        # F_x = -omega_c m v_y = -v_F m v_y/l_c = -p_F v_y/l_c (Using p_F = m v_F)
+        # F_y =  omega_c m v_x =  v_F m v_x/l_c =  p_F v_x/l_c
+        
+        # Thus the equation being solved can be written as : 
+        # df/dt + v_x df/dx + v_y df/dy - (p_F v_y/l_c) df/dp_x + (p_F v_x/l_c) df/dp_y = C[f]
+
+
+        dp1_dt = -p_F*v_y/params.l_c + 0.*q1*p1 # p1 = hcross * k1
+        dp2_dt =  p_F*v_x/params.l_c + 0.*q1*p1 # p2 = hcross * k2
+        dp3_dt =  0.*p1*q1
+
 
     return (dp1_dt, dp2_dt, dp3_dt)
