@@ -195,14 +195,7 @@ def C_p(t, q1, q2, p1, p2, p3,
             This can be used to inject other functions/attributes into the function
     """
     
-    # TODO : What happens in case of multple species?
-    e = params.charge[0]
-    c = params.speed_of_light
-    m = params.effective_mass(p1, p2)
-    B3_mean = params.B3_mean
-
-    #v1, v2 = params.vel_band
-    [v_x, v_y] = params.band_velocity(p1, p2)
+    v_x, v_y   = params.vel_band
     p_F        = params.initial_mu/params.fermi_velocity
 
     if (params.p_space_grid == 'polar2D' and params.p_dim == 1):

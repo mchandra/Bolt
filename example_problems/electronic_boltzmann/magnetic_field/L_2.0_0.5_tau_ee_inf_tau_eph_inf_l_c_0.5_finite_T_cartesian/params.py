@@ -142,7 +142,7 @@ vel_drift_x_in      = 1e-4*fermi_velocity
 vel_drift_x_out     = 1e-4*fermi_velocity
 AC_freq             = 1./100 # ps^-1
 
-l_c     = 0.5 # um
+l_c     = np.inf # um
 B3_mean = 0.  # T
 
 # Spatial quantities (will be initialized to shape = [q1, q2] in initalize.py)
@@ -260,18 +260,8 @@ def effective_mass(p1, p2):
 def band_velocity(p1, p2):
     # Note :This function is only meant to be called once to initialize the vel vectors
 
-    if (p_space_grid == 'cartesian'):
-        p_x_local = p1
-        p_y_local = p2
-        
-        theta = af.atan(p_y_local/p_x_local)
+    p_x, p_y = get_p_x_and_p_y(p1, p2)
 
-    elif (p_space_grid == 'polar2D'):
-    	# In polar2D coordinates, p1 = radius and p2 = theta
-        r = p1; theta = p2
-    else : 
-        raise NotImplementedError('Unsupported coordinate system in p_space')
-    
     p     = af.sqrt(p_x**2. + p_y**2.)
     p_hat = [p_x / (p + 1e-20), p_y / (p + 1e-20)]
 
@@ -280,6 +270,19 @@ def band_velocity(p1, p2):
         v_f_hat = p_hat
 
     elif (fermi_surface_shape == 'hexagon'):
+
+        # Need to get theta for normal_to_hexagon_unit_vec()
+        if (p_space_grid == 'cartesian'):
+            p_x_local = p1
+            p_y_local = p2
+        
+            theta = af.atan(p_y_local/p_x_local)
+
+        elif (p_space_grid == 'polar2D'):
+    	    # In polar2D coordinates, p1 = radius and p2 = theta
+            r = p1; theta = p2
+        else : 
+            raise NotImplementedError('Unsupported coordinate system in p_space')
 
         v_f_hat = normal_to_hexagon_unit_vec(theta)
 
