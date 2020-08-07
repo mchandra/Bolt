@@ -229,9 +229,10 @@ def C_p(t, q1, q2, p1, p2, p3,
         # Thus the equation being solved can be written as : 
         # df/dt + v_x df/dx + v_y df/dy - (p_F v_p_theta/l_c) df/dp_r + (1/p_r)*(p_F v_p_r/l_c) df/dp_theta = C[f] 
 
+
         # TODO : Remains to be implemented
         dp1_dt = -0.*p_F*v_y/params.l_c + 0.*q1*p1 # p1 = hcross * k1
-        dp2_dt =  0.*p_F*v_x/params.l_c + 0.*q1*p1 # p2 = hcross * k2
+        dp2_dt =  p_F*params.fermi_velocity/(params.l_c*p1) + 0.*q1*p1 # p2 = hcross * k2
         dp3_dt =  0.*p1*q1
 
     elif (params.p_space_grid == 'cartesian'):
@@ -251,9 +252,11 @@ def C_p(t, q1, q2, p1, p2, p3,
         # Thus the equation being solved can be written as : 
         # df/dt + v_x df/dx + v_y df/dy - (p_F v_y/l_c) df/dp_x + (p_F v_x/l_c) df/dp_y = C[f]
 
+        p_x = p1
+        p_y = p2
 
-        dp1_dt = -p_F*v_y/params.l_c + 0.*q1*p1 # p1 = hcross * k1
-        dp2_dt =  p_F*v_x/params.l_c + 0.*q1*p1 # p2 = hcross * k2
+        dp1_dt = -p_y*params.fermi_velocity/params.l_c + 0.*q1*p1 # p1 = hcross * k1
+        dp2_dt =  p_x*params.fermi_velocity/params.l_c + 0.*q1*p1 # p2 = hcross * k2
         dp3_dt =  0.*p1*q1
 
 
