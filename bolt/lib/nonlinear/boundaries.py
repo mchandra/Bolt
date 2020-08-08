@@ -235,6 +235,8 @@ def apply_mirror_bcs_f_cartesian(self, boundary):
     boundary: str
               Boundary along which the boundary condition is to be applied.
     """
+    
+    # TODO : Implement code to allow for reflections at arbitrary angles
 
     N_g = self.N_ghost
 
@@ -321,6 +323,10 @@ def apply_mirror_bcs_f_polar2D_old(self, boundary):
     boundary: str
               Boundary along which the boundary condition is to be applied.
     """
+
+    # TODO : This function cannot handle reflection at arbitrary angles.
+    # It has been replaced by apply_mirror_bcs_f_polar_2D() and has been retained
+    # for use only with the finite T polar formulation for now.
 
     N_g = self.N_ghost
 
@@ -413,40 +419,6 @@ def apply_mirror_bcs_f_polar2D_old(self, boundary):
 
     return
 
-
-
-#def mirror_at_an_angle_polar2D(self, f, theta):
-#    """
-#    Applies mirror boundary conditions, with the mirror at an angle theta
-#    with the positive x-axis. Works with polar2D momentum space grid.
-#    
-#    For example, the vertical boundaries have theta = np.pi/2 and the 
-#    horizontal boundaries have theta = 0.
-#
-#    Parameters
-#    -------------
-#    f     : array
-#            distribution function in q_expanded form
-#    theta : float
-#            Angle of the mirror boundary with respect to the positive x-axis
-#    """
-#
-#
-#
-#    tmp = self._convert_to_p_expanded(f)
-#    N_theta = self.N_p2
-#    no_of_shifts = int((theta/np.pi)*N_theta)
-#    
-#    print ("boundaries.py, no of shifts : ", no_of_shifts)
-#
-#    # Shift along the p2 axis in the negative direction
-#    tmp = af.shift(tmp, d0 = 0, d1 = -no_of_shifts)
-#
-#    tmp = af.flip(tmp, 1)
-#
-#    tmp = self._convert_to_q_expanded(tmp)
-#    
-#    return(tmp)
 
 def apply_mirror_bcs_f_polar2D(self, boundary, mirror_start=None, mirror_end=None):
     """
@@ -650,7 +622,6 @@ def apply_bcs_f(self):
     # If local zone includes the left physical boundary:
     if(i_q1_start == self.physical_system.params.left_dirichlet_boundary_index) and \
             (self.physical_system.params.rank not in self.physical_system.params.dont_apply_left_bc):
-        print ("boundaries.py, Appyling left_bc in rank ", self.physical_system.params.rank)
 
         if(self.boundary_conditions.in_q1_left == 'dirichlet'):
             apply_dirichlet_bcs_f(self, 'left')
@@ -659,7 +630,10 @@ def apply_bcs_f(self):
             if (self.physical_system.params.p_space_grid == 'cartesian'):
                 apply_mirror_bcs_f_cartesian(self, 'left')            
             elif (self.physical_system.params.p_space_grid == 'polar2D'):
-                apply_mirror_bcs_f_polar2D_old(self, 'left')
+                if (self.physical_system.params.p_dim == 2):
+                    apply_mirror_bcs_f_polar2D_old(self, 'left') # TODO: Replace by apply_mirror_bcs_polar2D()
+                elif (self.physical_system.params.p_dim == 1):
+                    apply_mirror_bcs_f_polar2D(self, 'left')
             else :
                 raise NotImplementedError('Unsupported coordinate system in p_space')
 
@@ -667,7 +641,10 @@ def apply_bcs_f(self):
             if (self.physical_system.params.p_space_grid == 'cartesian'):
                 apply_mirror_bcs_f_cartesian(self, 'left')
             elif (self.physical_system.params.p_space_grid == 'polar2D'):
-                apply_mirror_bcs_f_polar2D_old(self, 'left')
+                if (self.physical_system.params.p_dim == 2):
+                    apply_mirror_bcs_f_polar2D_old(self, 'left') # TODO: Replace by apply_mirror_bcs_polar2D()
+                elif (self.physical_system.params.p_dim == 1):
+                    apply_mirror_bcs_f_polar2D(self, 'left')
             else :
                 raise NotImplementedError('Unsupported coordinate system in p_space')
             apply_dirichlet_bcs_f(self, 'left')
@@ -696,7 +673,10 @@ def apply_bcs_f(self):
             if (self.physical_system.params.p_space_grid == 'cartesian'):
                 apply_mirror_bcs_f_cartesian(self, 'right')
             elif (self.physical_system.params.p_space_grid == 'polar2D'):
-                apply_mirror_bcs_f_polar2D_old(self, 'right')
+                if (self.physical_system.params.p_dim == 2):
+                    apply_mirror_bcs_f_polar2D_old(self, 'right') # TODO: Replace by apply_mirror_bcs_polar2D()
+                elif (self.physical_system.params.p_dim == 1):
+                    apply_mirror_bcs_f_polar2D(self, 'right')
             else:
                 raise NotImplementedError('Unsupported coordinate system in p_space')
         
@@ -704,7 +684,10 @@ def apply_bcs_f(self):
             if (self.physical_system.params.p_space_grid == 'cartesian'):
                 apply_mirror_bcs_f_cartesian(self, 'right')
             elif (self.physical_system.params.p_space_grid == 'polar2D'):
-                apply_mirror_bcs_f_polar2D_old(self, 'right')
+                if (self.physical_system.params.p_dim == 2):
+                    apply_mirror_bcs_f_polar2D_old(self, 'right') # TODO: Replace by apply_mirror_bcs_polar2D()
+                elif (self.physical_system.params.p_dim == 1):
+                    apply_mirror_bcs_f_polar2D(self, 'right')
             else:
                 raise NotImplementedError('Unsupported coordinate system in p_space')
             apply_dirichlet_bcs_f(self, 'right')
@@ -732,7 +715,10 @@ def apply_bcs_f(self):
             if (self.physical_system.params.p_space_grid =='cartesian'):
                 apply_mirror_bcs_f_cartesian(self, 'bottom')
             elif (self.physical_system.params.p_space_grid == 'polar2D'):
-                apply_mirror_bcs_f_polar2D_old(self, 'bottom')
+                if (self.physical_system.params.p_dim == 2):
+                    apply_mirror_bcs_f_polar2D_old(self, 'bottom') # TODO: Replace by apply_mirror_bcs_polar2D()
+                elif (self.physical_system.params.p_dim == 1):
+                    apply_mirror_bcs_f_polar2D(self, 'bottom')
             else:
                 raise NotImplementedError('Unsupported coordinate system in p_space')
 
@@ -740,7 +726,10 @@ def apply_bcs_f(self):
             if (self.physical_system.params.p_space_grid == 'cartesian'):
                 apply_mirror_bcs_f_cartesian(self, 'bottom')
             elif (self.physical_system.params.p_space_grid == 'polar2D'):
-                apply_mirror_bcs_f_polar2D_old(self, 'bottom')
+                if (self.physical_system.params.p_dim == 2):
+                    apply_mirror_bcs_f_polar2D_old(self, 'bottom') # TODO: Replace by apply_mirror_bcs_polar2D()
+                elif (self.physical_system.params.p_dim == 1):
+                    apply_mirror_bcs_f_polar2D(self, 'bottom')
             else:
                 raise NotImplementedError('Unsupported coordinate system in p_space')
             apply_dirichlet_bcs_f(self, 'bottom')
@@ -768,7 +757,10 @@ def apply_bcs_f(self):
             if (self.physical_system.params.p_space_grid == 'cartesian'):
                 apply_mirror_bcs_f_cartesian(self, 'top')
             elif (self.physical_system.params.p_space_grid == 'polar2D'):
-                apply_mirror_bcs_f_polar2D_old(self, 'top')
+                if (self.physical_system.params.p_dim == 2):
+                    apply_mirror_bcs_f_polar2D_old(self, 'top') # TODO: Replace by apply_mirror_bcs_polar2D()
+                elif (self.physical_system.params.p_dim == 1):
+                    apply_mirror_bcs_f_polar2D(self, 'top')
             else:
                 raise NotImplementedError('Unsupported coordinate system in p_space')
         
@@ -776,7 +768,10 @@ def apply_bcs_f(self):
             if (self.physical_system.params.p_space_grid == 'cartesian'):
                 apply_mirror_bcs_f_cartesian(self, 'top')            
             elif (self.physical_system.params.p_space_grid == 'polar2D'):
-                apply_mirror_bcs_f_polar2D_old(self, 'top')
+                if (self.physical_system.params.p_dim == 2):
+                    apply_mirror_bcs_f_polar2D_old(self, 'top') # TODO: Replace by apply_mirror_bcs_polar2D()
+                elif (self.physical_system.params.p_dim == 1):
+                    apply_mirror_bcs_f_polar2D(self, 'top')
             else:
                 raise NotImplementedError('Unsupported coordinate system in p_space')
             apply_dirichlet_bcs_f(self, 'top')

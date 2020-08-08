@@ -198,6 +198,8 @@ def C_p(t, q1, q2, p1, p2, p3,
     v_x, v_y   = params.vel_band
     p_F        = params.initial_mu/params.fermi_velocity
 
+    # Magnetotransport requires a momentum space grid that is aligned with the Fermi surface 
+
     if (params.p_space_grid == 'polar2D' and params.p_dim == 1):
         # Coefficient of df/dtheta term in the Boltzmann equation, C = e B v_F/p_F
         # Writing p_F = m v_F, we get C = e B/m
@@ -232,13 +234,23 @@ def C_p(t, q1, q2, p1, p2, p3,
         p_r     = p1
         p_theta = p2
 
-        theta = af.atan(v_y/v_x)
-        
-        v_r     =  v_x*af.cos(theta) + v_y*af.sin(theta)
-        v_theta = -v_x*af.sin(theta) + v_y*af.cos(theta)
+        if params.fermi_surface_shape == 'circle':
 
-        dp1_dt =  0.*p1*q1 #-p_F*v_theta/params.l_c + 0.*q1*p1 # p1 = hcross * k1
-        dp2_dt =  params.fermi_velocity/params.l_c + 0.*p1*q1 #p_F*v_r/(params.l_c*p_r) + 0.*q1*p1 # p2 = hcross * k2
+            # TODO : Interface with, instead of bypassing band_vel and effective_mass
+
+            dp1_dt =  0.*p1*q1 # Because v_p_theta is zero for a circular fermi surface
+
+            if params.dispersion == 'linear' : 
+                dp2_dt = (params.fermi_velocity/params.l_c) * (p_F/p_r) + 0.*p1*q1
+
+            elif params.dispersion == 'quadratic' :
+                dp2_dt =  params.fermi_velocity/params.l_c + 0.*p1*q1
+
+        else : 
+            raise NotImplementedError('Unsupported shape of fermi surface for magnetotansport')
+            # TODO : Magnetotransport for arbitrary Fermi surface shapes.
+            # This problem is the same as aligning the grid in real space to fit the device geometry
+
         dp3_dt =  0.*p1*q1
 
     elif (params.p_space_grid == 'cartesian'):
@@ -261,9 +273,14 @@ def C_p(t, q1, q2, p1, p2, p3,
         p_x = p1
         p_y = p2
 
-        dp1_dt = -p_y*params.fermi_velocity/params.l_c + 0.*q1*p1 # p1 = hcross * k1
-        dp2_dt =  p_x*params.fermi_velocity/params.l_c + 0.*q1*p1 # p2 = hcross * k2
-        dp3_dt =  0.*p1*q1
+        if params.dispersion == 'quadratic':
+
+            dp1_dt = -p_y*params.fermi_velocity/params.l_c + 0.*q1*p1 # p1 = hcross * k1
+            dp2_dt =  p_x*params.fermi_velocity/params.l_c + 0.*q1*p1 # p2 = hcross * k2
+            dp3_dt =  0.*p1*q1
+        
+        else : 
+            raise NotImplementedError('Cartesian coordinates in momentum space cannot be used with linear dispersion for magnetotransport')
 
 
     return (dp1_dt, dp2_dt, dp3_dt)
