@@ -232,14 +232,13 @@ def C_p(t, q1, q2, p1, p2, p3,
         p_r     = p1
         p_theta = p2
 
-        # TODO : This is incorrect!
-        v_r     = af.sqrt(v_x**2 + v_y**2)
-        v_theta = af.atan(v_y/v_x)
+        theta = af.atan(v_y/v_x)
+        
+        v_r     =  v_x*af.cos(theta) + v_y*af.sin(theta)
+        v_theta = -v_x*af.sin(theta) + v_y*af.cos(theta)
 
-        # TODO : Check if v_theta evaluates to zero for a circular fermi surface
-        # TODO : Need to fix the dp1_dt term below
-        dp1_dt = -0.*p_F*v_theta/params.l_c + 0.*q1*p1 # p1 = hcross * k1
-        dp2_dt =  p_F*v_r/(params.l_c*p_r) + 0.*q1*p1 # p2 = hcross * k2
+        dp1_dt =  0.*p1*q1 #-p_F*v_theta/params.l_c + 0.*q1*p1 # p1 = hcross * k1
+        dp2_dt =  params.fermi_velocity/params.l_c + 0.*p1*q1 #p_F*v_r/(params.l_c*p_r) + 0.*q1*p1 # p2 = hcross * k2
         dp3_dt =  0.*p1*q1
 
     elif (params.p_space_grid == 'cartesian'):
