@@ -14,7 +14,7 @@ disable_collision_op     = False
 # should be equal to the number of mpiprocesses (set in the jobscript)
 
 enable_manual_domain_decomposition = True
-q1_partition = [300./1200, 200./1200, 150./1200, 250./1200, 200./1200, 100./1200] # List of the fractional ranges of each subdomain in q1
+q1_partition = [300./1200, 200./1200, 150./1200, 200./1200, 200./1200, 150./1200] # List of the fractional ranges of each subdomain in q1
 # The above indices correspond to  x = [-4.5700, -0.0075, 26.286, 29.5287, 33.010, 50]
 # TODO : Automate the indices using coords
 q2_partition = [1.] # List of the fractional ranges of each subdomain in q2
@@ -42,6 +42,7 @@ horizontal_boundaries    = [] # index of boundary axis along q2
 horizontal_boundary_lims = [] # boundary lims along q1
 
 vertical_boundaries    = [300, 300, 650, 650, 850, 850, 1050, 1050] # index of boundary axis along q2
+#vertical_boundaries    = [150, 150, 325, 325, 425, 425, 525, 525] # index of boundary axis along q2
 vertical_boundary_lims = [(0., 9.5), (10.5, 20.), (0., 9.0), (11.0, 20.0), (0., 7.5), (12.5, 20.0), (0., 5.0), (15., 20.0)] # boundary lims along q1
 
 # Manually override external mirror angles [bottom, right, top, left]
