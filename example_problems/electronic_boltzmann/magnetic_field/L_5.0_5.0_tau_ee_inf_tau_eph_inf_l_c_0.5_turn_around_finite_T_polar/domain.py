@@ -30,9 +30,10 @@ N_p1     =  16 # Set equal to 1 for 1D polar
 # p1 = p_r (magnitude of momentum)
 # p1_start and p1_end are set such that p1_center is mu
 
-# Uncomment the following for the 2D polar representation of momentum space
-p1_start = [(params.initial_mu - 8.*params.boltzmann_constant*params.initial_temperature)/params.fermi_velocity]
-p1_end   = [(params.initial_mu + 16.*params.boltzmann_constant*params.initial_temperature)/params.fermi_velocity]
+p_F = 0.015 # numerical value set by mu/v_F, with mu = 0.015 and v_F = 1
+# Uncomment the following for the 2D polar representation of momentum space with quadratic dispersion
+p1_start = [p_F*(1. - 8.*params.boltzmann_constant*params.initial_temperature/params.initial_mu)]
+p1_end   = [p_F*(1. + 16.*params.boltzmann_constant*params.initial_temperature/params.initial_mu)]
 
 # Uncomment the following for the 1D polar representation of momentum space
 #p1_start = [0.5*params.initial_mu/params.fermi_velocity]

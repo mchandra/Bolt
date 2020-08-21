@@ -137,7 +137,7 @@ contact_geometry      = "turn_around" # Contacts on either side of the device
                                    # contact_geometry = "turn_around"
 
 initial_temperature = 12e-4
-initial_mu          = 0.015
+initial_mu          = 0.0075
 vel_drift_x_in      = 1e-4*fermi_velocity
 vel_drift_x_out     = 1e-4*fermi_velocity
 AC_freq             = 1./100 # ps^-1
@@ -185,13 +185,18 @@ def tau(q1, q2, p1, p2, p3):
 
 def fermi_momentum_magnitude(theta):
     if (fermi_surface_shape == 'circle'):
-        p_f = initial_mu/fermi_velocity # Fermi momentum
+        if (dispersion == 'linear'):
+            p_f = initial_mu/fermi_velocity # Fermi momentum
+        elif (dispersion == 'quadratic'):
+            p_f = 0.015 # numerical value set by mu/v_F, with mu = 0.015 and v_F = 1
     
     elif (fermi_surface_shape == 'hexagon'):
         n = 6 # No. of sides of polygon
-        p_f = (initial_mu/fermi_velocity) * polygon(n, theta, rotation = np.pi/6)
+        if (dispersion == 'linear'):
+            p_f = (initial_mu/fermi_velocity) * polygon(n, theta, rotation = np.pi/6)
+        elif (dispersion == 'quadratic'):
+            p_f = 0.015 * polygon(n, theta, rotation = np.pi/6) # numerical value set by mu/v_F, with mu = 0.015 and v_F = 1
         # Note : Rotation by pi/6 results in a hexagon with horizontal top & bottom edges
-        #TODO : If cartesian coordinates are being used, convert to polar to calculate p_f
     else : 
         raise NotImplementedError('Unsupported shape of fermi surface')
     return(p_f)

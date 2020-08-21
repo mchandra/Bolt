@@ -196,7 +196,7 @@ def C_p(t, q1, q2, p1, p2, p3,
     """
     
     v_x, v_y   = params.vel_band
-    p_F        = params.initial_mu/params.fermi_velocity
+    
 
     # Magnetotransport requires a momentum space grid that is aligned with the Fermi surface 
 
@@ -233,6 +233,7 @@ def C_p(t, q1, q2, p1, p2, p3,
 
         p_r     = p1
         p_theta = p2
+        p_F     = params.fermi_momentum_magnitude(p_theta)
 
         if params.fermi_surface_shape == 'circle':
 
