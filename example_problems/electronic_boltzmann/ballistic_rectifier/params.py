@@ -23,6 +23,23 @@ q2_partition = [50./100, 50./100] # List of the fractional ranges of each subdom
 # corresponding fractional ranges specified above.
 # For example : if q1_partion = [1./3, 2./3], then N_q1%3 == 0
 
+
+# Indices in q1 where functions defined in boundary_conditions.py will be applied
+left_dirichlet_boundary_index   = 0  # Default value is 0
+right_dirichlet_boundary_index  = 99  # Default value is N_q1-1  
+
+# Indices in q2 where functions defined in boundary_conditions.py will be applied
+bottom_dirichlet_boundary_index = 0  # Default value is 0
+top_dirichlet_boundary_index    = 99 # Default value is N_q2-1
+
+
+# Specify patches over which boundary condition functions are not applied
+dont_apply_left_bc   = []
+dont_apply_right_bc  = []
+dont_apply_bottom_bc = []
+dont_apply_top_bc    = []
+
+
 # Internal mirror boundary
 horizontal_boundaries    = [50] # index of boundary axis along q2
 horizontal_boundary_lims = [(-0.5, 0.5)] # boundary lims along q1
@@ -88,6 +105,14 @@ zero_temperature    = (p_dim==1)
 
 # Number of devices(GPUs/Accelerators) on each node:
 num_devices = 6
+manual_device_allocation = True
+device_allocation        = [0, 0, 0, 0, 1, 1, 1, 1] # No. of items in list should match number of mpiprocs
+dont_compute             = [0, 0, 0, 0, 0, 0]
+
+blocked_left_bc          = []
+blocked_right_bc         = []
+blocked_bottom_bc        = []
+blocked_top_bc           = []
 
 # Constants:
 mass_particle      = 0.910938356 # x 1e-30 kg

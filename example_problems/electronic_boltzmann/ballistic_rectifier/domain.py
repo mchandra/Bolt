@@ -4,10 +4,12 @@ import params
 q1_start = -1.
 q1_end   = 1.
 N_q1     = 100
+dq1      = (q1_end - q1_start)/N_q1 
 
 q2_start = -1.
 q2_end   = 1.
 N_q2     = 100
+dq2      = (q2_end - q2_start)/N_q2 
 
 # If N_p1 > 1, mirror boundary conditions require p1 to be
 # symmetric about zero
