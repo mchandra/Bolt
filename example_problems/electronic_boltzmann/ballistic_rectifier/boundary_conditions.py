@@ -31,6 +31,8 @@ def f_left(f, t, q1, q2, p1, p2, p3, params):
 
     fermi_dirac_in = (1./(af.exp( (E_upper - vel_drift_x_in*p_x - mu)/(k*T) ) + 1.)
                      )
+    if params.zero_temperature:
+        fermi_dirac_in = fermi_dirac_in - 0.5
 
     if (params.contact_geometry=="straight"):
         # Contacts on either side of the device
@@ -51,6 +53,8 @@ def f_left(f, t, q1, q2, p1, p2, p3, params):
 
         fermi_dirac_out = (1./(af.exp( (E_upper - vel_drift_x_out*p_x - mu)/(k*T) ) + 1.)
                           )
+        if params.zero_temperature:
+            fermi_dirac_out = fermi_dirac_out - 0.5
     
         # TODO: set these parameters in params.py
         cond_in  = ((q2 >= 3.5) & (q2 <= 4.5))
@@ -85,6 +89,8 @@ def f_right(f, t, q1, q2, p1, p2, p3, params):
 
     fermi_dirac_out = (1./(af.exp( (E_upper - vel_drift_x_out*p_x - mu)/(k*T) ) + 1.)
                       )
+    if params.zero_temperature:
+        fermi_dirac_out = fermi_dirac_out - 0.5
     
     if (params.contact_geometry=="straight"):
         # Contacts on either side of the device

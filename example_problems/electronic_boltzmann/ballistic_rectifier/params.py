@@ -47,6 +47,12 @@ horizontal_boundary_lims = [(-0.5, 0.5)] # boundary lims along q1
 vertical_boundaries    = [] # index of boundary axis along q2
 vertical_boundary_lims = [] # boundary lims along q1
 
+
+# Manually override external mirror angles [bottom, right, top, left]
+enable_manual_mirror = False
+mirror_angles = [0., np.pi/2, 0., np.pi/2]
+
+
 fields_enabled = False
 # Can be defined as 'electrostatic', 'user-defined'.
 # The initial conditions need to be specified under initialize
@@ -149,6 +155,8 @@ mu_ee       = None # chemical potential used in the e-e operator
 T_ee        = None # Electron temperature used in the e-e operator
 vel_drift_x = None
 vel_drift_y = None
+j_x         = None
+j_y         = None
 p_x         = None
 p_y         = None
 phi         = None # Electric potential in the plane of graphene sheet

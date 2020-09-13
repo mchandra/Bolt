@@ -77,40 +77,56 @@ def affine(q1, q2,
     
     return(x, y)
 
-def get_cartesian_coords(q1, q2):
+def get_cartesian_coords(q1, q2, 
+                         q1_start_local_left=None, 
+                         q2_start_local_bottom=None,
+                         return_jacobian = False
+                        ):
+
 
     q1_midpoint = 0.5*(af.max(q1) + af.min(q1))
     q2_midpoint = 0.5*(af.max(q2) + af.min(q2))
 
+    # Default initializsation to rectangular grid
     x = q1
     y = q2
+    
+    jacobian = None # Numerically compute the Jacobian
+    
+    if (q1_start_local_left != None and q2_start_local_bottom != None):
 
-    if ((q2_midpoint < 0.) and (q1_midpoint > -0.5) and (q1_midpoint < 0.)):
-        x0 = -0.5; y0 = -1
-        x1 = 0;    y1 = -1
-        x2 = 0;    y2 = -0.5
-        x3 = -0.5; y3 = 0
-        x, y = \
-          affine(q1, q2, 
-           [x0, y0], [x1, y1],
-           [x2, y2], [x3, y3],
-           [-0.5, -1.], [0, -1],
-           [0, 0], [-0.5, 0]
-                )
+        if ((q2_midpoint < 0.) and (q1_midpoint > -0.5) and (q1_midpoint < 0.)):
+            x0 = -0.5; y0 = -1
+            x1 = 0;    y1 = -1
+            x2 = 0;    y2 = -0.5
+            x3 = -0.5; y3 = 0
+            x, y = \
+              affine(q1, q2, 
+               [x0, y0], [x1, y1],
+               [x2, y2], [x3, y3],
+               [-0.5, -1.], [0, -1],
+               [0, 0], [-0.5, 0]
+                    )
 
-    elif ((q2_midpoint < 0.) and (q1_midpoint > 0) and (q1_midpoint < 0.5)):
+        elif ((q2_midpoint < 0.) and (q1_midpoint > 0) and (q1_midpoint < 0.5)):
 
-        x0 = 0.;   y0 = -1
-        x1 = 0.5;  y1 = -1
-        x2 = 0.5;  y2 = 0.
-        x3 = -0;   y3 = -0.5
-        x, y = \
-          affine(q1, q2, 
-           [x0, y0], [x1, y1],
-           [x2, y2], [x3, y3],
-           [0., -1.], [0.5, -1],
-           [0.5, 0], [0., 0]
-                )
+            x0 = 0.;   y0 = -1
+            x1 = 0.5;  y1 = -1
+            x2 = 0.5;  y2 = 0.
+            x3 = -0;   y3 = -0.5
+            x, y = \
+              affine(q1, q2, 
+               [x0, y0], [x1, y1],
+               [x2, y2], [x3, y3],
+               [0., -1.], [0.5, -1],
+               [0.5, 0], [0., 0]
+                    )
 
-    return(x, y)
+        if (return_jacobian):
+            return (x, y, jacobian)
+        else: 
+            return(x, y)
+
+    else:
+        print("Error in get_cartesian_coords(): q1_start_local_left or q2_start_local_bottom not provided")
 

@@ -34,17 +34,56 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     params.E_band   = params.band_energy(p1, p2)
     params.vel_band = params.band_velocity(p1, p2)
 
+    # TODO: Injecting get_cartesian_coords into params to avoid circular dependency
+    params.get_cartesian_coords = coords.get_cartesian_coords
+
     # Load shift indices for all 4 boundaries into params. Required to perform
     # mirroring operations along boundaries at arbitrary angles.
     params.shift_indices_left, params.shift_indices_right, \
     params.shift_indices_bottom, params.shift_indices_top = \
-            compute_shift_indices(q1, q2, p1, p2, p3, params)   
+            compute_shift_indices(q1, q2, p1, p2, p3, params)
 
-    params.x, params.y = coords.get_cartesian_coords(q1, q2)
+
+    params.x, params.y = coords.get_cartesian_coords(q1, q2,
+                                                     q1_start_local_left=params.q1_start_local_left, 
+                                                     q2_start_local_bottom=params.q2_start_local_bottom)
+
+    # TODO : Testing : Dump left, bottom, right, top faces also
+    d_q1          = (q1[0, 0, 1, 0] - q1[0, 0, 0, 0]).scalar()
+    d_q2          = (q2[0, 0, 0, 1] - q2[0, 0, 0, 0]).scalar()
+
+    q1_left_faces   = q1 - 0.5*d_q1
+    q2_bottom_faces = q2 - 0.5*d_q2
+
+    q1_right_faces   = q1 + 0.5*d_q1
+    q2_top_faces     = q2 + 0.5*d_q2
+
+    params.x_top_center, params.y_top_center = coords.get_cartesian_coords(q1, q2_top_faces,
+                                                     q1_start_local_left=params.q1_start_local_left, 
+                                                     q2_start_local_bottom=params.q2_start_local_bottom)
+
+    params.x_right_center, params.y_right_center   = coords.get_cartesian_coords(q1_right_faces, q2,
+                                                     q1_start_local_left=params.q1_start_local_left, 
+                                                     q2_start_local_bottom=params.q2_start_local_bottom)
+
+    params.x_bottom_center, params.y_bottom_center = coords.get_cartesian_coords(q1, q2_bottom_faces,
+                                                     q1_start_local_left=params.q1_start_local_left, 
+                                                     q2_start_local_bottom=params.q2_start_local_bottom)
+
+    params.x_left_center, params.y_left_center   = coords.get_cartesian_coords(q1_left_faces, q2,
+                                                     q1_start_local_left=params.q1_start_local_left, 
+                                                     q2_start_local_bottom=params.q2_start_local_bottom)
+
     params.q1 = q1; params.q2 = q2
-    [[params.dx_dq1, params.dx_dq2], [params.dy_dq1, params.dy_dq2]] = jacobian_dx_dq(q1, q2)
-    [[params.dq1_dx, params.dq1_dy], [params.dq2_dx, params.dq2_dy]] = jacobian_dq_dx(q1, q2)
-    params.sqrt_det_g = sqrt_det_g(q1, q2)
+    [[params.dx_dq1, params.dx_dq2], [params.dy_dq1, params.dy_dq2]] = jacobian_dx_dq(q1, q2,
+                                                                                      q1_start_local_left=params.q1_start_local_left, 
+                                                                                      q2_start_local_bottom=params.q2_start_local_bottom)
+    [[params.dq1_dx, params.dq1_dy], [params.dq2_dx, params.dq2_dy]] = jacobian_dq_dx(q1, q2,
+                                                                                      q1_start_local_left=params.q1_start_local_left, 
+                                                                                      q2_start_local_bottom=params.q2_start_local_bottom)
+    params.sqrt_det_g = sqrt_det_g(q1, q2,
+                                       q1_start_local_left=params.q1_start_local_left, 
+                                       q2_start_local_bottom=params.q2_start_local_bottom)
 
     # Calculation of integral measure
     # Evaluating velocity space resolution for each species:
@@ -88,7 +127,8 @@ def initialize_f(q1, q2, p1, p2, p3, params):
     else : 
         raise NotImplementedError('Unsupported coordinate system in p_space')
 
-
+#    # Initialize to zero
+#    f = 0*q1*p1
 
     f = (1./(af.exp( (params.E_band - params.vel_drift_x*params.p_x
                                     - params.vel_drift_y*params.p_y
@@ -96,6 +136,8 @@ def initialize_f(q1, q2, p1, p2, p3, params):
                     )/(k*params.T) 
                   ) + 1.
            ))
+    if (params.zero_temperature) :
+        f = f - 0.5
 
     af.eval(f)
     return(f)

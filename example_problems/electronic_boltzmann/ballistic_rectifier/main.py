@@ -82,7 +82,7 @@ if using_latest_restart == False:
         nls.dump_aux_arrays([params.mu,
                              params.mu_ee,
                              params.T_ee,
-                             params.vel_drift_x, params.vel_drift_y
+                             params.j_x, params.j_y
                             ],
                              'lagrange_multipliers',
                              'dump_lagrange_multipliers/t=' + formatted_time
