@@ -95,31 +95,31 @@ def get_cartesian_coords(q1, q2,
     
     if (q1_start_local_left != None and q2_start_local_bottom != None):
 
-        if ((q2_midpoint < 0.) and (q1_midpoint > -0.5) and (q1_midpoint < 0.)):
-            x0 = -0.5; y0 = -1
-            x1 = 0;    y1 = -1
-            x2 = 0;    y2 = -0.5
-            x3 = -0.5; y3 = 0
+        if ((q2_midpoint < 0.5) and (q1_midpoint > -1.) and (q1_midpoint < 0.)):
+            x0 = -1.;  y0 = -2.0  # Bottom-left
+            x1 = 0;    y1 = -2.0  # Bottom-right
+            x2 = 0;    y2 = -0.5  # Top-right
+            x3 = -1.;  y3 = 0.5     # Top-left
             x, y = \
               affine(q1, q2, 
                [x0, y0], [x1, y1],
                [x2, y2], [x3, y3],
-               [-0.5, -1.], [0, -1],
-               [0, 0], [-0.5, 0]
+               [-1., -2.0], [0, -2.0],
+               [0, 0.5], [-1., 0.5]
                     )
 
-        elif ((q2_midpoint < 0.) and (q1_midpoint > 0) and (q1_midpoint < 0.5)):
+        elif ((q2_midpoint < 0.5) and (q1_midpoint > 0) and (q1_midpoint < 1.)):
 
-            x0 = 0.;   y0 = -1
-            x1 = 0.5;  y1 = -1
-            x2 = 0.5;  y2 = 0.
-            x3 = -0;   y3 = -0.5
+            x0 = 0.;   y0 = -2.0  # Bottom-left
+            x1 = 1.0;  y1 = -2.0  # Bottom-right
+            x2 = 1.0;  y2 = 0.5   # Top-right
+            x3 = 0;    y3 = -0.5 # Top-left
             x, y = \
               affine(q1, q2, 
                [x0, y0], [x1, y1],
                [x2, y2], [x3, y3],
-               [0., -1.], [0.5, -1],
-               [0.5, 0], [0., 0]
+               [0., -2.0], [1., -2.],
+               [1., 0.5], [0., 0.5]
                     )
 
         if (return_jacobian):

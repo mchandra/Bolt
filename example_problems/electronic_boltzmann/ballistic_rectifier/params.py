@@ -14,10 +14,10 @@ disable_collision_op     = False
 # should be equal to the number of mpiprocesses (set in the jobscript)
 
 enable_manual_domain_decomposition = True
-q1_partition = [25./100, 25./100, 25./100, 25./100 ] # List of the fractional ranges of each subdomain in q1
+q1_partition = [25./150, 50./150, 50./150, 25./150 ] # List of the fractional ranges of each subdomain in q1
 # The above indices correspond to  x = [-4.5700, -0.0075, 26.286, 29.5287, 33.010, 50]
 # TODO : Automate the indices using coords
-q2_partition = [50./100, 50./100] # List of the fractional ranges of each subdomain in q2
+q2_partition = [125./200, 75./200] # List of the fractional ranges of each subdomain in q2
 
 # Note : The N_q1/N_q2 should be exactly divisible by the denominator of the
 # corresponding fractional ranges specified above.
@@ -26,11 +26,11 @@ q2_partition = [50./100, 50./100] # List of the fractional ranges of each subdom
 
 # Indices in q1 where functions defined in boundary_conditions.py will be applied
 left_dirichlet_boundary_index   = 0  # Default value is 0
-right_dirichlet_boundary_index  = 99  # Default value is N_q1-1  
+right_dirichlet_boundary_index  = 149  # Default value is N_q1-1  
 
 # Indices in q2 where functions defined in boundary_conditions.py will be applied
 bottom_dirichlet_boundary_index = 0  # Default value is 0
-top_dirichlet_boundary_index    = 99 # Default value is N_q2-1
+top_dirichlet_boundary_index    = 199 # Default value is N_q2-1
 
 
 # Specify patches over which boundary condition functions are not applied
@@ -41,8 +41,8 @@ dont_apply_top_bc    = []
 
 
 # Internal mirror boundary
-horizontal_boundaries    = [50] # index of boundary axis along q2
-horizontal_boundary_lims = [(-0.5, 0.5)] # boundary lims along q1
+horizontal_boundaries    = [125] # index of boundary axis along q2
+horizontal_boundary_lims = [(-1., 1.)] # boundary lims along q1
 
 vertical_boundaries    = [] # index of boundary axis along q2
 vertical_boundary_lims = [] # boundary lims along q1
@@ -84,16 +84,16 @@ electrostatic_solver_every_nth_step = 1000000
 
 # Time parameters:
 dt      = 0.025/4 # ps
-t_final = 50.     # ps
+t_final = 200.     # ps
 
 
 # File-writing Parameters:
 dump_steps = 5
 dump_dist_after = 1600
 # Set to zero for no file-writing
-dt_dump_f       = 1000*dt #ps
+dt_dump_f       = 2000*dt #ps
 # ALWAYS set dump moments and dump fields at same frequency:
-dt_dump_moments = dt_dump_fields = 5*dt #ps
+dt_dump_moments = dt_dump_fields = 20*dt #ps
 
 
 # Material specific input
@@ -113,7 +113,7 @@ zero_temperature    = (p_dim==1)
 num_devices = 6
 manual_device_allocation = True
 device_allocation        = [0, 0, 0, 0, 1, 1, 1, 1] # No. of items in list should match number of mpiprocs
-dont_compute             = [0, 0, 0, 0, 0, 0]
+dont_compute             = [0, 0, 0, 0, 0, 0, 0, 0]
 
 blocked_left_bc          = []
 blocked_right_bc         = []
@@ -134,8 +134,8 @@ epsilon0           = 8.854187817 # x [aC^2 / (aJ um) ]
 epsilon_relative      = 3.9 # SiO2
 backgate_potential    = -10 # V
 global_chem_potential = 0.03
-contact_start         = -0.3 # um
-contact_end           = -0.2 # um
+contact_start         = -0.5 # um
+contact_end           = 0.5 # um
 contact_geometry      = "straight" # Contacts on either side of the device
                                    # For contacts on the same side, use 
                                    # contact_geometry = "turn_around"

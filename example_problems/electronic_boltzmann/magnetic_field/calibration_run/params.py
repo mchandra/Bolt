@@ -25,11 +25,11 @@ q2_partition = [1.] # List of the fractional ranges of each subdomain in q2
 
 # Indices in q1 where functions defined in boundary_conditions.py will be applied
 left_dirichlet_boundary_index   = 0  # Default value is 0
-right_dirichlet_boundary_index  = 1199  # Default value is N_q1-1  
+right_dirichlet_boundary_index  = 599  # Default value is N_q1-1  
 
 # Indices in q2 where functions defined in boundary_conditions.py will be applied
 bottom_dirichlet_boundary_index = 0  # Default value is 0
-top_dirichlet_boundary_index    = 99 # Default value is N_q2-1
+top_dirichlet_boundary_index    = 49 # Default value is N_q2-1
 
 # Specify patches over which boundary condition functions are not applied
 dont_apply_left_bc   = []
@@ -41,8 +41,8 @@ dont_apply_top_bc    = []
 horizontal_boundaries    = [] # index of boundary axis along q2
 horizontal_boundary_lims = [] # boundary lims along q1
 
-vertical_boundaries    = [300, 300, 650, 650, 850, 850, 1050, 1050] # index of boundary axis along q2
-#vertical_boundaries    = [150, 150, 325, 325, 425, 425, 525, 525] # index of boundary axis along q2
+#vertical_boundaries    = [300, 300, 650, 650, 850, 850, 1050, 1050] # index of boundary axis along q2
+vertical_boundaries    = [150, 150, 325, 325, 425, 425, 525, 525] # index of boundary axis along q2
 vertical_boundary_lims = [(0., 9.5), (10.5, 20.), (0., 9.0), (11.0, 20.0), (0., 7.5), (12.5, 20.0), (0., 5.0), (15., 20.0)] # boundary lims along q1
 
 # Manually override external mirror angles [bottom, right, top, left]
@@ -80,7 +80,7 @@ electrostatic_solver_every_nth_step = 1000000
 
 # Time parameters:
 dt      = 0.025/8 # ps
-t_final = 1000.     # ps
+t_final = 10000.     # ps
 
 
 # File-writing Parameters:

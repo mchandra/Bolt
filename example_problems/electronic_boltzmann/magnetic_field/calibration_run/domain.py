@@ -3,7 +3,7 @@ import params
 
 q1_start = -10.
 q1_end   = 230.
-dq1      = .1*2
+dq1      = .1*4
 N_q1     = int((q1_end - q1_start)/dq1)
 
 q2_start = 0.

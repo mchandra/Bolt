@@ -69,7 +69,7 @@ if(params.latest_restart == True):
     print(time_elapsed)
     if(latest_f is not None and  time_elapsed is not None):
       nls.load_distribution_function(latest_f)
-      dump_time_array = np.loadtxt("dump_time_array.txt").tolist()
+      #dump_time_array = np.loadtxt("dump_time_array.txt").tolist()
       using_latest_restart = True
 
 
@@ -82,7 +82,7 @@ if using_latest_restart == False:
         nls.dump_aux_arrays([params.mu,
                              params.mu_ee,
                              params.T_ee,
-                             params.j_x, params.j_y
+                             params.vel_drift_x, params.vel_drift_y
                             ],
                              'lagrange_multipliers',
                              'dump_lagrange_multipliers/t=' + formatted_time
@@ -129,7 +129,6 @@ print("rank = ", params.rank, "\n",
       "     max(n)  = ", af.max(density[0, 0, N_g:-N_g, N_g:-N_g]), "\n"
      )
 
-nls.f = af.select(nls.f < 1e-20, 1e-20, nls.f)
 while(time_elapsed < t_final):
 
     # Refine to machine error
@@ -153,7 +152,7 @@ while(time_elapsed < t_final):
             nls.dump_aux_arrays([params.mu,
                              params.mu_ee,
                              params.T_ee,
-                             params.vel_drift_x, params.vel_drift_y
+                             params.j_x, params.j_y
                                 ],
                              'lagrange_multipliers',
                              'dump_lagrange_multipliers/t=' + formatted_time
@@ -174,8 +173,6 @@ while(time_elapsed < t_final):
     params.time_step    = time_step
     params.current_time = time_elapsed
 
-    # Floors
-    nls.f     = af.select(nls.f < 1e-20, 1e-20, nls.f)
 
     density = nls.compute_moments('density')
     print("rank = ", params.rank, "\n",
