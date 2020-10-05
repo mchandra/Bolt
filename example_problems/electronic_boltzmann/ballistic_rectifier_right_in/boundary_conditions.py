@@ -17,7 +17,14 @@ def f_left(f, t, q1, q2, p1, p2, p3, params):
     
     t     = params.current_time
     omega = 2. * np.pi * params.AC_freq
-    vel_drift_x_in  = params.vel_drift_x_in
+    #vel_drift_x_in  = params.vel_drift_x_in 
+    vel_drift_x_in = params.vel_drift_x*0.0
+
+    # Implementing open boundary conditions to the left
+    N_g = domain.N_ghost
+    for index in range(N_g):
+        vel_drift_x_in[:, :, index, :] = params.vel_drift_x[:, :, N_g, :]
+    
 
     if (params.p_space_grid == 'cartesian'):
         p_x = p1 
@@ -76,13 +83,7 @@ def f_right(f, t, q1, q2, p1, p2, p3, params):
 
     t     = params.current_time
     omega = 2. * np.pi * params.AC_freq
-    #vel_drift_x_out = params.vel_drift_x_out*np.sin(omega*t) + params.vel_drift_x_out
-    vel_drift_x_out = params.vel_drift_x*0.0
-    
-    # Implementing open boundary conditions to the right
-    N_g = domain.N_ghost
-    for index in range(N_g):
-        vel_drift_x_out[:, :, -index-1, :] = params.vel_drift_x[:, :, -N_g-1, :]
+    vel_drift_x_out = -params.vel_drift_x_out
     
 
     if (params.p_space_grid == 'cartesian'):

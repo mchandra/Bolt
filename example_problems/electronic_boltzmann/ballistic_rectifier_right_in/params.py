@@ -91,7 +91,7 @@ t_final = 1000.     # ps
 dump_steps = 5
 dump_dist_after = 1600
 # Set to zero for no file-writing
-dt_dump_f       = 2000*dt #ps
+dt_dump_f       = 1000*dt #ps
 # ALWAYS set dump moments and dump fields at same frequency:
 dt_dump_moments = dt_dump_fields = 20*dt #ps
 
