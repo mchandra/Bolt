@@ -154,6 +154,14 @@ class fields_solver(object):
 
         nproc_in_q1 = PETSc.DECIDE  
         nproc_in_q2 = PETSc.DECIDE
+        
+        # Break up the domain into manually defined portions
+        ownership_ranges = None
+        if self.params.enable_manual_domain_decomposition:
+            ownership_q1 = [self.N_q1*item for item in self.params.q1_partition]
+            ownership_q2 = [self.N_q2*item for item in self.params.q2_partition]
+            ownership_ranges = (ownership_q1, ownership_q2)
+        # TODO : Implement error handling and give clean messages
 
         # Since shearing boundary conditions require interpolations which are non-local:
         if(self.boundary_conditions.in_q2_bottom == 'shearing-box'):
@@ -175,6 +183,7 @@ class fields_solver(object):
                                               proc_sizes    = (nproc_in_q1, 
                                                                nproc_in_q2
                                                               ),
+                                              ownership_ranges = ownership_ranges,
                                               stencil_type  = 1,
                                               comm          = self._comm
                                              )
@@ -190,6 +199,7 @@ class fields_solver(object):
                                             proc_sizes    = (nproc_in_q1, 
                                                              nproc_in_q2
                                                             ),
+                                            ownership_ranges = ownership_ranges,
                                             stencil_type  = 1,
                                             comm          = self._comm
                                            )
