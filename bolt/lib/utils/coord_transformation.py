@@ -44,6 +44,10 @@ def jacobian_dx_dq(q1, q2, q1_start_local_left=None, q2_start_local_bottom=None)
     x, y, jacobian = params.get_cartesian_coords(q1, q2, q1_start_local_left, q2_start_local_bottom, return_jacobian=True)
     
     if (jacobian==None):
+
+        raise NotImplementedError('Jacobian must be given, can not calculate numerically!')
+        # TODO : Errors in numerical calculation of Jacobian are higher than the error floor of the solver.
+        
         # No analytic jacobian. Proceed to compute it numerically: 
         eps = 1e-7 # small parameter needed for numerical differentiation. Can't be too small though!
         x, y                         = params.get_cartesian_coords(q1,     q2    , q1_start_local_left, q2_start_local_bottom)
@@ -342,8 +346,17 @@ def affine(q1, q2,
     
     x = a0 + a1*q1 + a2*q2 + a3*q1*q2
     y = b0 + b1*q1 + b2*q2 + b3*q1*q2
+
+    # Calculate and return analytical jacobian
+    dx_dq1 = a1 + a3*q2
+    dx_dq2 = a2 + a3*q1
+
+    dy_dq1 = b1 + b3*q2
+    dy_dq2 = b2 + b3*q1
+
+    jacobian = [[dx_dq1, dx_dq2], [dy_dq1, dy_dq2]]
     
-    return(x, y)
+    return(x, y, jacobian)
 
 def quadratic(q1, q2,
               x_y_bottom_left, x_y_bottom_right,
