@@ -241,8 +241,6 @@ class physical_system(object):
         PETSc.Sys.Print("|                 /,'                                                |")
         PETSc.Sys.Print("|                /'                                                  |")
         PETSc.Sys.Print('|--------------------------------------------------------------------|')
-        PETSc.Sys.Print('|Copyright (C) 2017-18, Research Division, Quazar Technologies, Delhi|')
-        PETSc.Sys.Print('|                                                                    |')
         PETSc.Sys.Print('|  Bolt is free software; you can redistribute it and/or modify it   |')
         PETSc.Sys.Print('|  under the terms of the GNU General Public License as published    |')
         PETSc.Sys.Print('|  by the Free Software Foundation(version 3.0)                      |')
